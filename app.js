@@ -3115,7 +3115,10 @@ function editUserPassword(name) {
 }
 
 // ----- YEDEKLEME -----
-document.getElementById('backup-btn').addEventListener('click', () => {
+document.getElementById('backup-btn').addEventListener('click', async () => {
+  const bakOk = await supabaseBackup('manuel');
+  if (bakOk) toast('✅ Yedek Supabase\'e kaydedildi!', 'success');
+  else toast('⚠️ Supabase yedekleme başarısız, yerel indiriliyor...', 'warning');
   const json = JSON.stringify(data, null, 2);
   const blob = new Blob([json], { type: 'application/json' });
   const a = document.createElement('a');
@@ -3123,7 +3126,6 @@ document.getElementById('backup-btn').addEventListener('click', () => {
   a.download = `tazedepo_yedek_${todayStr()}.json`;
   a.click();
   URL.revokeObjectURL(a.href);
-  toast('Veri tabanı JSON olarak indirildi.', 'success');
 });
 
 document.getElementById('restore-btn').addEventListener('click', () => {
@@ -3151,26 +3153,39 @@ document.getElementById('restore-btn').addEventListener('click', () => {
   reader.readAsText(file);
 });
 
+// ----- SUPABASE YEDEKLEME -----
+async function supabaseBackup(label) {
+  if (!isSupabaseReady()) return false;
+  const ts = new Date().toISOString();
+  const filename = `yedek_${todayStr()}_${String(new Date().getHours()).padStart(2,'0')}${String(new Date().getMinutes()).padStart(2,'0')}.json`;
+  try {
+    await supabaseFetch('POST', 'backups', null, [{
+      id: ts,
+      filename: filename,
+      label: label || '',
+      data: JSON.stringify(data),
+      created_at: ts,
+      created_by: data.activeUser || ''
+    }]);
+    return true;
+  } catch (e) { console.error('Yedekleme hatası:', e); return false; }
+}
+
 // ----- DEPO SIFIRLAMA -----
 function resetAllData() {
   if (isViewOnly()) { toast('Görüntüleme modunda sıfırlama yapamazsınız.', 'error'); return; }
   if (!confirm('🔴 Tüm stok verileri silinecek! Bu işlem geri alınamaz. Devam etmek istediğinize emin misiniz?')) return;
   if (!confirm('⚠️ Son bir kez daha: Tüm ürünler, stok hareketleri, STT kayıtları, ihaleler ve tedarikçiler silinecek. Onaylıyor musunuz?')) return;
 
-  // Önce yedek indir
-  const json = JSON.stringify(data, null, 2);
-  const blob = new Blob([json], { type: 'application/json' });
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = `yedek_sifirlama_oncesi_${todayStr()}.json`;
-  a.click();
-  URL.revokeObjectURL(a.href);
+  const overlay = document.getElementById('loading-overlay');
+  if (overlay) overlay.style.display = 'flex';
+  document.getElementById('loading-text').textContent = 'Yedekleniyor...';
 
   setTimeout(async () => {
-    const overlay = document.getElementById('loading-overlay');
-    if (overlay) overlay.style.display = 'flex';
-    document.getElementById('loading-text').textContent = 'Supabase sıfırlanıyor...';
+    const bakOk = await supabaseBackup('sifirlama');
+    if (!bakOk) { toast('❌ Yedekleme başarısız, sıfırlama iptal.', 'error'); if (overlay) overlay.style.display = 'none'; return; }
 
+    document.getElementById('loading-text').textContent = 'Supabase sıfırlanıyor...';
     data.products = {};
     data.transactions = [];
     data.tenders = [];
@@ -3180,7 +3195,7 @@ function resetAllData() {
     saveData();
 
     if (overlay) overlay.style.display = 'none';
-    toast('✅ Depo tamamen sıfırlandı!', 'success');
+    toast('✅ Depo tamamen sıfırlandı! Yedek Supabase\'te saklanıyor.', 'success');
     refreshAll();
     navigateTo('dashboard');
   }, 300);
@@ -3242,6 +3257,7 @@ function scheduleAutoBackup() {
   if (target <= now) target.setDate(target.getDate() + 1);
 
   backupTimer = setTimeout(async () => {
+    await supabaseBackup('otomatik');
     const prefix = data.settings.backupPrefix || 'tazedepo_otomatik';
     const filename = `${prefix}_${todayStr()}.json`;
     const json = JSON.stringify(data, null, 2);
