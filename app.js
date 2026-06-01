@@ -3953,6 +3953,8 @@ document.addEventListener('DOMContentLoaded', () => {
         const roleEl = document.getElementById('display-role');
         if (nameEl) nameEl.textContent = foundUser.name;
         if (roleEl) roleEl.textContent = foundUser.role || '';
+        const cloudUser = document.getElementById('cloud-user-text');
+        if (cloudUser) { cloudUser.textContent = '• ' + foundUser.name; cloudUser.style.display = ''; }
         foundUser.lastLogin = new Date().toISOString();
         saveData();
         refreshAll();
