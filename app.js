@@ -3153,6 +3153,46 @@ document.getElementById('restore-btn').addEventListener('click', () => {
   reader.readAsText(file);
 });
 
+document.getElementById('list-backups-btn')?.addEventListener('click', async () => {
+  const container = document.getElementById('backup-list-container');
+  if (!container) return;
+  if (container.style.display !== 'none') { container.style.display = 'none'; return; }
+  if (!isSupabaseReady()) { toast('Supabase bağlı değil.', 'warning'); return; }
+  container.style.display = 'block';
+  container.innerHTML = '<p style="color:var(--text-muted);padding:8px;text-align:center;">Yükleniyor...</p>';
+  try {
+    const data = await supabaseFetch('GET', 'backups', { order: 'created_at.desc', limit: '50' });
+    if (!data || data.length === 0) {
+      container.innerHTML = '<p style="color:var(--text-muted);padding:8px;text-align:center;">Hiç yedek bulunamadı.</p>';
+      return;
+    }
+    let html = '<table class="minimal-table" style="font-size:12px;"><thead><tr><th>Tarih</th><th>Etiket</th><th>İşlem</th></tr></thead><tbody>';
+    data.forEach(b => {
+      const d = new Date(b.created_at || b.id).toLocaleString('tr-TR');
+      html += `<tr><td style="white-space:nowrap;">${d}</td><td>${b.label || b.filename || ''}</td><td><button class="btn-ui btn-sm btn-outline" onclick="restoreBackup('${b.id}')" style="font-size:11px;padding:2px 8px;">Yükle</button></td></tr>`;
+    });
+    html += '</tbody></table>';
+    container.innerHTML = html;
+  } catch (e) {
+    container.innerHTML = '<p style="color:var(--accent);padding:8px;text-align:center;">Hata: ' + e.message + '</p>';
+  }
+});
+
+async function restoreBackup(id) {
+  if (!confirm('Bu yedeği yüklemek mevcut verilerin üzerine yazar. Devam?')) return;
+  try {
+    const data = await supabaseFetch('GET', 'backups', { id: `eq.${id}`, limit: '1' });
+    if (!data || data.length === 0) { toast('Yedek bulunamadı.', 'error'); return; }
+    const parsed = JSON.parse(data[0].data);
+    if (!parsed.products || !parsed.transactions) { toast('Geçersiz yedek.', 'error'); return; }
+    window.data = parsed;
+    initData();
+    saveData();
+    refreshAll();
+    toast('✅ Yedek geri yüklendi!', 'success');
+  } catch (e) { toast('Hata: ' + e.message, 'error'); }
+}
+
 // ----- SUPABASE YEDEKLEME -----
 async function supabaseBackup(label) {
   if (!isSupabaseReady()) return false;
