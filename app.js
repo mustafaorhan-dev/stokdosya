@@ -2866,10 +2866,12 @@ function refreshSettings() {
    const githubDesc = document.getElementById('github-status-desc');
    const githubUrlDisplay = document.getElementById('github-url-display');
    const statusEl = document.getElementById('cloud-status-text');
+   const cloudUser = document.getElementById('cloud-user-text');
 
    if (statusEl) {
      statusEl.textContent = sbReady ? '✅ Supabase: bağlı' : 'Yerel Bellek';
    }
+   if (cloudUser && data.activeUser) { cloudUser.textContent = '• ' + data.activeUser; cloudUser.style.display = ''; }
 
    if (githubUrlDisplay) githubUrlDisplay.textContent = SUPABASE_URL;
    if (githubStatusBox) githubStatusBox.style.borderColor = sbReady ? 'var(--success)' : 'var(--warning)';
@@ -3525,6 +3527,8 @@ function refreshAll() {
   if (themeBtn) themeBtn.style.display = data.activeUser === 'MUSTAFA ORHAN' ? '' : 'none';
   const statusEl = _el('cloud-status-text');
   if (statusEl) statusEl.textContent = isSupabaseReady() ? '✅ Supabase: bağlı' : 'Yerel Bellek';
+  const cloudUser = _el('cloud-user-text');
+  if (cloudUser && data.activeUser) { cloudUser.textContent = '• ' + data.activeUser; cloudUser.style.display = ''; }
 
   _safe(refreshUserSelect);
   _safe(buildMonthMenu);
