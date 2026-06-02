@@ -4262,4 +4262,40 @@ document.addEventListener('DOMContentLoaded', () => {
       });
     });
   }
+
+  // ----- 10 DAKİKA İŞLEMSİZ KALINCA OTOMATİK KİLİT -----
+  const INACTIVITY_TIMEOUT = 10 * 60 * 1000;
+  let inactivityTimer = null;
+
+  function resetInactivityTimer() {
+    if (inactivityTimer) {
+      clearTimeout(inactivityTimer);
+      inactivityTimer = null;
+    }
+    if (localStorage.getItem('stokdosya_logged_in')) {
+      inactivityTimer = setTimeout(() => {
+        localStorage.removeItem('stokdosya_logged_in');
+        const loginScr = document.getElementById('login-screen');
+        const appCont = document.getElementById('app-container');
+        if (loginScr) loginScr.style.display = 'flex';
+        if (appCont) appCont.style.display = 'none';
+        const pw = document.getElementById('login-password');
+        const un = document.getElementById('login-username');
+        const err = document.getElementById('login-error');
+        if (pw) pw.value = '';
+        if (un) un.value = '';
+        if (err) err.style.display = 'none';
+      }, INACTIVITY_TIMEOUT);
+    }
+  }
+
+  const activityEvents = ['mousedown', 'keydown', 'touchstart', 'scroll', 'mousemove', 'wheel', 'click'];
+  activityEvents.forEach(evt => {
+    document.addEventListener(evt, resetInactivityTimer, { passive: true });
+  });
+  resetInactivityTimer();
+
+  window.addEventListener('storage', (e) => {
+    if (e.key === 'stokdosya_logged_in') resetInactivityTimer();
+  });
 });
