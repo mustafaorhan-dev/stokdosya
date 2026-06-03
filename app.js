@@ -3940,11 +3940,27 @@ function pdfCikti() {
 
 // ----- EVENT LISTENER'LAR (DOMContentLoaded öncesi tanımlar) -----
 document.addEventListener('DOMContentLoaded', () => {
-  // ---- Giriş kontrolü (her sayfa yüklemesinde şifre ekranı göster) ----
   const loginScreen = document.getElementById('login-screen');
   const appContainer = document.getElementById('app-container');
-  if (loginScreen) loginScreen.style.display = 'flex';
-  if (appContainer) appContainer.style.display = 'none';
+
+  // sessionStorage varsa → F5/refresh, oturum devam etsin
+  // sessionStorage yoksa → sekme yeni açılmış, şifre sor
+  if (sessionStorage.getItem('stokdosya_logged_in')) {
+    data.activeUser = sessionStorage.getItem('stokdosya_activeUser') || data.users[0]?.name || '';
+    if (loginScreen) loginScreen.style.display = 'none';
+    if (appContainer) appContainer.style.display = '';
+    const nameEl = document.getElementById('display-username');
+    const roleEl = document.getElementById('display-role');
+    if (nameEl && data.activeUser) nameEl.textContent = data.activeUser;
+    if (roleEl) roleEl.textContent = data.users.find(function(u) { return u.name === data.activeUser; })?.role || '';
+    // hash'e göre sayfaya git
+    var hashTarget = location.hash ? location.hash.slice(1) : 'dashboard';
+    var validViews = ['dashboard','warehouse','aggregated-stock','entry','exit','daily','month-view','years-view','stt-tracking','tender-tracking','suppliers','supplier-report-view','critical-stock-view','user-guide-view','settings-view'];
+    setTimeout(function() { navigateTo(validViews.includes(hashTarget) ? hashTarget : 'dashboard'); }, 0);
+  } else {
+    if (loginScreen) loginScreen.style.display = 'flex';
+    if (appContainer) appContainer.style.display = 'none';
+  }
 
   // Çapraz-sekme eşitleme — diğer sekmede yapılan değişiklik anında gelsin
   window.addEventListener('storage', (e) => {
@@ -4004,6 +4020,7 @@ document.addEventListener('DOMContentLoaded', () => {
       if (foundUser) {
         data.activeUser = foundUser.name;
         sessionStorage.setItem('stokdosya_logged_in', '1');
+        sessionStorage.setItem('stokdosya_activeUser', foundUser.name);
         if (loginScreen) loginScreen.style.display = 'none';
         if (appContainer) appContainer.style.display = '';
         const nameEl = document.getElementById('display-username');
@@ -4047,6 +4064,7 @@ document.addEventListener('DOMContentLoaded', () => {
   [document.getElementById('logout-btn'), document.getElementById('logout-btn-header')].forEach(btn => {
     if (btn) btn.addEventListener('click', () => {
       sessionStorage.removeItem('stokdosya_logged_in');
+      sessionStorage.removeItem('stokdosya_activeUser');
       const loginScr = document.getElementById('login-screen');
       const appCont = document.getElementById('app-container');
       if (loginScr) loginScr.style.display = 'flex';
@@ -4243,6 +4261,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (sessionStorage.getItem('stokdosya_logged_in')) {
       inactivityTimer = setTimeout(() => {
         sessionStorage.removeItem('stokdosya_logged_in');
+        sessionStorage.removeItem('stokdosya_activeUser');
         const loginScr = document.getElementById('login-screen');
         const appCont = document.getElementById('app-container');
         if (loginScr) loginScr.style.display = 'flex';
