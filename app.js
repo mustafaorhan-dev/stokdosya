@@ -937,6 +937,9 @@ function navigateTo(target) {
   }
   if (target === 'settings-view') _safe(refreshSettings);
   if (target === 'user-guide-view') { /* static content, no refresh needed */ }
+
+  // URL hash'ini güncelle (yeni sekmede açılabilmesi için)
+  if (target) location.hash = '#' + target;
 }
 
 // ----- AY MENÜSÜ OLUŞTUR -----
@@ -4012,7 +4015,10 @@ document.addEventListener('DOMContentLoaded', () => {
         foundUser.lastLogin = new Date().toISOString();
         saveData();
         refreshAll();
-        navigateTo('dashboard');
+        // URL'de hash varsa o sayfaya git, yoksa dashboard
+        var hashTarget = location.hash ? location.hash.slice(1) : 'dashboard';
+        var validViews = ['dashboard','warehouse','aggregated-stock','entry','exit','daily','month-view','years-view','stt-tracking','tender-tracking','suppliers','supplier-report-view','critical-stock-view','user-guide-view','settings-view'];
+        navigateTo(validViews.includes(hashTarget) ? hashTarget : 'dashboard');
         return;
       }
 
@@ -4259,5 +4265,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
   window.addEventListener('storage', (e) => {
     if (e.key === 'stokdosya_logged_in') resetInactivityTimer();
+  });
+
+  // Hash değişince sayfayı güncelle (tarayıcı geri/ileri butonları)
+  window.addEventListener('hashchange', () => {
+    var hashTarget = location.hash ? location.hash.slice(1) : 'dashboard';
+    var validViews = ['dashboard','warehouse','aggregated-stock','entry','exit','daily','month-view','years-view','stt-tracking','tender-tracking','suppliers','supplier-report-view','critical-stock-view','user-guide-view','settings-view'];
+    if (validViews.includes(hashTarget)) navigateTo(hashTarget);
   });
 });
