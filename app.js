@@ -3937,17 +3937,11 @@ function pdfCikti() {
 
 // ----- EVENT LISTENER'LAR (DOMContentLoaded öncesi tanımlar) -----
 document.addEventListener('DOMContentLoaded', () => {
-  // ---- Giriş kontrolü ----
+  // ---- Giriş kontrolü (her sayfa yüklemesinde şifre ekranı göster) ----
   const loginScreen = document.getElementById('login-screen');
   const appContainer = document.getElementById('app-container');
-
-  if (!sessionStorage.getItem('stokdosya_logged_in')) {
-    if (loginScreen) loginScreen.style.display = 'flex';
-    if (appContainer) appContainer.style.display = 'none';
-  } else {
-    if (loginScreen) loginScreen.style.display = 'none';
-    if (appContainer) appContainer.style.display = '';
-  }
+  if (loginScreen) loginScreen.style.display = 'flex';
+  if (appContainer) appContainer.style.display = 'none';
 
   // Çapraz-sekme eşitleme — diğer sekmede yapılan değişiklik anında gelsin
   window.addEventListener('storage', (e) => {
