@@ -3941,7 +3941,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const loginScreen = document.getElementById('login-screen');
   const appContainer = document.getElementById('app-container');
 
-  if (!localStorage.getItem('stokdosya_logged_in')) {
+  if (!sessionStorage.getItem('stokdosya_logged_in')) {
     if (loginScreen) loginScreen.style.display = 'flex';
     if (appContainer) appContainer.style.display = 'none';
   } else {
@@ -4006,7 +4006,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
       if (foundUser) {
         data.activeUser = foundUser.name;
-        localStorage.setItem('stokdosya_logged_in', '1');
+        sessionStorage.setItem('stokdosya_logged_in', '1');
         if (loginScreen) loginScreen.style.display = 'none';
         if (appContainer) appContainer.style.display = '';
         const nameEl = document.getElementById('display-username');
@@ -4046,7 +4046,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // Çıkış (sidebar + header)
   [document.getElementById('logout-btn'), document.getElementById('logout-btn-header')].forEach(btn => {
     if (btn) btn.addEventListener('click', () => {
-      localStorage.removeItem('stokdosya_logged_in');
+      sessionStorage.removeItem('stokdosya_logged_in');
       const loginScr = document.getElementById('login-screen');
       const appCont = document.getElementById('app-container');
       if (loginScr) loginScr.style.display = 'flex';
@@ -4240,9 +4240,9 @@ document.addEventListener('DOMContentLoaded', () => {
       clearTimeout(inactivityTimer);
       inactivityTimer = null;
     }
-    if (localStorage.getItem('stokdosya_logged_in')) {
+    if (sessionStorage.getItem('stokdosya_logged_in')) {
       inactivityTimer = setTimeout(() => {
-        localStorage.removeItem('stokdosya_logged_in');
+        sessionStorage.removeItem('stokdosya_logged_in');
         const loginScr = document.getElementById('login-screen');
         const appCont = document.getElementById('app-container');
         if (loginScr) loginScr.style.display = 'flex';
