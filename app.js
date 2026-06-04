@@ -984,6 +984,11 @@ function refreshDashboard() {
   const prods = Object.values(data.products).filter(p => p.active !== false);
   const el = _el;
   if (el('total-varieties')) el('total-varieties').textContent = prods.length;
+  const aktifUserEl = el('dashboard-active-user');
+  if (aktifUserEl) {
+    const u = data.users.find(x => x.name === data.activeUser);
+    aktifUserEl.textContent = (u ? u.role + ' — ' : '') + (data.activeUser || '-');
+  }
 
   const now = new Date();
   now.setHours(0, 0, 0, 0);
