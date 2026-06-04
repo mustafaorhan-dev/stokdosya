@@ -222,6 +222,33 @@ function sheetsLogin(username, password) {
   return Promise.resolve(null);
 }
 
+async function heartbeatActiveSession() {
+  if (!data.activeUser || !isSupabaseReady()) return;
+  try {
+    const remote = await supabaseFetch('GET', 'settings');
+    let sessions = [];
+    if (Array.isArray(remote)) {
+      const obj = {};
+      remote.forEach(s => obj[s.key] = s.value);
+      if (obj._activeSessions) { try { sessions = JSON.parse(obj._activeSessions); } catch(e) {} }
+    }
+    const now = new Date().toISOString();
+    const idx = sessions.findIndex(s => s.user === data.activeUser);
+    if (idx >= 0) sessions[idx].time = now;
+    else sessions.push({ user: data.activeUser, time: now });
+    const cutoff = Date.now() - 120000;
+    sessions = sessions.filter(s => new Date(s.time).getTime() > cutoff);
+    data.settings._activeSessions = JSON.stringify(sessions);
+    await supabaseFetch('POST', 'settings', null, [{ key: '_activeSessions', value: data.settings._activeSessions }]);
+  } catch(e) { /* silent */ }
+}
+let _heartbeatInterval = null;
+function startHeartbeat() {
+  if (_heartbeatInterval) return;
+  heartbeatActiveSession();
+  _heartbeatInterval = setInterval(heartbeatActiveSession, 30000);
+}
+
 // ----- SUPABASE TEST -----
 async function sheetsTest() {
   if (!isSupabaseReady()) {
@@ -989,9 +1016,13 @@ function refreshDashboard() {
   if (aktifUserBox && userListEl) {
     const isAdmin = data.activeUser === 'MUSTAFA ORHAN';
     aktifUserBox.style.display = isAdmin ? '' : 'none';
-    const aktif = data.activeUser || '';
+    let activeSessions = [];
+    try { activeSessions = JSON.parse(data.settings._activeSessions || '[]'); } catch(e) {}
+    const now = Date.now();
+    activeSessions = activeSessions.filter(s => (now - new Date(s.time).getTime()) < 120000);
+    const aktifSet = new Set(activeSessions.map(s => s.user));
     userListEl.innerHTML = data.users.map(u => {
-      const isAktif = u.name === aktif;
+      const isAktif = aktifSet.has(u.name);
       return `<div style="display:flex;align-items:center;gap:10px;padding:6px 10px;border-radius:var(--border-radius-sm);background:${isAktif ? 'var(--primary-light)' : 'transparent'};border:1px solid ${isAktif ? 'var(--primary)' : 'transparent'};">
         <div style="width:10px;height:10px;border-radius:50%;background:${isAktif ? 'var(--success)' : 'var(--text-muted)'};flex-shrink:0;"></div>
         <span style="flex:1;font-size:14px;font-weight:${isAktif ? '700' : '400'};color:var(--text-primary);">${htmlEscape(u.name)}</span>
@@ -4008,8 +4039,10 @@ document.addEventListener('DOMContentLoaded', () => {
     // hash'e göre sayfaya git
     var hashTarget = location.hash ? location.hash.slice(1) : 'dashboard';
     var validViews = ['dashboard','warehouse','aggregated-stock','entry','exit','daily','month-view','years-view','stt-tracking','tender-tracking','suppliers','supplier-report-view','critical-stock-view','user-guide-view','settings-view'];
-    setTimeout(function() { navigateTo(validViews.includes(hashTarget) ? hashTarget : 'dashboard'); }, 0);
-  } else {
+        setTimeout(function() { navigateTo(validViews.includes(hashTarget) ? hashTarget : 'dashboard'); }, 0);
+        // loadData bittiğinde heartbeat başlasın
+        setTimeout(startHeartbeat, 1000);
+      } else {
     if (loginScreen) loginScreen.style.display = 'flex';
     if (appContainer) appContainer.style.display = 'none';
   }
@@ -4084,6 +4117,7 @@ document.addEventListener('DOMContentLoaded', () => {
         foundUser.lastLogin = new Date().toISOString();
         saveData();
         refreshAll();
+        startHeartbeat();
         // URL'de hash varsa o sayfaya git, yoksa dashboard
         var hashTarget = location.hash ? location.hash.slice(1) : 'dashboard';
         var validViews = ['dashboard','warehouse','aggregated-stock','entry','exit','daily','month-view','years-view','stt-tracking','tender-tracking','suppliers','supplier-report-view','critical-stock-view','user-guide-view','settings-view'];
@@ -4115,6 +4149,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // Çıkış (sidebar + header)
   [document.getElementById('logout-btn'), document.getElementById('logout-btn-header')].forEach(btn => {
     if (btn) btn.addEventListener('click', () => {
+      if (_heartbeatInterval) { clearInterval(_heartbeatInterval); _heartbeatInterval = null; }
       sessionStorage.removeItem('stokdosya_logged_in');
       sessionStorage.removeItem('stokdosya_activeUser');
       const loginScr = document.getElementById('login-screen');
