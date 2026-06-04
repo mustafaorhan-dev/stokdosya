@@ -971,10 +971,10 @@ function ayHareketSayisi(ay, yil) {
 function goToMonth(ay, yil) {
   window._selectedMonth = ay;
   window._selectedYear = yil;
+  navigateTo('month-view');
   document.querySelectorAll('.nav-item[data-month]').forEach(n => n.classList.remove('active'));
   const el = document.querySelector(`.nav-item[data-month="${ay}"]`);
   if (el) el.classList.add('active');
-  navigateTo('month-view');
 }
 
 // ----- DASHBOARD -----
@@ -3744,6 +3744,19 @@ document.getElementById('exit-edit-form').addEventListener('submit', (e) => {
   buildMonthMenu();
 });
 
+let _srShowDeleted = false;
+function toggleSrDeleted() {
+  _srShowDeleted = !_srShowDeleted;
+  const btn = document.getElementById('sr-show-deleted');
+  if (btn) {
+    btn.classList.toggle('active', _srShowDeleted);
+    btn.innerHTML = _srShowDeleted
+      ? '<i class="fa-solid fa-eye"></i> <span>Silinen</span>'
+      : '<i class="fa-solid fa-eye-slash"></i> <span>Silinen</span>';
+  }
+  refreshSupplierReport();
+}
+
 function refreshSupplierReport() {
   const monthEl = document.getElementById('sr-month');
   const supplierEl = document.getElementById('sr-supplier');
@@ -3754,7 +3767,7 @@ function refreshSupplierReport() {
   const tbody = document.getElementById('sr-body');
 
   if (!ay) {
-    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--text-muted);padding:30px;">Ay seçin.</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:var(--text-muted);padding:30px;">Ay seçin.</td></tr>';
     return;
   }
 
@@ -3764,6 +3777,7 @@ function refreshSupplierReport() {
     const td = new Date(t.date);
     if (td.getFullYear() !== parseInt(yil) || (td.getMonth() + 1) !== parseInt(ayNum)) return false;
     if (urunFiltre && t.productName !== urunFiltre) return false;
+    if (!_srShowDeleted && data.products[t.partiNo]?.active === false) return false;
     return true;
   });
 
@@ -3781,8 +3795,9 @@ function refreshSupplierReport() {
     const tedarikci = p ? (p.companyName || 'Belirtilmemiş') : 'Belirtilmemiş';
     const urun = t.productName || t.partiNo;
     const key = tedarikci + '|||' + urun;
-    if (!gruplar[key]) gruplar[key] = { tedarikci, urun, miktar: 0, birim: t.unit || '', gunler: {} };
+    if (!gruplar[key]) gruplar[key] = { tedarikci, urun, miktar: 0, birim: t.unit || '', partiNolar: new Set(), gunler: {} };
     gruplar[key].miktar += t.amount;
+    gruplar[key].partiNolar.add(t.partiNo);
     if (!gruplar[key].birim && t.unit) gruplar[key].birim = t.unit;
     if (!gruplar[key].gunler[t.date]) gruplar[key].gunler[t.date] = 0;
     gruplar[key].gunler[t.date] += t.amount;
@@ -3790,7 +3805,7 @@ function refreshSupplierReport() {
 
   const entries = Object.values(gruplar);
   if (!entries.length) {
-    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--text-muted);padding:30px;">Bu ayda kayıt bulunamadı.</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:var(--text-muted);padding:30px;">Bu ayda kayıt bulunamadı.</td></tr>';
     return;
   }
 
@@ -3801,6 +3816,7 @@ function refreshSupplierReport() {
     const key = v.tedarikci + '|||' + v.urun;
     const acik = window._srAcik[key] || false;
     const gunSayisi = Object.keys(v.gunler).length;
+    const partiList = [...v.partiNolar].sort().join(', ');
     const gunHtml = Object.entries(v.gunler)
       .sort((a, b) => a[0].localeCompare(b[0]))
       .map(([tarih, miktar]) => {
@@ -3816,12 +3832,13 @@ function refreshSupplierReport() {
     <tr onclick="window._srAcik['${key.replace(/'/g, "\\'")}']=!window._srAcik['${key.replace(/'/g, "\\'")}'];refreshSupplierReport()" style="cursor:pointer;">
       <td style="width:24px;text-align:center;font-size:11px;color:var(--primary);">${ok}</td>
       <td>${i + 1}</td>
+      <td style="font-size:12px;color:var(--text-secondary);">${htmlEscape(partiList)}</td>
       <td style="font-weight:600;color:var(--primary);">${htmlEscape(v.tedarikci)}</td>
       <td>${htmlEscape(v.urun)}</td>
       <td style="font-weight:700;">${_fmt(v.miktar)}</td>
       <td>${v.birim || '-'}</td>
     </tr>
-    ${acik ? `<tr><td colspan="6" style="padding:6px 12px 10px 36px;background:var(--bg-card);border-bottom:1px solid var(--border-color);">
+    ${acik ? `<tr><td colspan="7" style="padding:6px 12px 10px 36px;background:var(--bg-card);border-bottom:1px solid var(--border-color);">
       <div style="font-size:13px;font-weight:600;color:var(--text-secondary);margin-bottom:6px;">Günlük Dağılım (${gunSayisi} gün):</div>
       ${gunHtml}
     </td></tr>` : ''}`;
@@ -3850,6 +3867,7 @@ function srExportPrint() {
       const p = data.products[t.partiNo];
       if (!p || p.companyName !== tedarikciAdi) return false;
     }
+    if (!_srShowDeleted && data.products[t.partiNo]?.active === false) return false;
     return true;
   });
   const gruplar = {};
@@ -3858,8 +3876,9 @@ function srExportPrint() {
     const tedarikci = p ? (p.companyName || 'Belirtilmemiş') : 'Belirtilmemiş';
     const urun = t.productName || t.partiNo;
     const key = tedarikci + '|||' + urun;
-    if (!gruplar[key]) gruplar[key] = { tedarikci, urun, miktar: 0, birim: t.unit || '', gunler: {} };
+    if (!gruplar[key]) gruplar[key] = { tedarikci, urun, miktar: 0, birim: t.unit || '', partiNolar: new Set(), gunler: {} };
     gruplar[key].miktar += t.amount;
+    gruplar[key].partiNolar.add(t.partiNo);
     if (!gruplar[key].birim && t.unit) gruplar[key].birim = t.unit;
     if (!gruplar[key].gunler[t.date]) gruplar[key].gunler[t.date] = 0;
     gruplar[key].gunler[t.date] += t.amount;
@@ -3872,11 +3891,12 @@ function srExportPrint() {
       .map(([tarih, miktar]) => {
         const d = tarih.split('-');
         const trTarih = d[2] + '.' + d[1] + '.' + d[0];
-        return `<tr style="background:#f8fafc;"><td></td><td></td><td style="padding-left:24px;font-size:13px;font-weight:500;color:#475569;">${trTarih}</td><td style="text-align:right;font-weight:700;font-size:13px;">${_fmt(miktar)}</td><td style="font-size:13px;">${v.birim || '-'}</td></tr>`;
+        return `<tr style="background:#f8fafc;"><td></td><td></td><td></td><td style="padding-left:24px;font-size:13px;font-weight:500;color:#475569;">${trTarih}</td><td style="text-align:right;font-weight:700;font-size:13px;">${_fmt(miktar)}</td><td style="font-size:13px;">${v.birim || '-'}</td></tr>`;
       }).join('');
+    const partiList = [...v.partiNolar].sort().join(', ');
     satirHtml += `
     <tr style="font-weight:600;">
-      <td>${i + 1}</td><td>${htmlEscape(v.tedarikci)}</td><td>${htmlEscape(v.urun)}</td>
+      <td>${i + 1}</td><td style="font-size:11px;color:#64748b;">${htmlEscape(partiList)}</td><td>${htmlEscape(v.tedarikci)}</td><td>${htmlEscape(v.urun)}</td>
       <td style="text-align:right">${_fmt(v.miktar)}</td><td>${htmlEscape(v.birim) || '-'}</td>
     </tr>${gunHtml}`;
   });
@@ -3901,7 +3921,7 @@ function srExportPrint() {
       <p class="sub">Oluşturulma: ${new Date().toLocaleDateString('tr-TR')}</p>
       <p class="filters">Tedarikçi: ${htmlEscape(tedarikciAdi)} &nbsp;|&nbsp; Ürün: ${htmlEscape(urunAdi)}</p>
       <table>
-        <thead><tr><th>#</th><th>Tedarikçi</th><th>Ürün Adı</th><th style="text-align:right">Miktar</th><th>Birim</th></tr></thead>
+        <thead><tr><th>#</th><th>Parti No</th><th>Tedarikçi</th><th>Ürün Adı</th><th style="text-align:right">Miktar</th><th>Birim</th></tr></thead>
         <tbody>${satirHtml}</tbody>
       </table>
       <p class="footer">Oluşturulma: ${new Date().toLocaleString('tr-TR')} &nbsp;|&nbsp; ${htmlEscape(baslik)}</p>

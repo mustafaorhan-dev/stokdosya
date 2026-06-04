@@ -528,7 +528,10 @@
                 <div class="panel-container">
                     <div class="panel-header">
                         <h3><i class="fa-solid fa-truck"></i> Aylık Tedarikçi Raporu</h3>
-                        <button class="btn-ui btn-sm btn-outline" onclick="srExportPrint()" title="PDF Çıktı"><i class="fa-solid fa-print"></i> Çıktı</button>
+                        <div style="display:flex;gap:6px;flex-wrap:wrap;">
+                            <button class="btn-ui btn-sm btn-outline" id="sr-show-deleted" onclick="toggleSrDeleted()" title="Silinen ürünleri göster"><i class="fa-solid fa-eye-slash"></i> <span>Silinen</span></button>
+                            <button class="btn-ui btn-sm btn-outline" onclick="srExportPrint()" title="PDF Çıktı"><i class="fa-solid fa-print"></i> Çıktı</button>
+                        </div>
                     </div>
                     <div style="padding: 1rem;">
                         <div style="display: flex; gap: 10px; margin-bottom: 1rem; flex-wrap: wrap; justify-content: flex-end;">
@@ -542,10 +545,10 @@
                         </div>
                         <table class="minimal-table">
                             <thead>
-                                <tr><th style="width:24px"></th><th>#</th><th>Tedarikçi</th><th>Ürün Adı</th><th>Miktar</th><th>Birim</th></tr>
+                                <tr><th style="width:24px"></th><th>#</th><th>Parti No</th><th>Tedarikçi</th><th>Ürün Adı</th><th>Miktar</th><th>Birim</th></tr>
                             </thead>
                             <tbody id="sr-body">
-                                <tr><td colspan="6" style="text-align:center;color:var(--text-muted);padding:30px;">Ay ve tedarikçi seçin.</td></tr>
+                                <tr><td colspan="7" style="text-align:center;color:var(--text-muted);padding:30px;">Ay ve tedarikçi seçin.</td></tr>
                             </tbody>
                         </table>
                     </div>
