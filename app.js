@@ -402,11 +402,18 @@ async function loadData() {
         if (remoteData.products) data.products = remoteData.products;
         if (remoteData.transactions) data.transactions = remoteData.transactions;
         if (remoteData.users) {
-          const existing = new Set(data.users.map(u => u.name));
+          const userMap = new Map(data.users.map(u => [u.name, u]));
           remoteData.users.forEach(su => {
-            if (!existing.has(su.name)) {
+            if (userMap.has(su.name)) {
+              // Var olan kullanıcıyı güncelle (active, role, password, lastLogin)
+              const existing = userMap.get(su.name);
+              existing.active = su.active !== false;
+              if (su.role) existing.role = su.role;
+              if (su.password) existing.password = su.password;
+              if (su.lastLogin) existing.lastLogin = su.lastLogin;
+            } else {
               data.users.push(su);
-              existing.add(su.name);
+              userMap.set(su.name, su);
             }
           });
         }
