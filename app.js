@@ -953,9 +953,10 @@ function buildMonthMenu() {
   container.innerHTML = AYLAR.map((ay, i) => {
     const aktif = (i === AY_INDEX && yil === new Date().getFullYear()) ? ' active' : '';
     const count = ayHareketSayisi(i, yil);
+    const ok = aktif ? ' <i class="fa-solid fa-chevron-left" style="font-size:10px;margin-left:3px;opacity:0.8;"></i>' : '';
     return `<a href="javascript:void(0)" class="nav-item${aktif}" data-month="${i}" data-year="${yil}" onclick="goToMonth(${i}, ${yil})">
       <i class="fa-regular fa-calendar"></i>
-      <span>${ay} ${yil}</span>
+      <span>${ay} ${yil}${ok}</span>
       <span class="month-badge">${count}</span>
     </a>`;
   }).join('');
