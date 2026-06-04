@@ -429,7 +429,14 @@ async function loadData() {
         if (remoteData.tenders) data.tenders = remoteData.tenders;
         if (remoteData.companies) data.companies = remoteData.companies;
         if (remoteData.productNames && remoteData.productNames.length) data.productNames = remoteData.productNames;
-        if (remoteData.settings) data.settings = { ...data.settings, ...remoteData.settings };
+        if (remoteData.settings) {
+          // Lokal _userActiveFlags ve _forceLogout korunsun (Supabase'te eski kalabilir)
+          const localFlags = data.settings._userActiveFlags;
+          const localForce = data.settings._forceLogout;
+          data.settings = { ...data.settings, ...remoteData.settings };
+          if (localFlags) data.settings._userActiveFlags = localFlags;
+          if (localForce) data.settings._forceLogout = localForce;
+        }
         initData();
         saveDataLocal();
       }
