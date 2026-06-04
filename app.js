@@ -236,6 +236,8 @@ async function heartbeatActiveSession() {
     }
     // Başka bir yönetici bu kullanıcıyı pasif yaptıysa oturumu kapat
     if (forceLogout === data.activeUser) {
+      const logoutUser = data.users.find(u => u.name === data.activeUser);
+      if (logoutUser) logoutUser.active = false;
       supabaseFetch('POST', 'settings', null, [{ key: '_forceLogout', value: '' }]).catch(() => {});
       sessionStorage.removeItem('stokdosya_logged_in');
       sessionStorage.removeItem('stokdosya_activeUser');
@@ -3652,6 +3654,7 @@ function refreshAll() {
   // Pasif kullanıcıyı anında oturumdan at
   const currentUser = data.users.find(u => u.name === data.activeUser);
   if (currentUser && currentUser.active === false) {
+    currentUser.active = false;
     sessionStorage.removeItem('stokdosya_logged_in');
     sessionStorage.removeItem('stokdosya_activeUser');
     data.activeUser = '';
