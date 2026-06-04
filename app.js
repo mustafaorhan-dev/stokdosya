@@ -1063,6 +1063,9 @@ function refreshDashboard() {
     const now = Date.now();
     activeSessions = activeSessions.filter(s => (now - new Date(s.time).getTime()) < 120000);
     const aktifSet = new Set(activeSessions.map(s => s.user));
+    const aktifCount = aktifSet.size;
+    const countEl = el('dashboard-active-count');
+    if (countEl) countEl.textContent = aktifCount + ' Aktif';
     userListEl.innerHTML = data.users.filter(u => u.active !== false).map(u => {
       const isAktif = aktifSet.has(u.name);
       return `<div style="display:flex;align-items:center;gap:10px;padding:6px 10px;border-radius:var(--border-radius-sm);background:${isAktif ? 'var(--primary-light)' : 'transparent'};border:1px solid ${isAktif ? 'var(--primary)' : 'transparent'};">
