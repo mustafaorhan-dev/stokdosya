@@ -763,18 +763,19 @@ function renderYearChart(yil) {
   const urunFiltre = (document.getElementById('year-filter-btn').dataset.value || '');
   const emptyEl = document.getElementById('year-chart-empty');
 
+  const aktifUrun = t => data.products[t.partiNo]?.active !== false;
   const girisAylik = AYLAR.map((_, i) =>
     data.transactions.filter(t => {
       const d = new Date(t.date);
       return t.type === 'giris' && d.getMonth() === i && d.getFullYear() === yil
-        && (!urunFiltre || t.productName === urunFiltre);
+        && (!urunFiltre || t.productName === urunFiltre) && aktifUrun(t);
     }).reduce((s, t) => s + t.amount, 0)
   );
   const cikisAylik = AYLAR.map((_, i) =>
     data.transactions.filter(t => {
       const d = new Date(t.date);
       return t.type === 'cikis' && d.getMonth() === i && d.getFullYear() === yil
-        && (!urunFiltre || t.productName === urunFiltre);
+        && (!urunFiltre || t.productName === urunFiltre) && aktifUrun(t);
     }).reduce((s, t) => s + t.amount, 0)
   );
 
@@ -2270,13 +2271,14 @@ function refreshMonthView() {
   const yil = window._selectedYear !== undefined ? window._selectedYear : new Date().getFullYear();
   document.getElementById('month-title').textContent = `${AYLAR[ay]} ${yil} — Aylık Rapor`;
 
+  const aktifUrun = t => data.products[t.partiNo]?.active !== false;
   const girisler = data.transactions.filter(t => {
     const d = new Date(t.date);
-    return t.type === 'giris' && d.getMonth() === ay && d.getFullYear() === yil;
+    return t.type === 'giris' && d.getMonth() === ay && d.getFullYear() === yil && aktifUrun(t);
   });
   const cikislar = data.transactions.filter(t => {
     const d = new Date(t.date);
-    return t.type === 'cikis' && d.getMonth() === ay && d.getFullYear() === yil;
+    return t.type === 'cikis' && d.getMonth() === ay && d.getFullYear() === yil && aktifUrun(t);
   });
 
   document.getElementById('month-in-total').textContent = `${_fmt(girisler.reduce((s, t) => s + t.amount, 0))} Adet`;
@@ -2366,7 +2368,8 @@ function refreshYearsView() {
 
   const tumYil = t => new Date(t.date).getFullYear() === yil;
   const urunEslesme = t => !urunFiltre || t.productName === urunFiltre;
-  const hareketler = data.transactions.filter(t => tumYil(t) && urunEslesme(t));
+  const aktifUrun = t => data.products[t.partiNo]?.active !== false;
+  const hareketler = data.transactions.filter(t => tumYil(t) && urunEslesme(t) && aktifUrun(t));
   const girisler = hareketler.filter(t => t.type === 'giris');
   const cikislar = hareketler.filter(t => t.type === 'cikis');
   const girisMiktar = girisler.reduce((s, t) => s + t.amount, 0);
@@ -2383,7 +2386,7 @@ function refreshYearsView() {
 
   // --- Geçen yıl karşılaştırması ---
   const gecenYil = yil - 1;
-  const gecenHareket = data.transactions.filter(t => new Date(t.date).getFullYear() === gecenYil && urunEslesme(t));
+  const gecenHareket = data.transactions.filter(t => new Date(t.date).getFullYear() === gecenYil && urunEslesme(t) && aktifUrun(t));
   const vsPrevEl = document.getElementById('year-vs-prev');
   const vsPrevUnit = document.getElementById('year-vs-prev-unit');
   if (gecenHareket.length > 0 && hareketler.length > 0) {
@@ -2523,7 +2526,7 @@ function yearExportPrint() {
           ${AYLAR.map((ayAdi, i) => {
             const har = data.transactions.filter(t => {
               const d = new Date(t.date);
-              return d.getFullYear() === yil && d.getMonth() === i && (!urunFiltre || t.productName === urunFiltre);
+              return d.getFullYear() === yil && d.getMonth() === i && (!urunFiltre || t.productName === urunFiltre) && data.products[t.partiNo]?.active !== false;
             });
             if (!har.length) return '';
             const g = har.filter(t => t.type === 'giris').reduce((s, t) => s + t.amount, 0);
@@ -3654,6 +3657,7 @@ function refreshDailyView() {
   }
   hareketler.sort((a,b) => (b.id || 0) - (a.id || 0));
   tbody.innerHTML = hareketler.map((t,i) => {
+    const silindi = data.products[t.partiNo]?.active === false;
     const tip = t.type === 'giris'
       ? '<span style="color:var(--success);font-weight:700;">GİRİŞ</span>'
       : t.type === 'duzeltme'
@@ -3664,7 +3668,8 @@ function refreshDailyView() {
     const duzeltBtn = isAdmin && t.type === 'cikis'
       ? `<button class="btn-ui btn-sm btn-outline" onclick="openExitEdit(${t.id})" style="padding:2px 8px;font-size:11px;" title="Düzelt"><i class="fa-solid fa-pen"></i></button>`
       : '';
-    return `<tr><td>${i+1}</td><td>${tip}</td><td style="font-weight:600;">${htmlEscape(t.partiNo)}</td><td>${htmlEscape(t.productName)}</td><td>${_fmt(t.amount)}</td><td>${htmlEscape(birim)}</td><td style="font-weight:600;color:var(--primary);font-size:13px;">${htmlEscape(t.createdBy) || '-'}</td><td style="color:var(--text-secondary);">${htmlEscape(t.note) || '-'}</td><td>${duzeltBtn}</td></tr>`;
+    const silindiNotu = silindi ? ' <span style="color:var(--accent);font-weight:700;">[SİLİNDİ]</span>' : '';
+    return `<tr><td>${i+1}</td><td>${tip}</td><td style="font-weight:600;">${htmlEscape(t.partiNo)}${silindiNotu}</td><td>${htmlEscape(t.productName)}</td><td>${_fmt(t.amount)}</td><td>${htmlEscape(birim)}</td><td style="font-weight:600;color:var(--primary);font-size:13px;">${htmlEscape(t.createdBy) || '-'}</td><td style="color:var(--text-secondary);">${htmlEscape(t.note) || '-'}</td><td>${duzeltBtn}</td></tr>`;
   }).join('');
 }
 
