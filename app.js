@@ -227,10 +227,25 @@ async function heartbeatActiveSession() {
   try {
     const remote = await supabaseFetch('GET', 'settings');
     let sessions = [];
+    let forceLogout = '';
     if (Array.isArray(remote)) {
       const obj = {};
       remote.forEach(s => obj[s.key] = s.value);
       if (obj._activeSessions) { try { sessions = JSON.parse(obj._activeSessions); } catch(e) {} }
+      forceLogout = obj._forceLogout || '';
+    }
+    // Başka bir yönetici bu kullanıcıyı pasif yaptıysa oturumu kapat
+    if (forceLogout === data.activeUser) {
+      supabaseFetch('POST', 'settings', null, [{ key: '_forceLogout', value: '' }]).catch(() => {});
+      sessionStorage.removeItem('stokdosya_logged_in');
+      sessionStorage.removeItem('stokdosya_activeUser');
+      data.activeUser = '';
+      const loginScr = document.getElementById('login-screen');
+      const appCont = document.getElementById('app-container');
+      if (loginScr) loginScr.style.display = 'flex';
+      if (appCont) appCont.style.display = 'none';
+      if (_heartbeatInterval) { clearInterval(_heartbeatInterval); _heartbeatInterval = null; }
+      return;
     }
     const now = new Date().toISOString();
     const idx = sessions.findIndex(s => s.user === data.activeUser);
@@ -3150,6 +3165,11 @@ async function toggleUserActive(name) {
   if (!u) return;
   u.active = !u.active;
   if (!u.active && data.activeUser === name) data.activeUser = 'MUSTAFA ORHAN';
+  // Diğer tarayıcılardaki oturumu sonlandırmak için Supabase'e sinyal gönder
+  if (!u.active && isSupabaseReady()) {
+    data.settings._forceLogout = name;
+    try { await supabaseFetch('POST', 'settings', null, [{ key: '_forceLogout', value: name }]); } catch(e) {}
+  }
   saveData();
   toast(`"${name}" kullanıcısı ${u.active ? 'aktifleştirildi' : 'pasif yapıldı'}.`, 'info');
   refreshSettings();
