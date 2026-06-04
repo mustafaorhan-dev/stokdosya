@@ -316,7 +316,11 @@ async function sheetsPull() {
       data.tenders = remoteData.tenders || [];
       data.companies = remoteData.companies || [];
       data.productNames = remoteData.productNames || [];
+      const sheetsLocalFlags = data.settings._userActiveFlags;
+      const sheetsLocalForce = data.settings._forceLogout;
       data.settings = remoteData.settings || {};
+      if (sheetsLocalFlags) data.settings._userActiveFlags = sheetsLocalFlags;
+      if (sheetsLocalForce) data.settings._forceLogout = sheetsLocalForce;
       initData();
       saveDataLocal();
       toast('✅ Veriler Supabase\'ten alındı!', 'success');
@@ -4374,7 +4378,11 @@ document.addEventListener('DOMContentLoaded', () => {
       data.tenders = remoteData.tenders || [];
       data.companies = remoteData.companies || [];
       data.productNames = remoteData.productNames || [];
+      const autoLocalFlags = data.settings._userActiveFlags;
+      const autoLocalForce = data.settings._forceLogout;
       data.settings = remoteData.settings || {};
+      if (autoLocalFlags) data.settings._userActiveFlags = autoLocalFlags;
+      if (autoLocalForce) data.settings._forceLogout = autoLocalForce;
       initData();
       saveDataLocal();
       refreshAll();
