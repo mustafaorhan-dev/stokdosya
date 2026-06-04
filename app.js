@@ -984,6 +984,11 @@ function refreshDashboard() {
   const prods = Object.values(data.products).filter(p => p.active !== false);
   const el = _el;
   if (el('total-varieties')) el('total-varieties').textContent = prods.length;
+  const aktifUserBox = el('dashboard-active-user-box');
+  if (aktifUserBox) {
+    const isAdmin = data.activeUser === 'MUSTAFA ORHAN';
+    aktifUserBox.style.display = isAdmin ? '' : 'none';
+  }
   const aktifUserEl = el('dashboard-active-user');
   if (aktifUserEl) {
     const u = data.users.find(x => x.name === data.activeUser);
