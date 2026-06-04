@@ -295,7 +295,8 @@ async function sheetsPull() {
     if (remoteData) {
       data.products = remoteData.products || {};
       data.transactions = remoteData.transactions || [];
-      data.users = remoteData.users || [];
+      const deletedUsers2 = (remoteData.settings?._deletedUsers) ? JSON.parse(remoteData.settings._deletedUsers) : [];
+      data.users = (remoteData.users || []).filter(u => !deletedUsers2.includes(u.name));
       data.tenders = remoteData.tenders || [];
       data.companies = remoteData.companies || [];
       data.productNames = remoteData.productNames || [];
@@ -386,9 +387,10 @@ async function loadData() {
         if (remoteData.products) data.products = remoteData.products;
         if (remoteData.transactions) data.transactions = remoteData.transactions;
         if (remoteData.users) {
+          const deletedUsers = data.settings._deletedUsers ? JSON.parse(data.settings._deletedUsers) : [];
           const existing = new Set(data.users.map(u => u.name));
           remoteData.users.forEach(su => {
-            if (!existing.has(su.name)) {
+            if (!existing.has(su.name) && !deletedUsers.includes(su.name)) {
               data.users.push(su);
               existing.add(su.name);
             }
@@ -3141,15 +3143,18 @@ document.getElementById('upload-names-input').addEventListener('change', (e) => 
   e.target.value = '';
 });
 
-function deleteUser(name) {
+async function deleteUser(name) {
   if (data.activeUser !== 'MUSTAFA ORHAN') { toast('Sadece yönetici kullanıcı silebilir.', 'error'); return; }
   if (data.users.length <= 1) { toast('En az bir kullanıcı kalmalı.', 'error'); return; }
   if (name === 'MUSTAFA ORHAN') { toast('Yönetici silinemez.', 'error'); return; }
   if (!confirm(`"${name}" kullanıcısını sil?`)) return;
   data.users = data.users.filter(u => u.name !== name);
   if (data.activeUser === name) data.activeUser = 'MUSTAFA ORHAN';
+  const deletedList = data.settings._deletedUsers ? JSON.parse(data.settings._deletedUsers) : [];
+  if (!deletedList.includes(name)) deletedList.push(name);
+  data.settings._deletedUsers = JSON.stringify(deletedList);
   if (isSupabaseReady()) {
-    supabaseFetch('DELETE', 'stok_users', { name: 'eq.' + name }).catch(() => {});
+    try { await supabaseFetch('DELETE', 'stok_users', { name: 'eq.' + name }); } catch(e) {}
   }
   saveData();
   toast('Kullanıcı silindi.', 'info');
