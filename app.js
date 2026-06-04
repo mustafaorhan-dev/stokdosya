@@ -964,7 +964,7 @@ function buildMonthMenu() {
 function ayHareketSayisi(ay, yil) {
   return data.transactions.filter(t => {
     const d = new Date(t.date);
-    return d.getMonth() === ay && d.getFullYear() === yil;
+    return d.getMonth() === ay && d.getFullYear() === yil && data.products[t.partiNo]?.active !== false;
   }).length;
 }
 
