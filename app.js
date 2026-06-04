@@ -953,7 +953,7 @@ function buildMonthMenu() {
   container.innerHTML = AYLAR.map((ay, i) => {
     const aktif = (i === AY_INDEX && yil === new Date().getFullYear()) ? ' active' : '';
     const count = ayHareketSayisi(i, yil);
-    return `<a href="#" class="nav-item${aktif}" data-month="${i}" data-year="${yil}" onclick="goToMonth(${i}, ${yil})">
+    return `<a href="javascript:void(0)" class="nav-item${aktif}" data-month="${i}" data-year="${yil}" onclick="goToMonth(${i}, ${yil})">
       <i class="fa-regular fa-calendar"></i>
       <span>${ay} ${yil}</span>
       <span class="month-badge">${count}</span>
@@ -1008,9 +1008,11 @@ function refreshDashboard() {
     tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:var(--text-muted);padding:40px;">Henüz hareket kaydı yok.</td></tr>';
   } else {
     tbody.innerHTML = hareketler.map(t => {
-      const tipEl = t.type === 'giris' ? '<span style="color:var(--success);font-weight:700;">GİRİŞ</span>' : t.type === 'duzeltme' ? '<span style="color:var(--warning);font-weight:700;">DÜZELTME</span>' : '<span style="color:var(--accent);font-weight:700;">ÇIKIŞ</span>';
+      const silindi = data.products[t.partiNo]?.active === false;
+      const tipEl = t.type === 'giris' ? '<span style="color:var(--success);font-weight:700;">GİRİŞ</span>' : t.type === 'duzeltme' ? '<span style="color:var(--warning);font-weight:700;">GÜNCELLEME</span>' : '<span style="color:var(--accent);font-weight:700;">ÇIKIŞ</span>';
       const birim = t.unit || (data.products[t.partiNo] && data.products[t.partiNo].unit) || '';
-      return `<tr><td style="font-weight:600;">${htmlEscape(t.partiNo)}</td><td>${formatDate(t.date)}</td><td>${tipEl}</td><td>${htmlEscape(t.productName)}</td><td>${_fmt(t.amount)}</td><td>${htmlEscape(birim)}</td><td style="color:var(--text-secondary);">${htmlEscape(t.note) || '-'}</td></tr>`;
+      const silindiNotu = silindi ? ' <span style="color:var(--accent);font-weight:700;">[SİLİNDİ]</span>' : '';
+      return `<tr><td style="font-weight:600;">${htmlEscape(t.partiNo)}${silindiNotu}</td><td>${formatDate(t.date)}</td><td>${tipEl}</td><td>${htmlEscape(t.productName)}</td><td>${_fmt(t.amount)}</td><td>${htmlEscape(birim)}</td><td style="color:var(--text-secondary);">${htmlEscape(t.note) || '-'}</td></tr>`;
     }).join('');
   }
 
