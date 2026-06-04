@@ -3622,6 +3622,18 @@ function printUserGuide() {
 // ----- TUMUNU YENILE -----
 function refreshAll() {
   try {
+  // Pasif kullanıcıyı anında oturumdan at
+  const currentUser = data.users.find(u => u.name === data.activeUser);
+  if (currentUser && currentUser.active === false) {
+    sessionStorage.removeItem('stokdosya_logged_in');
+    sessionStorage.removeItem('stokdosya_activeUser');
+    data.activeUser = '';
+    const loginScr = document.getElementById('login-screen');
+    const appCont = document.getElementById('app-container');
+    if (loginScr) loginScr.style.display = 'flex';
+    if (appCont) appCont.style.display = 'none';
+    return;
+  }
   const vo = isViewOnly();
   if (_el('add-product-btn')) _el('add-product-btn').style.display = vo ? 'none' : '';
   if (_el('add-tender-btn')) _el('add-tender-btn').style.display = vo ? 'none' : '';
