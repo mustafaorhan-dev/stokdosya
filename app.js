@@ -4032,8 +4032,6 @@ document.addEventListener('DOMContentLoaded', () => {
   // sessionStorage yoksa → sekme yeni açılmış, şifre sor
   if (sessionStorage.getItem('stokdosya_logged_in')) {
     data.activeUser = sessionStorage.getItem('stokdosya_activeUser') || data.users[0]?.name || '';
-  if (sessionStorage.getItem('stokdosya_logged_in')) {
-    data.activeUser = sessionStorage.getItem('stokdosya_activeUser') || data.users[0]?.name || '';
     // Pasif kullanıcının oturumunu engelle
     const sessionUser = data.users.find(u => u.name === data.activeUser);
     if (sessionUser && sessionUser.active === false) {
