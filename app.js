@@ -3148,6 +3148,9 @@ function deleteUser(name) {
   if (!confirm(`"${name}" kullanıcısını sil?`)) return;
   data.users = data.users.filter(u => u.name !== name);
   if (data.activeUser === name) data.activeUser = 'MUSTAFA ORHAN';
+  if (isSupabaseReady()) {
+    supabaseFetch('DELETE', 'stok_users', { name: 'eq.' + name }).catch(() => {});
+  }
   saveData();
   toast('Kullanıcı silindi.', 'info');
   refreshSettings();
