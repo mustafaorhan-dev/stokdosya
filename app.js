@@ -985,14 +985,20 @@ function refreshDashboard() {
   const el = _el;
   if (el('total-varieties')) el('total-varieties').textContent = prods.length;
   const aktifUserBox = el('dashboard-active-user-box');
-  if (aktifUserBox) {
+  const userListEl = el('dashboard-user-list');
+  if (aktifUserBox && userListEl) {
     const isAdmin = data.activeUser === 'MUSTAFA ORHAN';
     aktifUserBox.style.display = isAdmin ? '' : 'none';
-  }
-  const aktifUserEl = el('dashboard-active-user');
-  if (aktifUserEl) {
-    const u = data.users.find(x => x.name === data.activeUser);
-    aktifUserEl.textContent = (u ? u.role + ' — ' : '') + (data.activeUser || '-');
+    const aktif = data.activeUser || '';
+    userListEl.innerHTML = data.users.map(u => {
+      const isAktif = u.name === aktif;
+      return `<div style="display:flex;align-items:center;gap:10px;padding:6px 10px;border-radius:var(--border-radius-sm);background:${isAktif ? 'var(--primary-light)' : 'transparent'};border:1px solid ${isAktif ? 'var(--primary)' : 'transparent'};">
+        <div style="width:10px;height:10px;border-radius:50%;background:${isAktif ? 'var(--success)' : 'var(--text-muted)'};flex-shrink:0;"></div>
+        <span style="flex:1;font-size:14px;font-weight:${isAktif ? '700' : '400'};color:var(--text-primary);">${htmlEscape(u.name)}</span>
+        <span style="font-size:12px;color:var(--text-secondary);">${htmlEscape(u.role)}</span>
+        ${isAktif ? '<span style="background:var(--success);color:#fff;padding:2px 10px;border-radius:999px;font-size:10px;font-weight:700;">AKTİF</span>' : ''}
+      </div>`;
+    }).join('');
   }
 
   const now = new Date();
