@@ -86,7 +86,7 @@ async function supabaseSave() {
     const seenUsers = new Set();
     const userArray = data.users.filter(u => { if (seenUsers.has(u.name)) return false; seenUsers.add(u.name); return true; }).map(u => ({
       name: u.name, role: u.role || 'Depo Kullanıcısı', password: u.password,
-      last_login: u.lastLogin || null
+      last_login: u.lastLogin || null, active: u.active !== false
     }));
     if (userArray.length > 0) {
       const err = await supabaseFetch('POST', 'stok_users', null, userArray);
@@ -167,7 +167,7 @@ async function supabaseLoad() {
 
     const userList = (users || []).map(u => ({
       name: u.name, role: u.role || 'Depo Kullanıcısı',
-      password: u.password, lastLogin: u.last_login
+      password: u.password, lastLogin: u.last_login, active: u.active !== false
     }));
 
     const tenderList = (tenders || []).map(t => ({
@@ -212,7 +212,7 @@ function recalculateStocks() {
 // ---------- KULLANICI GİRİŞİ (local veri kontrolü) ----------
 function sheetsLogin(username, password) {
   var user = data.users.find(function(u) {
-    return u.name === username && u.password === password;
+    return u.name === username && u.password === password && u.active !== false;
   });
   if (user) {
     data.activeUser = user.name;
@@ -295,8 +295,7 @@ async function sheetsPull() {
     if (remoteData) {
       data.products = remoteData.products || {};
       data.transactions = remoteData.transactions || [];
-      const deletedUsers2 = (remoteData.settings?._deletedUsers) ? JSON.parse(remoteData.settings._deletedUsers) : [];
-      data.users = (remoteData.users || []).filter(u => !deletedUsers2.includes(u.name));
+      data.users = remoteData.users || [];
       data.tenders = remoteData.tenders || [];
       data.companies = remoteData.companies || [];
       data.productNames = remoteData.productNames || [];
@@ -320,13 +319,14 @@ async function sheetsPull() {
 
 function initData() {
   if (!data.users) data.users = [];
+  data.users.forEach(u => { if (u.active === undefined) u.active = true; });
   if (!data.users.length) {
-    data.users = [{ name: 'MUSTAFA ORHAN', role: 'Yönetici', password: '159357' }];
+    data.users = [{ name: 'MUSTAFA ORHAN', role: 'Yönetici', password: '159357', active: true }];
     data.activeUser = 'MUSTAFA ORHAN';
   } else {
     // MUSTAFA ORHAN her zaman var olsun
     if (!data.users.some(u => u.name === 'MUSTAFA ORHAN')) {
-      data.users.unshift({ name: 'MUSTAFA ORHAN', role: 'Yönetici', password: '159357' });
+      data.users.unshift({ name: 'MUSTAFA ORHAN', role: 'Yönetici', password: '159357', active: true });
     }
   }
   if (!data.settings) data.settings = {};
@@ -387,10 +387,9 @@ async function loadData() {
         if (remoteData.products) data.products = remoteData.products;
         if (remoteData.transactions) data.transactions = remoteData.transactions;
         if (remoteData.users) {
-          const deletedUsers = data.settings._deletedUsers ? JSON.parse(data.settings._deletedUsers) : [];
           const existing = new Set(data.users.map(u => u.name));
           remoteData.users.forEach(su => {
-            if (!existing.has(su.name) && !deletedUsers.includes(su.name)) {
+            if (!existing.has(su.name)) {
               data.users.push(su);
               existing.add(su.name);
             }
@@ -1023,7 +1022,7 @@ function refreshDashboard() {
     const now = Date.now();
     activeSessions = activeSessions.filter(s => (now - new Date(s.time).getTime()) < 120000);
     const aktifSet = new Set(activeSessions.map(s => s.user));
-    userListEl.innerHTML = data.users.map(u => {
+    userListEl.innerHTML = data.users.filter(u => u.active !== false).map(u => {
       const isAktif = aktifSet.has(u.name);
       return `<div style="display:flex;align-items:center;gap:10px;padding:6px 10px;border-radius:var(--border-radius-sm);background:${isAktif ? 'var(--primary-light)' : 'transparent'};border:1px solid ${isAktif ? 'var(--primary)' : 'transparent'};">
         <div style="width:10px;height:10px;border-radius:50%;background:${isAktif ? 'var(--success)' : 'var(--text-muted)'};flex-shrink:0;"></div>
@@ -2908,12 +2907,13 @@ function refreshSettings() {
   if (!ul) return;
   ul.innerHTML = data.users.map(u => {
     const aktif = u.name === data.activeUser;
+    const aktifMi = u.active !== false;
     const canEditPass = data.activeUser === 'MUSTAFA ORHAN' || aktif;
-    return `<li style="display:flex;align-items:center;justify-content:space-between;background:var(--bg-primary);padding:10px 14px;border-radius:var(--border-radius-sm);border:1px solid ${aktif ? 'var(--primary)' : 'var(--border-color)'};flex-wrap:wrap;gap:6px;">
-      <span style="flex:1;min-width:120px;"><strong>${htmlEscape(u.name)}</strong> <span style="color:var(--text-secondary);font-size:13px;">— ${htmlEscape(u.role)}</span> ${aktif ? '<span style="background:var(--primary-light);color:var(--primary);padding:2px 8px;border-radius:999px;font-size:11px;font-weight:700;margin-left:6px;">AKTİF</span>' : ''}</span>
+    return `<li style="display:flex;align-items:center;justify-content:space-between;background:var(--bg-primary);padding:10px 14px;border-radius:var(--border-radius-sm);border:1px solid ${aktif ? 'var(--primary)' : 'var(--border-color)'};flex-wrap:wrap;gap:6px;${!aktifMi ? 'opacity:0.6;' : ''}">
+      <span style="flex:1;min-width:120px;"><strong>${htmlEscape(u.name)}</strong> <span style="color:var(--text-secondary);font-size:13px;">— ${htmlEscape(u.role)}</span> ${aktif ? '<span style="background:var(--primary-light);color:var(--primary);padding:2px 8px;border-radius:999px;font-size:11px;font-weight:700;margin-left:6px;">AKTİF</span>' : ''} ${!aktifMi ? '<span style="background:var(--accent);color:#fff;padding:2px 8px;border-radius:999px;font-size:11px;font-weight:700;margin-left:6px;">PASİF</span>' : ''}</span>
       <span style="font-size:13px;color:var(--text-muted);font-family:monospace;">${'•'.repeat(8)}</span>
       ${canEditPass ? `<button class="btn-ui btn-sm btn-outline" onclick="editUserPassword('${u.name.replace(/'/g, '&#39;')}')" title="Şifre Değiştir" style="padding:4px 8px;font-size:12px;"><i class="fa-solid fa-key"></i></button>` : ''}
-      ${isAdmin && u.name !== 'MUSTAFA ORHAN' ? `<button class="btn-ui btn-sm btn-outline" onclick="deleteUser('${u.name.replace(/'/g, '&#39;')}')" style="color:var(--accent);"><i class="fa-solid fa-xmark"></i></button>` : ''}
+      ${isAdmin && u.name !== 'MUSTAFA ORHAN' ? `<button class="btn-ui btn-sm ${aktifMi ? 'btn-outline' : ''}" onclick="toggleUserActive('${u.name.replace(/'/g, '&#39;')}')" style="color:${aktifMi ? 'var(--accent)' : 'var(--success)'};padding:4px 10px;font-size:12px;border:1px solid currentColor;border-radius:var(--border-radius-sm);background:transparent;cursor:pointer;">${aktifMi ? 'Pasif Yap' : 'Aktifleştir'}</button>` : ''}
     </li>`;
   }).join('');
 
@@ -3102,7 +3102,7 @@ document.getElementById('add-user-btn').addEventListener('click', () => {
   if (!name) { toast('Kullanıcı adı girin.', 'error'); return; }
   if (!password) { toast('Şifre girin.', 'error'); return; }
   if (data.users.find(u => u.name === name)) { toast('Bu kullanıcı zaten var.', 'error'); return; }
-  data.users.push({ name, role, password });
+  data.users.push({ name, role, password, active: true });
   saveData();
   toast(`"${name}" eklendi.`, 'success');
   document.getElementById('new-username-input').value = '';
@@ -3143,21 +3143,15 @@ document.getElementById('upload-names-input').addEventListener('change', (e) => 
   e.target.value = '';
 });
 
-async function deleteUser(name) {
-  if (data.activeUser !== 'MUSTAFA ORHAN') { toast('Sadece yönetici kullanıcı silebilir.', 'error'); return; }
-  if (data.users.length <= 1) { toast('En az bir kullanıcı kalmalı.', 'error'); return; }
-  if (name === 'MUSTAFA ORHAN') { toast('Yönetici silinemez.', 'error'); return; }
-  if (!confirm(`"${name}" kullanıcısını sil?`)) return;
-  data.users = data.users.filter(u => u.name !== name);
-  if (data.activeUser === name) data.activeUser = 'MUSTAFA ORHAN';
-  const deletedList = data.settings._deletedUsers ? JSON.parse(data.settings._deletedUsers) : [];
-  if (!deletedList.includes(name)) deletedList.push(name);
-  data.settings._deletedUsers = JSON.stringify(deletedList);
-  if (isSupabaseReady()) {
-    try { await supabaseFetch('DELETE', 'stok_users', { name: 'eq.' + name }); } catch(e) {}
-  }
+async function toggleUserActive(name) {
+  if (data.activeUser !== 'MUSTAFA ORHAN') { toast('Sadece yönetici kullanıcı pasif/aktif yapabilir.', 'error'); return; }
+  if (name === 'MUSTAFA ORHAN') { toast('Yönetici pasif yapılamaz.', 'error'); return; }
+  const u = data.users.find(x => x.name === name);
+  if (!u) return;
+  u.active = !u.active;
+  if (!u.active && data.activeUser === name) data.activeUser = 'MUSTAFA ORHAN';
   saveData();
-  toast('Kullanıcı silindi.', 'info');
+  toast(`"${name}" kullanıcısı ${u.active ? 'aktifleştirildi' : 'pasif yapıldı'}.`, 'info');
   refreshSettings();
 }
 
@@ -4038,19 +4032,29 @@ document.addEventListener('DOMContentLoaded', () => {
   // sessionStorage yoksa → sekme yeni açılmış, şifre sor
   if (sessionStorage.getItem('stokdosya_logged_in')) {
     data.activeUser = sessionStorage.getItem('stokdosya_activeUser') || data.users[0]?.name || '';
-    if (loginScreen) loginScreen.style.display = 'none';
-    if (appContainer) appContainer.style.display = '';
-    const nameEl = document.getElementById('display-username');
-    const roleEl = document.getElementById('display-role');
-    if (nameEl && data.activeUser) nameEl.textContent = data.activeUser;
-    if (roleEl) roleEl.textContent = data.users.find(function(u) { return u.name === data.activeUser; })?.role || '';
-    // hash'e göre sayfaya git
-    var hashTarget = location.hash ? location.hash.slice(1) : 'dashboard';
-    var validViews = ['dashboard','warehouse','aggregated-stock','entry','exit','daily','month-view','years-view','stt-tracking','tender-tracking','suppliers','supplier-report-view','critical-stock-view','user-guide-view','settings-view'];
-        setTimeout(function() { navigateTo(validViews.includes(hashTarget) ? hashTarget : 'dashboard'); }, 0);
-        // loadData bittiğinde heartbeat başlasın
-        setTimeout(startHeartbeat, 1000);
-      } else {
+  if (sessionStorage.getItem('stokdosya_logged_in')) {
+    data.activeUser = sessionStorage.getItem('stokdosya_activeUser') || data.users[0]?.name || '';
+    // Pasif kullanıcının oturumunu engelle
+    const sessionUser = data.users.find(u => u.name === data.activeUser);
+    if (sessionUser && sessionUser.active === false) {
+      sessionStorage.removeItem('stokdosya_logged_in');
+      sessionStorage.removeItem('stokdosya_activeUser');
+      data.activeUser = '';
+      if (loginScreen) loginScreen.style.display = 'flex';
+      if (appContainer) appContainer.style.display = 'none';
+    } else {
+      if (loginScreen) loginScreen.style.display = 'none';
+      if (appContainer) appContainer.style.display = '';
+      const nameEl = document.getElementById('display-username');
+      const roleEl = document.getElementById('display-role');
+      if (nameEl && data.activeUser) nameEl.textContent = data.activeUser;
+      if (roleEl) roleEl.textContent = data.users.find(function(u) { return u.name === data.activeUser; })?.role || '';
+      var hashTarget = location.hash ? location.hash.slice(1) : 'dashboard';
+      var validViews = ['dashboard','warehouse','aggregated-stock','entry','exit','daily','month-view','years-view','stt-tracking','tender-tracking','suppliers','supplier-report-view','critical-stock-view','user-guide-view','settings-view'];
+      setTimeout(function() { navigateTo(validViews.includes(hashTarget) ? hashTarget : 'dashboard'); }, 0);
+      setTimeout(startHeartbeat, 1000);
+    }
+  } else {
     if (loginScreen) loginScreen.style.display = 'flex';
     if (appContainer) appContainer.style.display = 'none';
   }
@@ -4109,6 +4113,14 @@ document.addEventListener('DOMContentLoaded', () => {
       // 1) Kullanıcıyı doğrula (lokalde ara)
       var foundUser = data.users.find(function(u) { return u.name === user && u.password === pass; }) ||
         (user === 'MUSTAFA ORHAN' && pass === '159357' ? data.users.find(function(u) { return u.name === 'MUSTAFA ORHAN'; }) : null);
+
+      if (foundUser && foundUser.active === false) {
+        errEl.textContent = 'Bu kullanıcı pasif durumda. Giriş yapılamaz.';
+        errEl.style.display = 'block';
+        btn.disabled = false;
+        btn.textContent = 'Giriş';
+        return;
+      }
 
       if (foundUser) {
         data.activeUser = foundUser.name;
