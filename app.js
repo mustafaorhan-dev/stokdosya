@@ -1068,11 +1068,11 @@ function refreshDashboard() {
     if (countEl) countEl.textContent = aktifCount + ' Aktif';
     userListEl.innerHTML = data.users.filter(u => u.active !== false).map(u => {
       const isAktif = aktifSet.has(u.name);
-      return `<div style="display:flex;align-items:center;gap:10px;padding:6px 10px;border-radius:var(--border-radius-sm);background:${isAktif ? 'var(--primary-light)' : 'transparent'};border:1px solid ${isAktif ? 'var(--primary)' : 'transparent'};">
-        <i class="fa-solid fa-circle" style="font-size:8px;color:${isAktif ? 'var(--success)' : 'var(--text-muted)'};flex-shrink:0;"></i>
-        <span style="flex:1;font-size:14px;font-weight:${isAktif ? '700' : '400'};color:var(--text-primary);">${htmlEscape(u.name)}</span>
-        <span style="font-size:12px;color:var(--text-secondary);">${htmlEscape(u.role)}</span>
-        ${isAktif ? '<span style="background:var(--success);color:#fff;padding:2px 10px;border-radius:999px;font-size:10px;font-weight:700;">AKTİF</span>' : ''}
+      return `<div style="display:flex;align-items:center;gap:6px;padding:3px 8px;border-radius:var(--border-radius-sm);background:${isAktif ? 'var(--primary-light)' : 'transparent'};border:1px solid ${isAktif ? 'var(--primary)' : 'transparent'};">
+        <i class="fa-solid fa-circle" style="font-size:6px;color:${isAktif ? 'var(--success)' : 'var(--text-muted)'};flex-shrink:0;"></i>
+        <span style="flex:1;font-size:12px;font-weight:${isAktif ? '700' : '400'};color:var(--text-primary);">${htmlEscape(u.name)}</span>
+        <span style="font-size:11px;color:var(--text-secondary);">${htmlEscape(u.role)}</span>
+        ${isAktif ? '<span style="background:var(--success);color:#fff;padding:1px 8px;border-radius:999px;font-size:9px;font-weight:700;">AKTİF</span>' : ''}
       </div>`;
     }).join('');
   }
