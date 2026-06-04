@@ -336,7 +336,13 @@ async function sheetsPull() {
 
 function initData() {
   if (!data.users) data.users = [];
-  data.users.forEach(u => { if (u.active === undefined) u.active = true; });
+  // _userActiveFlags ayarından aktif/pasif durumlarını uygula
+  let userFlags = {};
+  try { userFlags = JSON.parse(data.settings._userActiveFlags || '{}'); } catch(e) {}
+  data.users.forEach(u => {
+    if (userFlags[u.name] !== undefined) u.active = userFlags[u.name];
+    else if (u.active === undefined) u.active = true;
+  });
   if (!data.users.length) {
     data.users = [{ name: 'MUSTAFA ORHAN', role: 'Yönetici', password: '159357', active: true }];
     data.activeUser = 'MUSTAFA ORHAN';
@@ -3127,6 +3133,10 @@ document.getElementById('add-user-btn').addEventListener('click', () => {
   if (!password) { toast('Şifre girin.', 'error'); return; }
   if (data.users.find(u => u.name === name)) { toast('Bu kullanıcı zaten var.', 'error'); return; }
   data.users.push({ name, role, password, active: true });
+  let userFlags = {};
+  try { userFlags = JSON.parse(data.settings._userActiveFlags || '{}'); } catch(e) {}
+  userFlags[name] = true;
+  data.settings._userActiveFlags = JSON.stringify(userFlags);
   saveData();
   toast(`"${name}" eklendi.`, 'success');
   document.getElementById('new-username-input').value = '';
@@ -3174,6 +3184,11 @@ async function toggleUserActive(name) {
   if (!u) return;
   u.active = !u.active;
   if (!u.active && data.activeUser === name) data.activeUser = 'MUSTAFA ORHAN';
+  // _userActiveFlags ayarını güncelle (Supabase kolonu olmasa da çalışır)
+  let userFlags = {};
+  try { userFlags = JSON.parse(data.settings._userActiveFlags || '{}'); } catch(e) {}
+  userFlags[name] = u.active;
+  data.settings._userActiveFlags = JSON.stringify(userFlags);
   // Diğer tarayıcılardaki oturumu sonlandırmak için Supabase'e sinyal gönder
   if (!u.active && isSupabaseReady()) {
     data.settings._forceLogout = name;
