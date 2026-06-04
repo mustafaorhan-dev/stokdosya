@@ -3744,6 +3744,14 @@ document.getElementById('exit-edit-form').addEventListener('submit', (e) => {
   buildMonthMenu();
 });
 
+function _partiDurumHtml(partiNo) {
+  const p = data.products[partiNo];
+  if (!p) return htmlEscape(partiNo);
+  if (p.active === false) return htmlEscape(partiNo) + ' <span style="color:var(--accent);font-weight:700;">[SİLİNDİ]</span>';
+  if (data.transactions.some(t => t.partiNo === partiNo && t.type === 'duzeltme')) return htmlEscape(partiNo) + ' <span style="color:var(--warning);font-weight:700;">[GÜNCELLENDİ]</span>';
+  return htmlEscape(partiNo);
+}
+
 let _srShowDeleted = false;
 function toggleSrDeleted() {
   _srShowDeleted = !_srShowDeleted;
@@ -3816,7 +3824,7 @@ function refreshSupplierReport() {
     const key = v.tedarikci + '|||' + v.urun;
     const acik = window._srAcik[key] || false;
     const gunSayisi = Object.keys(v.gunler).length;
-    const partiList = [...v.partiNolar].sort().join(', ');
+    const partiList = [...v.partiNolar].sort().map(p => _partiDurumHtml(p)).join(', ');
     const gunHtml = Object.entries(v.gunler)
       .sort((a, b) => a[0].localeCompare(b[0]))
       .map(([tarih, miktar]) => {
@@ -3832,7 +3840,7 @@ function refreshSupplierReport() {
     <tr onclick="window._srAcik['${key.replace(/'/g, "\\'")}']=!window._srAcik['${key.replace(/'/g, "\\'")}'];refreshSupplierReport()" style="cursor:pointer;">
       <td style="width:24px;text-align:center;font-size:11px;color:var(--primary);">${ok}</td>
       <td>${i + 1}</td>
-      <td style="font-size:12px;color:var(--text-secondary);">${htmlEscape(partiList)}</td>
+      <td style="font-size:12px;color:var(--text-secondary);">${partiList}</td>
       <td style="font-weight:600;color:var(--primary);">${htmlEscape(v.tedarikci)}</td>
       <td>${htmlEscape(v.urun)}</td>
       <td style="font-weight:700;">${_fmt(v.miktar)}</td>
@@ -3893,10 +3901,10 @@ function srExportPrint() {
         const trTarih = d[2] + '.' + d[1] + '.' + d[0];
         return `<tr style="background:#f8fafc;"><td></td><td></td><td></td><td style="padding-left:24px;font-size:13px;font-weight:500;color:#475569;">${trTarih}</td><td style="text-align:right;font-weight:700;font-size:13px;">${_fmt(miktar)}</td><td style="font-size:13px;">${v.birim || '-'}</td></tr>`;
       }).join('');
-    const partiList = [...v.partiNolar].sort().join(', ');
+    const partiList = [...v.partiNolar].sort().map(p => _partiDurumHtml(p)).join(', ');
     satirHtml += `
     <tr style="font-weight:600;">
-      <td>${i + 1}</td><td style="font-size:11px;color:#64748b;">${htmlEscape(partiList)}</td><td>${htmlEscape(v.tedarikci)}</td><td>${htmlEscape(v.urun)}</td>
+      <td>${i + 1}</td><td style="font-size:11px;color:#64748b;">${partiList}</td><td>${htmlEscape(v.tedarikci)}</td><td>${htmlEscape(v.urun)}</td>
       <td style="text-align:right">${_fmt(v.miktar)}</td><td>${htmlEscape(v.birim) || '-'}</td>
     </tr>${gunHtml}`;
   });
