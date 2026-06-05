@@ -187,16 +187,6 @@
                             <p id="total-expiring">0</p>
                         </div>
                     </div>
-                    <div id="dashboard-active-user-box" class="stat-card stat-card-compact" style="flex-direction:column;align-items:stretch;gap:3px;padding:6px 8px;">
-                        <div style="display:flex;align-items:center;gap:6px;">
-                            <div class="icon-box st-green"><i class="fa-regular fa-users"></i></div>
-                            <div class="stat-details">
-                                <h3>Kullanıcılar</h3>
-                                <p id="dashboard-active-count">0</p>
-                            </div>
-                        </div>
-                        <div id="dashboard-user-list" style="display:flex;flex-direction:column;gap:2px;"></div>
-                    </div>
                     <div class="stat-card stat-card-compact">
                         <div class="icon-box st-warning" id="critical-badge-container"><i class="fa-solid fa-triangle-exclamation"></i></div>
                         <div class="stat-details">
@@ -211,6 +201,15 @@
                             <p id="today-transactions">0</p>
                         </div>
                     </div>
+                </div>
+
+                <div id="dashboard-active-user-box" style="background:var(--bg-card);border:1px solid var(--border-color);border-radius:var(--border-radius-lg);padding:8px 14px;margin-bottom:0.75rem;overflow:hidden;">
+                    <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px;">
+                        <div style="width:22px;height:22px;border-radius:var(--border-radius-sm);background:var(--success-light);color:var(--success);display:flex;align-items:center;justify-content:center;font-size:10px;flex-shrink:0;"><i class="fa-regular fa-users"></i></div>
+                        <span style="font-size:12px;font-weight:600;color:var(--text-primary);">Kullanıcılar</span>
+                        <span id="dashboard-active-count" style="font-size:11px;color:var(--text-secondary);margin-left:auto;"></span>
+                    </div>
+                    <div id="dashboard-user-list" style="display:flex;flex-wrap:wrap;gap:4px;"></div>
                 </div>
 
                 <!-- Son Hareketler -->
