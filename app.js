@@ -66,8 +66,7 @@ async function supabaseSave() {
       deleted_by: p.deletedBy || null, deleted_at: p.deletedAt || null
     }));
     if (productArray.length > 0) {
-      const err = await supabaseFetch('POST', 'products', null, productArray);
-      if (err && err.message) console.error('Supabase products hatası:', err);
+      try { await supabaseFetch('POST', 'products', null, productArray); } catch(e) { console.error('Supabase products hatası:', e); }
     }
 
     // Transactions toplu upsert
@@ -78,8 +77,7 @@ async function supabaseSave() {
       created_by: t.createdBy || ''
     }));
     if (txArray.length > 0) {
-      const err = await supabaseFetch('POST', 'transactions', null, txArray);
-      if (err && err.message) console.error('Supabase transactions hatası:', err);
+      try { await supabaseFetch('POST', 'transactions', null, txArray); } catch(e) { console.error('Supabase transactions hatası:', e); }
     }
 
     // Users upsert (benzersiz)
@@ -89,8 +87,7 @@ async function supabaseSave() {
       last_login: u.lastLogin || null, active: u.active !== false
     }));
     if (userArray.length > 0) {
-      const err = await supabaseFetch('POST', 'stok_users', null, userArray);
-      if (err && err.message) console.error('Supabase users hatası:', err);
+      try { await supabaseFetch('POST', 'stok_users', null, userArray); } catch(e) { toast('⚠️ Kullanıcı Supabase\'e kaydedilemedi: ' + e.message, 'error'); }
     }
 
     // Tenders upsert
@@ -100,35 +97,33 @@ async function supabaseSave() {
         quantity: t.quantity, unit: t.unit || '', delivered: t.delivered || 0,
         price: t.price || 0, year: t.year || new Date().getFullYear()
       }));
-      const err = await supabaseFetch('POST', 'tenders', null, tenderArray);
-      if (err && err.message) console.error('Supabase tenders hatası:', err);
+      try { await supabaseFetch('POST', 'tenders', null, tenderArray); } catch(e) { console.error('Supabase tenders hatası:', e); }
     }
 
     // Companies upsert
     const compRows = (data.companies || []).map(c => ({ name: c }));
     if (compRows.length > 0) {
-      const err = await supabaseFetch('POST', 'companies', null, compRows);
-      if (err && err.message) console.error('Supabase companies hatası:', err);
+      try { await supabaseFetch('POST', 'companies', null, compRows); } catch(e) { console.error('Supabase companies hatası:', e); }
     }
 
     // Product names upsert
     const nameRows = (data.productNames || []).map(n => ({ name: n }));
     if (nameRows.length > 0) {
-      const err = await supabaseFetch('POST', 'product_names', null, nameRows);
-      if (err && err.message) console.error('Supabase product_names hatası:', err);
+      try { await supabaseFetch('POST', 'product_names', null, nameRows); } catch(e) { console.error('Supabase product_names hatası:', e); }
     }
 
     // Settings upsert
     const settingRows = Object.entries(data.settings || {}).map(([k, v]) => ({ key: k, value: v }));
     if (settingRows.length > 0) {
-      const err = await supabaseFetch('POST', 'settings', null, settingRows);
-      if (err && err.message) console.error('Supabase settings hatası:', err);
+      try { await supabaseFetch('POST', 'settings', null, settingRows); } catch(e) { console.error('Supabase settings hatası:', e); }
     }
 
     if (statusEl) statusEl.textContent = '✅ Supabase: bağlı';
     return true;
   } catch (e) {
     console.error('Supabase kayıt hatası:', e);
+    const statusEl = document.getElementById('cloud-status-text');
+    if (statusEl) statusEl.textContent = '❌ Supabase hatası';
     return false;
   } finally {
     _syncLock = false;
@@ -470,7 +465,8 @@ function loadProductNamesLocal() {
 async function saveData() {
   saveDataLocal();
   if (isSupabaseReady() && !_syncLock) {
-    await supabaseSave();
+    const ok = await supabaseSave();
+    if (!ok) toast('⚠️ Supabase\'e kaydedilemedi. Veriler localStorage\'da duruyor.', 'warning');
   }
 }
 
@@ -2973,7 +2969,8 @@ function refreshSettings() {
       <span style="flex:1;min-width:120px;"><strong>${htmlEscape(u.name)}</strong> <span style="color:var(--text-secondary);font-size:13px;">— ${htmlEscape(u.role)}</span> ${aktif ? '<span style="background:var(--primary-light);color:var(--primary);padding:2px 8px;border-radius:999px;font-size:11px;font-weight:700;margin-left:6px;">AKTİF</span>' : ''} ${!aktifMi ? '<span style="background:var(--accent);color:#fff;padding:2px 8px;border-radius:999px;font-size:11px;font-weight:700;margin-left:6px;">PASİF</span>' : ''}</span>
       <span style="font-size:13px;color:var(--text-muted);font-family:monospace;">${'•'.repeat(8)}</span>
       ${canEditPass ? `<button class="btn-ui btn-sm btn-outline" onclick="editUserPassword('${u.name.replace(/'/g, '&#39;')}')" title="Şifre Değiştir" style="padding:4px 8px;font-size:12px;"><i class="fa-solid fa-key"></i></button>` : ''}
-      ${isAdmin && u.name !== 'MUSTAFA ORHAN' ? `<button class="btn-ui btn-sm ${aktifMi ? 'btn-outline' : ''}" onclick="toggleUserActive('${u.name.replace(/'/g, '&#39;')}')" style="color:${aktifMi ? 'var(--accent)' : 'var(--success)'};padding:4px 10px;font-size:12px;border:1px solid currentColor;border-radius:var(--border-radius-sm);background:transparent;cursor:pointer;">${aktifMi ? 'Pasif Yap' : 'Aktifleştir'}</button>` : ''}
+      ${isAdmin && u.name !== 'MUSTAFA ORHAN' ? `<button class="btn-ui btn-sm ${aktifMi ? 'btn-outline' : ''}" onclick="toggleUserActive('${u.name.replace(/'/g, '&#39;')}')" style="color:${aktifMi ? 'var(--accent)' : 'var(--success)'};padding:4px 10px;font-size:12px;border:1px solid currentColor;border-radius:var(--border-radius-sm);background:transparent;cursor:pointer;">${aktifMi ? 'Pasif Yap' : 'Aktifleştir'}</button>
+      <button class="btn-ui btn-sm btn-outline" onclick="deleteUserPermanently('${u.name.replace(/'/g, '&#39;')}')" title="Kullanıcıyı Sil" style="color:var(--accent);padding:4px 8px;font-size:12px;margin-left:4px;"><i class="fa-solid fa-trash-can"></i></button>` : ''}
     </li>`;
   }).join('');
 
@@ -3226,6 +3223,21 @@ async function toggleUserActive(name) {
   }
   saveData();
   toast(`"${name}" kullanıcısı ${u.active ? 'aktifleştirildi' : 'pasif yapıldı'}.`, 'info');
+  refreshSettings();
+}
+
+function deleteUserPermanently(name) {
+  if (data.activeUser !== 'MUSTAFA ORHAN') { toast('Sadece yönetici kullanıcı silebilir.', 'error'); return; }
+  if (name === 'MUSTAFA ORHAN') { toast('Yönetici silinemez.', 'error'); return; }
+  if (!confirm(`"${name}" kullanıcısını tamamen silmek istediğinize emin misiniz?`)) return;
+  data.users = data.users.filter(u => u.name !== name);
+  let userFlags = {};
+  try { userFlags = JSON.parse(data.settings._userActiveFlags || '{}'); } catch(e) {}
+  delete userFlags[name];
+  data.settings._userActiveFlags = JSON.stringify(userFlags);
+  if (data.activeUser === name) data.activeUser = 'MUSTAFA ORHAN';
+  saveData();
+  toast(`"${name}" silindi.`, 'info');
   refreshSettings();
 }
 
