@@ -1152,19 +1152,19 @@ function refreshDashboard() {
 
   // Kategori Dağılımı (normalize edilmiş)
   const catMap = [
-    { names: ['Sebze','Sebzeler','Sebze Grubu','Yeşillik'], key: 'Sebze', color: '#bfdbfe' },
-    { names: ['Meyve','Meyveler','Meyve Grubu'], key: 'Meyve', color: '#a5b4fc' },
-    { names: ['Bakliyat','Baklagil','Baklagiller','Kuru Baklagil'], key: 'Bakliyat', color: '#93c5fd' },
-    { names: ['Temel Gıda','Temel Gida','Gıda','Kuru Gıda'], key: 'Temel Gıda', color: '#60a5fa' },
-    { names: ['Temizlik','Temizlik Malzemesi','Temizlik Ürünü','Hijyen'], key: 'Temizlik', color: '#3b82f6' },
-    { names: ['Süt Ürünleri','Sut Urunleri','Süt','Sut','Peynir','Yoğurt'], key: 'Süt Ürünleri', color: '#1d4ed8' }
+    { names: ['Sebze','Sebzeler','Sebze Grubu','Yeşillik'], key: 'Sebze', color: '#60a5fa' },
+    { names: ['Meyve','Meyveler','Meyve Grubu'], key: 'Meyve', color: '#3b82f6' },
+    { names: ['Bakliyat','Baklagil','Baklagiller','Kuru Baklagil'], key: 'Bakliyat', color: '#2563eb' },
+    { names: ['Temel Gıda','Temel Gida','Gıda','Kuru Gıda'], key: 'Temel Gıda', color: '#1d4ed8' },
+    { names: ['Temizlik','Temizlik Malzemesi','Temizlik Ürünü','Hijyen'], key: 'Temizlik', color: '#1e40af' },
+    { names: ['Süt Ürünleri','Sut Urunleri','Süt','Sut','Peynir','Yoğurt'], key: 'Süt Ürünleri', color: '#172554' }
   ];
   const catLookup = {};
   catMap.forEach(g => { g.names.forEach(n => { catLookup[n.toLowerCase()] = g.key; }); });
   const catKeys = catMap.map(g => g.key);
   const catColors = {};
   catMap.forEach(g => { catColors[g.key] = g.color; });
-  catColors['Diğer'] = '#1e3a8a';
+  catColors['Diğer'] = '#0f172a';
   const catCount = {};
   catKeys.forEach(c => catCount[c] = 0);
   catCount['Diğer'] = 0;
@@ -1304,7 +1304,7 @@ function refreshDashboard() {
   const labelColor = isDark ? '#e2e8f0' : '#334155';
   const qiLabels = ["STT'li Ürün", 'Tedarikçi', 'Toplam İşlem', 'Bugünkü İşlem', 'Ürün Listesi'];
   const qiData = [sttOlan, tedarikciSayisi, toplamIslem, bugunHareket.length, (data.productNames || []).length];
-  const qiColors = ['#bfdbfe', '#93c5fd', '#60a5fa', '#3b82f6', '#1d4ed8'];
+  const qiColors = ['#60a5fa', '#3b82f6', '#2563eb', '#1d4ed8', '#1e3a8a'];
 
   // Yan bilgi kutuları (sadece renk + etiket, rakam yok)
   document.getElementById('qi-side-items').innerHTML = qiLabels.map((l, i) => `
