@@ -1152,19 +1152,19 @@ function refreshDashboard() {
 
   // Kategori Dağılımı (normalize edilmiş)
   const catMap = [
-    { names: ['Sebze','Sebzeler','Sebze Grubu','Yeşillik'], key: 'Sebze', color: '#22c55e' },
-    { names: ['Meyve','Meyveler','Meyve Grubu'], key: 'Meyve', color: '#f97316' },
-    { names: ['Bakliyat','Baklagil','Baklagiller','Kuru Baklagil'], key: 'Bakliyat', color: '#8b5cf6' },
-    { names: ['Temel Gıda','Temel Gida','Gıda','Kuru Gıda'], key: 'Temel Gıda', color: '#3b82f6' },
-    { names: ['Temizlik','Temizlik Malzemesi','Temizlik Ürünü','Hijyen'], key: 'Temizlik', color: '#14b8a6' },
-    { names: ['Süt Ürünleri','Sut Urunleri','Süt','Sut','Peynir','Yoğurt'], key: 'Süt Ürünleri', color: '#f472b6' }
+    { names: ['Sebze','Sebzeler','Sebze Grubu','Yeşillik'], key: 'Sebze', color: '#bfdbfe' },
+    { names: ['Meyve','Meyveler','Meyve Grubu'], key: 'Meyve', color: '#a5b4fc' },
+    { names: ['Bakliyat','Baklagil','Baklagiller','Kuru Baklagil'], key: 'Bakliyat', color: '#93c5fd' },
+    { names: ['Temel Gıda','Temel Gida','Gıda','Kuru Gıda'], key: 'Temel Gıda', color: '#60a5fa' },
+    { names: ['Temizlik','Temizlik Malzemesi','Temizlik Ürünü','Hijyen'], key: 'Temizlik', color: '#3b82f6' },
+    { names: ['Süt Ürünleri','Sut Urunleri','Süt','Sut','Peynir','Yoğurt'], key: 'Süt Ürünleri', color: '#1d4ed8' }
   ];
   const catLookup = {};
   catMap.forEach(g => { g.names.forEach(n => { catLookup[n.toLowerCase()] = g.key; }); });
   const catKeys = catMap.map(g => g.key);
   const catColors = {};
   catMap.forEach(g => { catColors[g.key] = g.color; });
-  catColors['Diğer'] = '#a1a1aa';
+  catColors['Diğer'] = '#1e3a8a';
   const catCount = {};
   catKeys.forEach(c => catCount[c] = 0);
   catCount['Diğer'] = 0;
