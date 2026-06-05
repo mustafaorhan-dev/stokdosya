@@ -1304,7 +1304,7 @@ function refreshDashboard() {
   const labelColor = isDark ? '#e2e8f0' : '#334155';
   const qiLabels = ["STT'li Ürün", 'Tedarikçi', 'Toplam İşlem', 'Bugünkü İşlem', 'Ürün Listesi'];
   const qiData = [sttOlan, tedarikciSayisi, toplamIslem, bugunHareket.length, (data.productNames || []).length];
-  const qiColors = ['#f59e0b', '#3b82f6', '#8b5cf6', '#22c55e', '#ec4899'];
+  const qiColors = ['#bfdbfe', '#93c5fd', '#60a5fa', '#3b82f6', '#1d4ed8'];
 
   // Yan bilgi kutuları (sadece renk + etiket, rakam yok)
   document.getElementById('qi-side-items').innerHTML = qiLabels.map((l, i) => `
