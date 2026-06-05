@@ -2089,6 +2089,22 @@ function deleteProduct(partiNo) {
   if (!confirm(`"${partiNo}" ürün kartı silinecek. Emin misiniz?`)) return;
   const p = data.products[partiNo];
   if (p) {
+    // Stok varsa ihalelerden düş ve çıkış hareketi kaydet
+    if (p.stock > 0) {
+      if (p.companyName && data.tenders && data.tenders.length) {
+        const eslesen = data.tenders.filter(t =>
+          t.companyName === p.companyName && t.product === p.name
+        );
+        eslesen.forEach(t => { t.delivered = Math.max(0, t.delivered - p.stock); });
+      }
+      data.transactions.push({
+        id: Date.now() + Math.random() * 1000, type: 'cikis', partiNo,
+        productName: p.name, amount: p.stock, unit: p.unit,
+        date: todayStr(), note: 'Ürün silindi',
+        timestamp: new Date().toISOString(), createdBy: data.activeUser || ''
+      });
+    }
+    p.stock = 0;
     p.active = false;
     p.deletedBy = data.activeUser || '';
     p.deletedAt = new Date().toISOString();
