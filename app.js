@@ -313,7 +313,7 @@ async function sheetsPull() {
       data.products = remoteData.products || {};
       data.transactions = remoteData.transactions || [];
       data.users = remoteData.users || [];
-      data.tenders = remoteData.tenders || [];
+      if (remoteData.tenders && remoteData.tenders.length) data.tenders = remoteData.tenders;
       data.companies = remoteData.companies || [];
       data.productNames = remoteData.productNames || [];
       const sheetsLocalFlags = data.settings._userActiveFlags;
@@ -430,7 +430,7 @@ async function loadData() {
           });
         }
         if (remoteData.activeUser) data.activeUser = remoteData.activeUser;
-        if (remoteData.tenders) data.tenders = remoteData.tenders;
+        if (remoteData.tenders && remoteData.tenders.length) data.tenders = remoteData.tenders;
         if (remoteData.companies) data.companies = remoteData.companies;
         if (remoteData.productNames && remoteData.productNames.length) data.productNames = remoteData.productNames;
         if (remoteData.settings) {
@@ -4394,7 +4394,7 @@ document.addEventListener('DOMContentLoaded', () => {
       data.products = remoteData.products || {};
       data.transactions = remoteData.transactions || [];
       data.users = remoteData.users || [];
-      data.tenders = remoteData.tenders || [];
+      if (remoteData.tenders && remoteData.tenders.length) data.tenders = remoteData.tenders;
       data.companies = remoteData.companies || [];
       data.productNames = remoteData.productNames || [];
       const autoLocalFlags = data.settings._userActiveFlags;
