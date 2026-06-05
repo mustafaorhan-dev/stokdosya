@@ -84,11 +84,11 @@ async function supabaseSave() {
       try { await supabaseFetch('POST', 'transactions', null, txArray); } catch(e) { console.error('Supabase transactions hatası:', e); }
     }
 
-    // Users upsert (benzersiz)
+    // Users upsert (benzersiz) — sadece tabloda var olan kolonlar gönderilsin
     const seenUsers = new Set();
     const userArray = data.users.filter(u => { if (seenUsers.has(u.name)) return false; seenUsers.add(u.name); return true; }).map(u => ({
       name: u.name, role: u.role || 'Depo Kullanıcısı', password: u.password,
-      last_login: u.lastLogin || null, active: u.active !== false
+      last_login: u.lastLogin || null
     }));
     if (userArray.length > 0) {
       try { await supabaseFetch('POST', 'stok_users', null, userArray); } catch(e) { toast('⚠️ Kullanıcı Supabase\'e kaydedilemedi: ' + e.message, 'error'); }
@@ -416,9 +416,8 @@ async function loadData() {
           const userMap = new Map(data.users.map(u => [u.name, u]));
           remoteData.users.forEach(su => {
             if (userMap.has(su.name)) {
-              // Var olan kullanıcıyı güncelle (active, role, password, lastLogin)
+              // Var olan kullanıcıyı güncelle (role, password, lastLogin) — active SUPABASE'de yok
               const existing = userMap.get(su.name);
-              existing.active = su.active !== false;
               if (su.role) existing.role = su.role;
               if (su.password) existing.password = su.password;
               if (su.lastLogin) existing.lastLogin = su.lastLogin;
