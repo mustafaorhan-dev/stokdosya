@@ -3231,7 +3231,7 @@ async function toggleUserActive(name) {
   refreshSettings();
 }
 
-function deleteUserPermanently(name) {
+async function deleteUserPermanently(name) {
   if (data.activeUser !== 'MUSTAFA ORHAN') { toast('Sadece yönetici kullanıcı silebilir.', 'error'); return; }
   if (name === 'MUSTAFA ORHAN') { toast('Yönetici silinemez.', 'error'); return; }
   if (!confirm(`"${name}" kullanıcısını tamamen silmek istediğinize emin misiniz?`)) return;
@@ -3241,6 +3241,9 @@ function deleteUserPermanently(name) {
   delete userFlags[name];
   data.settings._userActiveFlags = JSON.stringify(userFlags);
   if (data.activeUser === name) data.activeUser = 'MUSTAFA ORHAN';
+  if (isSupabaseReady()) {
+    try { await supabaseFetch('DELETE', 'stok_users', { name: `eq.${name}` }); } catch(e) { console.error('Supabase kullanıcı silme hatası:', e); }
+  }
   saveData();
   toast(`"${name}" silindi.`, 'info');
   refreshSettings();
