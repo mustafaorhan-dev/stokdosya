@@ -28,11 +28,15 @@ async function supabaseFetch(method, table, params, body) {
     'Prefer': 'return=representation'
   };
   if (method === 'POST') headers['Prefer'] = 'return=representation,resolution=merge-duplicates';
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 15000);
   const res = await fetch(url, {
     method: method,
     headers: headers,
-    body: body ? JSON.stringify(body) : undefined
+    body: body ? JSON.stringify(body) : undefined,
+    signal: controller.signal
   });
+  clearTimeout(timeout);
   if (!res.ok) {
     let msg = `${res.status} ${res.statusText}`;
     try { const e = await res.json(); msg += ': ' + (e.message || JSON.stringify(e)); } catch(_) {}
@@ -466,8 +470,10 @@ async function saveData() {
   saveDataLocal();
   if (isSupabaseReady() && !_syncLock) {
     const ok = await supabaseSave();
-    if (!ok) toast('⚠️ Supabase\'e kaydedilemedi. Veriler localStorage\'da duruyor.', 'warning');
+    if (!ok) { toast('⚠️ Supabase\'e kaydedilemedi. Veriler localStorage\'da duruyor.', 'warning'); return false; }
+    return true;
   }
+  return !isSupabaseReady();
 }
 
 // ----- TEMA -----
@@ -3151,7 +3157,7 @@ document.getElementById('profile-form').addEventListener('submit', (e) => {
 });
 
 // Kullanici ekle (sadece admin)
-document.getElementById('add-user-btn').addEventListener('click', () => {
+document.getElementById('add-user-btn').addEventListener('click', async () => {
   if (data.activeUser !== 'MUSTAFA ORHAN') { toast('Sadece yönetici kullanıcı ekleyebilir.', 'error'); return; }
   const name = document.getElementById('new-username-input').value.trim();
   const role = document.getElementById('new-userrole-input').value.trim() || 'Depo Kullanıcısı';
@@ -3164,8 +3170,8 @@ document.getElementById('add-user-btn').addEventListener('click', () => {
   try { userFlags = JSON.parse(data.settings._userActiveFlags || '{}'); } catch(e) {}
   userFlags[name] = true;
   data.settings._userActiveFlags = JSON.stringify(userFlags);
-  saveData();
-  toast(`"${name}" eklendi.`, 'success');
+  const ok = await saveData();
+  if (ok) toast(`"${name}" eklendi.`, 'success');
   document.getElementById('new-username-input').value = '';
   document.getElementById('new-userrole-input').value = 'Depo Kullanıcısı';
   document.getElementById('new-userpassword-input').value = '';
