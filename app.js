@@ -1089,7 +1089,7 @@ function refreshDashboard() {
 
   const kritik = prods.filter(p => p.criticalLevel > 0 && p.stock <= p.criticalLevel);
   if (el('critical-count')) el('critical-count').textContent = kritik.length;
-  if (el('critical-badge-container')) el('critical-badge-container').className = 'icon-box ' + (kritik.length ? 'st-warning' : 'st-green');
+  if (el('critical-badge-container')) el('critical-badge-container').className = 'icon-box st-blue';
 
   const bugun = todayStr();
   const bugunHareket = data.transactions.filter(t => t.date === bugun);
