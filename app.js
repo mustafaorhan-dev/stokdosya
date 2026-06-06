@@ -1315,26 +1315,24 @@ function refreshDashboard() {
     </div>
   `).join('');
 
-  // Bar üzerine etiket plugini
+  // Bar üzerine etiket plugini (Kategori Dağılımı tarzı)
   const qiLabelPlugin = {
     id: 'qiLabel',
-    afterDatasetsDraw(chart) {
+    afterDraw(chart) {
       const ctx = chart.ctx;
-      chart.data.datasets.forEach((dataset, i) => {
-        const meta = chart.getDatasetMeta(i);
-        meta.data.forEach((bar, index) => {
-          const val = dataset.data[index];
-          if (val === 0) return;
-          ctx.save();
-          ctx.textAlign = 'center';
-          ctx.textBaseline = 'bottom';
-          ctx.font = 'bold 13px Outfit, Arial, sans-serif';
-          ctx.fillStyle = '#fff';
-          ctx.shadowColor = 'rgba(0,0,0,0.4)';
-          ctx.shadowBlur = 3;
-          ctx.fillText(val, bar.x, bar.y - 4);
-          ctx.restore();
-        });
+      const meta = chart.getDatasetMeta(0);
+      meta.data.forEach((bar, idx) => {
+        const val = qiData[idx];
+        if (!val) return;
+        ctx.save();
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.font = 'bold 18px Outfit, Arial, sans-serif';
+        ctx.fillStyle = '#fff';
+        ctx.shadowColor = 'rgba(0,0,0,0.3)';
+        ctx.shadowBlur = 3;
+        ctx.fillText(val, bar.x, bar.y + (bar.height / 2));
+        ctx.restore();
       });
     }
   };
@@ -1345,18 +1343,17 @@ function refreshDashboard() {
       labels: qiLabels,
       datasets: [{
         data: qiData,
-        backgroundColor: qiColors.map(c => c + 'cc'),
-        borderColor: qiColors,
-        borderWidth: 2,
+        backgroundColor: qiColors,
         borderRadius: { topLeft: 6, topRight: 6, bottomLeft: 0, bottomRight: 0 },
         borderSkipped: false,
-        barPercentage: 0.65,
-        categoryPercentage: 0.75,
-        hoverBackgroundColor: qiColors.map(c => c)
+        barPercentage: 0.7,
+        categoryPercentage: 0.8,
+        hoverBackgroundColor: qiColors.map(c => c + 'cc'),
       }]
     },
     options: {
-      responsive: true, maintainAspectRatio: false,
+      responsive: true,
+      maintainAspectRatio: false,
       plugins: {
         legend: { display: false },
         tooltip: {
@@ -1364,7 +1361,9 @@ function refreshDashboard() {
           titleColor: isDark ? '#e2e8f0' : '#0f172a',
           bodyColor: isDark ? '#cbd5e1' : '#334155',
           borderColor: isDark ? 'rgba(148,163,184,0.2)' : 'rgba(0,0,0,0.1)',
-          borderWidth: 1, padding: 10, cornerRadius: 8,
+          borderWidth: 1,
+          padding: 10,
+          cornerRadius: 8,
           callbacks: {
             label: ctx => {
               const total = qiData.reduce((s, v) => s + v, 0);
@@ -1374,15 +1373,35 @@ function refreshDashboard() {
           }
         }
       },
+      animation: {
+        duration: 800,
+        easing: 'easeOutQuart',
+        delay(ctx) {
+          return ctx.dataIndex * 100;
+        }
+      },
+      hover: {
+        mode: 'index',
+        intersect: false
+      },
       scales: {
         x: {
           grid: { display: false },
-          ticks: { color: labelColor, font: { size: 9, family: 'Outfit, Arial' }, maxRotation: 20 }
+          ticks: {
+            color: labelColor,
+            font: { size: 10, family: 'Outfit, Arial' },
+            maxRotation: 30
+          }
         },
         y: {
           beginAtZero: true,
-          ticks: { color: labelColor, font: { size: 10, family: 'Outfit, Arial' }, stepSize: 1 },
-          grid: { color: gridColor }
+          grid: { color: isDark ? 'rgba(148,163,184,0.25)' : 'rgba(0,0,0,0.08)' },
+          border: { display: true, color: isDark ? 'rgba(148,163,184,0.3)' : 'rgba(0,0,0,0.12)', width: 1 },
+          ticks: {
+            color: labelColor,
+            font: { size: 10, family: 'Outfit, Arial' },
+            stepSize: 1
+          }
         }
       }
     },
