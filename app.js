@@ -1240,7 +1240,8 @@ function refreshDashboard() {
       },
       options: {
         responsive: true,
-        maintainAspectRatio: false,
+        maintainAspectRatio: true,
+        aspectRatio: 1.8,
         cutout: '65%',
         plugins: {
           legend: { display: false },
@@ -1340,7 +1341,8 @@ function refreshDashboard() {
     },
     options: {
       responsive: true,
-      maintainAspectRatio: false,
+      maintainAspectRatio: true,
+      aspectRatio: 1.8,
       cutout: '65%',
       plugins: {
         legend: { display: false },
