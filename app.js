@@ -1443,13 +1443,14 @@ function refreshDashboard() {
           const meta = chart.getDatasetMeta(i);
           meta.data.forEach((bar, idx) => {
             const val = ds.data[idx];
+            if (val === 0 || val === undefined || val === null) return;
             ctx.save();
             ctx.textAlign = 'center';
             ctx.textBaseline = 'bottom';
             ctx.font = 'bold 15px Outfit, Arial, sans-serif';
+            ctx.shadowColor = 'rgba(0,0,0,0.5)';
+            ctx.shadowBlur = 4;
             ctx.fillStyle = '#fff';
-            ctx.shadowColor = 'rgba(0,0,0,0.4)';
-            ctx.shadowBlur = 3;
             ctx.fillText('%' + val, bar.x, bar.y - 4);
             ctx.restore();
           });
@@ -2798,6 +2799,8 @@ function refreshTenderChart() {
           ctx.textAlign = 'center';
           ctx.textBaseline = 'middle';
           ctx.font = 'bold 17px Outfit, Arial, sans-serif';
+          ctx.shadowColor = 'rgba(0,0,0,0.5)';
+          ctx.shadowBlur = 4;
           ctx.fillStyle = '#fff';
           const rightEdge = bar.base + bar.width;
           ctx.fillText('%' + val, rightEdge - 16, bar.y);
