@@ -1279,7 +1279,7 @@ function refreshDashboard() {
   const qiContainer = document.getElementById('quick-info-list');
   qiContainer.innerHTML = `
     <div style="display:flex;flex-direction:column;gap:8px;">
-      <div style="max-width:360px;margin:0 auto;width:100%;"><canvas id="quick-info-canvas" style="width:100%;"></canvas></div>
+      <div style="max-width:280px;margin:0 auto;width:100%;"><canvas id="quick-info-canvas" style="width:100%;"></canvas></div>
       <div style="display:flex;justify-content:center;gap:14px;flex-wrap:wrap;" id="qi-legend"></div>
     </div>
   `;
