@@ -1191,50 +1191,59 @@ function refreshDashboard() {
     const catData = catOrder.map(c => catCount[c] || 0);
     const catBgColors = catOrder.map(c => catColors[c]);
 
-    // Bar üzerine değer yaz
-    const barLabelPlugin = {
-      id: 'barLabel',
+    // Legend
+    document.getElementById('category-chart-legend').innerHTML = catLabels.map((l, i) => `
+      <div style="display:flex;align-items:center;gap:6px;">
+        <div style="width:10px;height:10px;border-radius:50%;background:${catBgColors[i]};flex-shrink:0;"></div>
+        <span style="font-size:12px;font-weight:600;color:${isDark ? '#94a3b8' : '#64748b'};">${l}</span>
+        <span style="font-size:11px;font-weight:700;color:${labelColor};">${catData[i]}</span>
+      </div>
+    `).join('');
+
+    // Dilim içi etiket
+    const catLabelPlugin = {
+      id: 'catLabel',
       afterDraw(chart) {
         const ctx = chart.ctx;
         const meta = chart.getDatasetMeta(0);
-        meta.data.forEach((bar, idx) => {
+        meta.data.forEach((arc, idx) => {
           const val = catData[idx];
           if (!val) return;
+          const angle = (arc.startAngle + arc.endAngle) / 2;
+          const radius = (arc.outerRadius + arc.innerRadius) / 2;
           ctx.save();
           ctx.textAlign = 'center';
           ctx.textBaseline = 'middle';
-          ctx.font = 'bold 18px Outfit, Arial, sans-serif';
+          ctx.font = 'bold 16px Outfit, Arial, sans-serif';
           ctx.fillStyle = '#fff';
-          ctx.shadowColor = 'rgba(0,0,0,0.3)';
-          ctx.shadowBlur = 3;
-          ctx.fillText(val, bar.x, bar.y + (bar.height / 2));
+          ctx.shadowColor = 'rgba(0,0,0,0.5)';
+          ctx.shadowBlur = 4;
+          ctx.fillText(val, arc.x + Math.cos(angle) * radius, arc.y + Math.sin(angle) * radius);
           ctx.restore();
         });
       }
     };
 
     window._catChart = new Chart(catCanvas, {
-      type: 'bar',
+      type: 'doughnut',
       data: {
         labels: catLabels,
         datasets: [{
           data: catData,
           backgroundColor: catBgColors,
-          borderRadius: { topLeft: 6, topRight: 6, bottomLeft: 0, bottomRight: 0 },
-          borderSkipped: false,
-          barPercentage: 0.7,
-          categoryPercentage: 0.8,
-          hoverBackgroundColor: catBgColors.map(c => c + 'cc'),
+          borderColor: isDark ? '#1e293b' : '#fff',
+          borderWidth: 3,
+          hoverOffset: 8,
+          borderRadius: 3,
+          spacing: 3
         }]
       },
       options: {
         responsive: true,
         maintainAspectRatio: false,
-        indexAxis: 'x',
+        cutout: '65%',
         plugins: {
-          legend: {
-            display: false
-          },
+          legend: { display: false },
           tooltip: {
             backgroundColor: isDark ? '#1e293b' : '#fff',
             titleColor: isDark ? '#e2e8f0' : '#0f172a',
@@ -1245,8 +1254,8 @@ function refreshDashboard() {
             cornerRadius: 8,
             callbacks: {
               label: ctx => {
-                const pct = catTotal > 0 ? ((ctx.parsed.y / catTotal) * 100).toFixed(1) : '0';
-                return ` ${ctx.label}: ${ctx.parsed.y} çeşit (%${pct})`;
+                const pct = catTotal > 0 ? ((ctx.parsed / catTotal) * 100).toFixed(1) : '0';
+                return ` ${ctx.label}: ${ctx.parsed} çeşit (%${pct})`;
               }
             }
           }
@@ -1257,107 +1266,82 @@ function refreshDashboard() {
           delay(ctx) {
             return ctx.dataIndex * 100;
           }
-        },
-        hover: {
-          mode: 'index',
-          intersect: false
-        },
-        scales: {
-          x: {
-            grid: { display: false },
-            ticks: {
-              color: labelColor,
-              font: { size: 10, family: 'Outfit, Arial' },
-              maxRotation: 30
-            }
-          },
-          y: {
-            beginAtZero: true,
-            grid: { color: isDark ? 'rgba(148,163,184,0.25)' : 'rgba(0,0,0,0.08)' },
-            border: { display: true, color: isDark ? 'rgba(148,163,184,0.3)' : 'rgba(0,0,0,0.12)', width: 1 },
-            ticks: {
-              color: labelColor,
-              font: { size: 10, family: 'Outfit, Arial' },
-              stepSize: 1
-            }
-          }
         }
       },
-      plugins: [barLabelPlugin]
+      plugins: [catLabelPlugin]
     });
   }
 
-  // Hızlı Bilgiler (column chart + yan bilgiler)
+  // Hızlı Bilgiler (doughnut chart)
   const sttOlan = prods.filter(p => p.stt).length;
   const tedarikciSayisi = data.companies.length;
   const toplamIslem = data.transactions.length;
   const qiContainer = document.getElementById('quick-info-list');
   qiContainer.innerHTML = `
     <div style="display:flex;flex-direction:column;gap:8px;">
-      <div style="width:100%;"><canvas id="quick-info-canvas" style="width:100%;height:220px;"></canvas></div>
-      <div style="display:flex;justify-content:center;gap:20px;flex-wrap:wrap;" id="qi-side-items"></div>
+      <div style="width:100%;"><canvas id="quick-info-canvas" style="width:100%;height:260px;"></canvas></div>
+      <div style="display:flex;justify-content:center;gap:16px;flex-wrap:wrap;" id="qi-legend"></div>
     </div>
   `;
   if (window._qiChart) window._qiChart.destroy();
 
   const isDark = getTheme() === 'dark';
   const labelColor = isDark ? '#e2e8f0' : '#334155';
-  const gridColor = isDark ? 'rgba(148,163,184,0.2)' : 'rgba(71,85,105,0.12)';
   const qiLabels = ["STT'li Ürün", 'Tedarikçi', 'Toplam İşlem', 'Bugünkü İşlem', 'Ürün Listesi'];
   const qiData = [sttOlan, tedarikciSayisi, toplamIslem, bugunHareket.length, (data.productNames || []).length];
   const qiColors = ['#60a5fa', '#3b82f6', '#2563eb', '#1d4ed8', '#1e3a8a'];
 
-  // Yan bilgi kutuları (sadece renk + etiket, rakam yok)
-  document.getElementById('qi-side-items').innerHTML = qiLabels.map((l, i) => `
-    <div style="display:flex;align-items:center;gap:8px;">
+  // Legend
+  document.getElementById('qi-legend').innerHTML = qiLabels.map((l, i) => `
+    <div style="display:flex;align-items:center;gap:6px;">
       <div style="width:10px;height:10px;border-radius:50%;background:${qiColors[i]};flex-shrink:0;"></div>
-      <div style="font-size:12px;font-weight:600;color:${isDark ? '#94a3b8' : '#64748b'};">${l}</div>
+      <span style="font-size:12px;font-weight:600;color:${isDark ? '#94a3b8' : '#64748b'};">${l}</span>
+      <span style="font-size:11px;font-weight:700;color:${labelColor};">${qiData[i]}</span>
     </div>
   `).join('');
 
-  // Yatay bar etiket plugini
+  // Dilim içi etiket
   const qiLabelPlugin = {
     id: 'qiLabel',
-    afterDatasetsDraw(chart) {
+    afterDraw(chart) {
       const ctx = chart.ctx;
-      chart.data.datasets.forEach((ds, i) => {
-        const meta = chart.getDatasetMeta(i);
-        meta.data.forEach((bar, idx) => {
-          const val = ds.data[idx];
-          if (!val) return;
-          ctx.save();
-          ctx.textAlign = 'center';
-          ctx.textBaseline = 'middle';
-          ctx.font = 'bold 16px Outfit, Arial, sans-serif';
-          ctx.fillStyle = '#fff';
-          ctx.shadowColor = 'rgba(0,0,0,0.4)';
-          ctx.shadowBlur = 3;
-          ctx.fillText(val, bar.x, bar.y);
-          ctx.restore();
-        });
+      const meta = chart.getDatasetMeta(0);
+      meta.data.forEach((arc, idx) => {
+        const val = qiData[idx];
+        if (!val) return;
+        const angle = (arc.startAngle + arc.endAngle) / 2;
+        const radius = (arc.outerRadius + arc.innerRadius) / 2;
+        ctx.save();
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.font = 'bold 16px Outfit, Arial, sans-serif';
+        ctx.fillStyle = '#fff';
+        ctx.shadowColor = 'rgba(0,0,0,0.5)';
+        ctx.shadowBlur = 4;
+        ctx.fillText(val, arc.x + Math.cos(angle) * radius, arc.y + Math.sin(angle) * radius);
+        ctx.restore();
       });
     }
   };
 
   window._qiChart = new Chart(document.getElementById('quick-info-canvas'), {
-    type: 'bar',
+    type: 'doughnut',
     data: {
       labels: qiLabels,
       datasets: [{
         data: qiData,
         backgroundColor: qiColors,
-        borderRadius: 6,
-        borderSkipped: false,
-        barPercentage: 0.7,
-        categoryPercentage: 0.8,
-        hoverBackgroundColor: qiColors.map(c => c + 'cc'),
-        minBarLength: 20,
+        borderColor: isDark ? '#1e293b' : '#fff',
+        borderWidth: 3,
+        hoverOffset: 8,
+        borderRadius: 3,
+        spacing: 3
       }]
     },
     options: {
-      indexAxis: 'y',
       responsive: true,
       maintainAspectRatio: false,
+      cutout: '65%',
       plugins: {
         legend: { display: false },
         tooltip: {
@@ -1371,8 +1355,8 @@ function refreshDashboard() {
           callbacks: {
             label: ctx => {
               const total = qiData.reduce((s, v) => s + v, 0);
-              const pct = total > 0 ? ((ctx.parsed.x / total) * 100).toFixed(1) : '0';
-              return ` ${ctx.label}: ${ctx.parsed.x} (%${pct})`;
+              const pct = total > 0 ? ((ctx.parsed / total) * 100).toFixed(1) : '0';
+              return ` ${ctx.label}: ${ctx.parsed} (%${pct})`;
             }
           }
         }
@@ -1382,31 +1366,6 @@ function refreshDashboard() {
         easing: 'easeOutQuart',
         delay(ctx) {
           return ctx.dataIndex * 100;
-        }
-      },
-      hover: {
-        mode: 'index',
-        intersect: false
-      },
-      scales: {
-        x: {
-          reverse: true,
-          beginAtZero: true,
-          grid: { color: isDark ? 'rgba(148,163,184,0.25)' : 'rgba(0,0,0,0.08)' },
-          border: { display: true, color: isDark ? 'rgba(148,163,184,0.3)' : 'rgba(0,0,0,0.12)', width: 1 },
-          ticks: {
-            color: labelColor,
-            font: { size: 10, family: 'Outfit, Arial' },
-            stepSize: 1
-          }
-        },
-        y: {
-          position: 'right',
-          grid: { display: false },
-          ticks: {
-            color: labelColor,
-            font: { size: 11, family: 'Outfit, Arial' }
-          }
         }
       }
     },
