@@ -1448,9 +1448,7 @@ function refreshDashboard() {
             ctx.textAlign = 'center';
             ctx.textBaseline = 'bottom';
             ctx.font = 'bold 15px Outfit, Arial, sans-serif';
-            ctx.shadowColor = 'rgba(0,0,0,0.5)';
-            ctx.shadowBlur = 4;
-            ctx.fillStyle = '#fff';
+            ctx.fillStyle = isDark ? '#fff' : '#0f172a';
             ctx.fillText('%' + val, bar.x, bar.y - 4);
             ctx.restore();
           });
@@ -2799,9 +2797,7 @@ function refreshTenderChart() {
           ctx.textAlign = 'center';
           ctx.textBaseline = 'middle';
           ctx.font = 'bold 17px Outfit, Arial, sans-serif';
-          ctx.shadowColor = 'rgba(0,0,0,0.5)';
-          ctx.shadowBlur = 4;
-          ctx.fillStyle = '#fff';
+          ctx.fillStyle = isDark ? '#fff' : '#0f172a';
           const rightEdge = bar.base + bar.width;
           ctx.fillText('%' + val, rightEdge - 16, bar.y);
           ctx.restore();
