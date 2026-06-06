@@ -1203,7 +1203,7 @@ function refreshDashboard() {
     // Dilim içi etiket
     const catLabelPlugin = {
       id: 'catLabel',
-      afterDraw(chart) {
+      afterDatasetsDraw(chart) {
         const ctx = chart.ctx;
         const meta = chart.getDatasetMeta(0);
 
@@ -1320,7 +1320,7 @@ function refreshDashboard() {
   const qiTotal = qiData.reduce((s, v) => s + v, 0);
   const qiLabelPlugin = {
     id: 'qiLabel',
-    afterDraw(chart) {
+    afterDatasetsDraw(chart) {
       const ctx = chart.ctx;
       const meta = chart.getDatasetMeta(0);
 
