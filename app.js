@@ -1305,7 +1305,7 @@ function refreshDashboard() {
   const labelColor = isDark ? '#e2e8f0' : '#334155';
   const qiLabels = ["STT'li Ürün", 'Tedarikçi', 'Toplam İşlem', 'Bugünkü İşlem', 'Ürün Listesi'];
   const qiData = [sttOlan, tedarikciSayisi, toplamIslem, bugunHareket.length, (data.productNames || []).length];
-  const qiColors = ['#60a5fa', '#3b82f6', '#2563eb', '#1d4ed8', '#1e3a8a'];
+  const qiColors = ['#2dd4bf', '#14b8a6', '#0d9488', '#0f766e', '#115e59'];
 
   // Legend
   document.getElementById('qi-legend').innerHTML = qiLabels.map((l, i) => `
