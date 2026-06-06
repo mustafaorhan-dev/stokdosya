@@ -1318,7 +1318,7 @@ function refreshDashboard() {
   // Bar üzerine etiket plugini (Kategori Dağılımı tarzı)
   const qiLabelPlugin = {
     id: 'qiLabel',
-    afterDraw(chart) {
+    afterDatasetsDraw(chart) {
       const ctx = chart.ctx;
       const meta = chart.getDatasetMeta(0);
       meta.data.forEach((bar, idx) => {
@@ -1326,12 +1326,14 @@ function refreshDashboard() {
         if (!val) return;
         ctx.save();
         ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
         ctx.font = 'bold 18px Outfit, Arial, sans-serif';
         ctx.fillStyle = '#fff';
         ctx.shadowColor = 'rgba(0,0,0,0.3)';
         ctx.shadowBlur = 3;
-        ctx.fillText(val, bar.x, bar.y + (bar.height / 2));
+        const insideBar = bar.height > 22;
+        ctx.textBaseline = insideBar ? 'middle' : 'bottom';
+        const y = insideBar ? bar.y + (bar.height / 2) : bar.y - 4;
+        ctx.fillText(val, bar.x, y);
         ctx.restore();
       });
     }
