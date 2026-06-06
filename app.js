@@ -1287,14 +1287,14 @@ function refreshDashboard() {
     });
   }
 
-  // Hızlı Bilgiler (doughnut + yan bilgiler)
+  // Hızlı Bilgiler (column chart + yan bilgiler)
   const sttOlan = prods.filter(p => p.stt).length;
   const tedarikciSayisi = data.companies.length;
   const toplamIslem = data.transactions.length;
   const qiContainer = document.getElementById('quick-info-list');
   qiContainer.innerHTML = `
     <div style="display:flex;flex-direction:column;gap:8px;">
-      <div style="max-width:300px;margin:0 auto;width:100%;"><canvas id="quick-info-canvas" style="width:100%;height:220px;"></canvas></div>
+      <div style="width:100%;"><canvas id="quick-info-canvas" style="width:100%;height:220px;"></canvas></div>
       <div style="display:flex;justify-content:center;gap:20px;flex-wrap:wrap;" id="qi-side-items"></div>
     </div>
   `;
@@ -1302,6 +1302,7 @@ function refreshDashboard() {
 
   const isDark = getTheme() === 'dark';
   const labelColor = isDark ? '#e2e8f0' : '#334155';
+  const gridColor = isDark ? 'rgba(148,163,184,0.2)' : 'rgba(71,85,105,0.12)';
   const qiLabels = ["STT'li Ürün", 'Tedarikçi', 'Toplam İşlem', 'Bugünkü İşlem', 'Ürün Listesi'];
   const qiData = [sttOlan, tedarikciSayisi, toplamIslem, bugunHareket.length, (data.productNames || []).length];
   const qiColors = ['#60a5fa', '#3b82f6', '#2563eb', '#1d4ed8', '#1e3a8a'];
@@ -1314,45 +1315,48 @@ function refreshDashboard() {
     </div>
   `).join('');
 
-  // Dilim içi etiket plugini
+  // Bar üzerine etiket plugini
   const qiLabelPlugin = {
     id: 'qiLabel',
-    afterDraw(chart) {
+    afterDatasetsDraw(chart) {
       const ctx = chart.ctx;
-      const meta = chart.getDatasetMeta(0);
-      meta.data.forEach((arc, idx) => {
-        const val = qiData[idx];
-        if (!val) return;
-        const angle = (arc.startAngle + arc.endAngle) / 2;
-        const radius = (arc.outerRadius + arc.innerRadius) / 2;
-        const x = arc.x + Math.cos(angle) * radius;
-        const y = arc.y + Math.sin(angle) * radius;
-        ctx.save();
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
-        ctx.font = 'bold 14px Outfit, Arial, sans-serif';
-        ctx.fillStyle = '#fff';
-        ctx.shadowColor = 'rgba(0,0,0,0.5)';
-        ctx.shadowBlur = 4;
-        ctx.fillText(val, x, y);
-        ctx.restore();
+      chart.data.datasets.forEach((dataset, i) => {
+        const meta = chart.getDatasetMeta(i);
+        meta.data.forEach((bar, index) => {
+          const val = dataset.data[index];
+          if (val === 0) return;
+          ctx.save();
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'bottom';
+          ctx.font = 'bold 13px Outfit, Arial, sans-serif';
+          ctx.fillStyle = '#fff';
+          ctx.shadowColor = 'rgba(0,0,0,0.4)';
+          ctx.shadowBlur = 3;
+          ctx.fillText(val, bar.x, bar.y - 4);
+          ctx.restore();
+        });
       });
     }
   };
 
   window._qiChart = new Chart(document.getElementById('quick-info-canvas'), {
-    type: 'doughnut',
+    type: 'bar',
     data: {
       labels: qiLabels,
       datasets: [{
         data: qiData,
-        backgroundColor: qiColors,
-        borderColor: isDark ? '#1e293b' : '#fff',
-        borderWidth: 3, hoverOffset: 8, borderRadius: 3, spacing: 4
+        backgroundColor: qiColors.map(c => c + 'cc'),
+        borderColor: qiColors,
+        borderWidth: 2,
+        borderRadius: { topLeft: 6, topRight: 6, bottomLeft: 0, bottomRight: 0 },
+        borderSkipped: false,
+        barPercentage: 0.65,
+        categoryPercentage: 0.75,
+        hoverBackgroundColor: qiColors.map(c => c)
       }]
     },
     options: {
-      responsive: true, maintainAspectRatio: false, cutout: '65%',
+      responsive: true, maintainAspectRatio: false,
       plugins: {
         legend: { display: false },
         tooltip: {
@@ -1364,10 +1368,21 @@ function refreshDashboard() {
           callbacks: {
             label: ctx => {
               const total = qiData.reduce((s, v) => s + v, 0);
-              const pct = total > 0 ? ((ctx.parsed / total) * 100).toFixed(1) : '0';
-              return ` ${ctx.label}: ${ctx.parsed} (%${pct})`;
+              const pct = total > 0 ? ((ctx.parsed.y / total) * 100).toFixed(1) : '0';
+              return ` ${ctx.label}: ${ctx.parsed.y} (%${pct})`;
             }
           }
+        }
+      },
+      scales: {
+        x: {
+          grid: { display: false },
+          ticks: { color: labelColor, font: { size: 9, family: 'Outfit, Arial' }, maxRotation: 20 }
+        },
+        y: {
+          beginAtZero: true,
+          ticks: { color: labelColor, font: { size: 10, family: 'Outfit, Arial' }, stepSize: 1 },
+          grid: { color: gridColor }
         }
       }
     },
