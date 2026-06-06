@@ -2961,6 +2961,15 @@ function editTender(id) { openTenderModal(id); }
 function deleteTender(id) {
   if (isViewOnly()) { toast('Görüntüleme modunda ihale silemezsiniz.', 'error'); return; }
   if (!confirm('Bu ihaleyi silmek istediğinize emin misiniz?')) return;
+  const silinen = data.tenders.find(t => t.id === id);
+  if (silinen && data.products) {
+    const miktar = silinen.delivered || 0;
+    Object.entries(data.products).forEach(([partiNo, p]) => {
+      if (p.companyName === silinen.companyName && p.name === silinen.product) {
+        p.stock = Math.max(0, (p.stock || 0) - miktar);
+      }
+    });
+  }
   data.tenders = data.tenders.filter(t => t.id !== id);
   saveData();
   refreshTenders();
@@ -2983,11 +2992,28 @@ document.getElementById('tender-form').addEventListener('submit', (e) => {
 
   if (!companyName || !product || !quantity || !price || !unit) { toast('Tüm alanları doldurun.', 'error'); return; }
 
+  // Stok güncelleme yardımcısı
+  function _stokGuncelle(eski, yeni) {
+    if (!data.products) return;
+    const fark = yeni - eski;
+    if (fark === 0) return;
+    Object.entries(data.products).forEach(([partiNo, p]) => {
+      if (p.companyName === companyName && p.name === product) {
+        p.stock = Math.max(0, (p.stock || 0) + fark);
+      }
+    });
+  }
+
   if (editId) {
     const t = data.tenders.find(x => x.id === parseFloat(editId));
-    if (t) { t.companyName = companyName; t.product = product; t.quantity = quantity; t.unit = unit; t.delivered = delivered; t.price = price; t.year = year; }
+    if (t) {
+      const oldDelivered = t.delivered || 0;
+      _stokGuncelle(oldDelivered, delivered);
+      t.companyName = companyName; t.product = product; t.quantity = quantity; t.unit = unit; t.delivered = delivered; t.price = price; t.year = year;
+    }
     toast('İhale güncellendi.', 'success');
   } else {
+    _stokGuncelle(0, delivered);
     data.tenders.push({ id: Date.now() + Math.random() * 1000, companyName, product, quantity, unit, delivered, price, year });
     toast('İhale eklendi.', 'success');
   }
