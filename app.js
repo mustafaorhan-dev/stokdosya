@@ -2964,8 +2964,10 @@ function deleteTender(id) {
   const silinen = data.tenders.find(t => t.id === id);
   if (silinen && data.products) {
     const miktar = silinen.delivered || 0;
+    const co = silinen.companyName.toLowerCase();
+    const pr = silinen.product.toLowerCase();
     Object.entries(data.products).forEach(([partiNo, p]) => {
-      if (p.companyName === silinen.companyName && p.name === silinen.product) {
+      if (p.companyName.toLowerCase() === co && p.name.toLowerCase() === pr) {
         p.stock = Math.max(0, (p.stock || 0) - miktar);
       }
     });
@@ -2997,8 +2999,10 @@ document.getElementById('tender-form').addEventListener('submit', (e) => {
     if (!data.products) return;
     const fark = yeni - eski;
     if (fark === 0) return;
+    const co = companyName.toLowerCase();
+    const pr = product.toLowerCase();
     Object.entries(data.products).forEach(([partiNo, p]) => {
-      if (p.companyName === companyName && p.name === product) {
+      if (p.companyName.toLowerCase() === co && p.name.toLowerCase() === pr) {
         p.stock = Math.max(0, (p.stock || 0) + fark);
       }
     });
