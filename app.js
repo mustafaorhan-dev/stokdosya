@@ -1475,7 +1475,8 @@ function refreshDashboard() {
       },
       options: {
         responsive: true,
-        maintainAspectRatio: false,
+        maintainAspectRatio: true,
+        aspectRatio: 1.4,
         plugins: {
           legend: { display: false },
           tooltip: {
