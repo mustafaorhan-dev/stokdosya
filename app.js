@@ -1315,45 +1315,47 @@ function refreshDashboard() {
     </div>
   `).join('');
 
-  // Polar area etiket plugini
+  // Yatay bar etiket plugini
   const qiLabelPlugin = {
     id: 'qiLabel',
-    afterDraw(chart) {
+    afterDatasetsDraw(chart) {
       const ctx = chart.ctx;
-      const meta = chart.getDatasetMeta(0);
-      meta.data.forEach((arc, idx) => {
-        const val = qiData[idx];
-        if (!val) return;
-        const angle = (arc.startAngle + arc.endAngle) / 2;
-        const radius = (arc.outerRadius + arc.innerRadius) / 2;
-        const x = arc.x + Math.cos(angle) * radius;
-        const y = arc.y + Math.sin(angle) * radius;
-        ctx.save();
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
-        ctx.font = 'bold 18px Outfit, Arial, sans-serif';
-        ctx.fillStyle = '#fff';
-        ctx.shadowColor = 'rgba(0,0,0,0.5)';
-        ctx.shadowBlur = 4;
-        ctx.fillText(val, x, y);
-        ctx.restore();
+      chart.data.datasets.forEach((ds, i) => {
+        const meta = chart.getDatasetMeta(i);
+        meta.data.forEach((bar, idx) => {
+          const val = ds.data[idx];
+          if (!val) return;
+          ctx.save();
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.font = 'bold 16px Outfit, Arial, sans-serif';
+          ctx.fillStyle = '#fff';
+          ctx.shadowColor = 'rgba(0,0,0,0.4)';
+          ctx.shadowBlur = 3;
+          ctx.fillText(val, bar.x - bar.width / 2 - 12, bar.y);
+          ctx.restore();
+        });
       });
     }
   };
 
   window._qiChart = new Chart(document.getElementById('quick-info-canvas'), {
-    type: 'polarArea',
+    type: 'bar',
     data: {
       labels: qiLabels,
       datasets: [{
         data: qiData,
-        backgroundColor: qiColors.map(c => c + 'cc'),
-        borderColor: isDark ? '#1e293b' : '#fff',
-        borderWidth: 2,
-        hoverBackgroundColor: qiColors,
+        backgroundColor: qiColors,
+        borderRadius: 6,
+        borderSkipped: false,
+        barPercentage: 0.7,
+        categoryPercentage: 0.8,
+        hoverBackgroundColor: qiColors.map(c => c + 'cc'),
+        minBarLength: 20,
       }]
     },
     options: {
+      indexAxis: 'y',
       responsive: true,
       maintainAspectRatio: false,
       plugins: {
@@ -1369,8 +1371,8 @@ function refreshDashboard() {
           callbacks: {
             label: ctx => {
               const total = qiData.reduce((s, v) => s + v, 0);
-              const pct = total > 0 ? ((ctx.parsed / total) * 100).toFixed(1) : '0';
-              return ` ${ctx.label}: ${ctx.parsed} (%${pct})`;
+              const pct = total > 0 ? ((ctx.parsed.x / total) * 100).toFixed(1) : '0';
+              return ` ${ctx.label}: ${ctx.parsed.x} (%${pct})`;
             }
           }
         }
@@ -1382,11 +1384,29 @@ function refreshDashboard() {
           return ctx.dataIndex * 100;
         }
       },
+      hover: {
+        mode: 'index',
+        intersect: false
+      },
       scales: {
-        r: {
+        x: {
+          reverse: true,
           beginAtZero: true,
-          ticks: { display: false },
-          grid: { color: isDark ? 'rgba(148,163,184,0.15)' : 'rgba(0,0,0,0.06)' }
+          grid: { color: isDark ? 'rgba(148,163,184,0.25)' : 'rgba(0,0,0,0.08)' },
+          border: { display: true, color: isDark ? 'rgba(148,163,184,0.3)' : 'rgba(0,0,0,0.12)', width: 1 },
+          ticks: {
+            color: labelColor,
+            font: { size: 10, family: 'Outfit, Arial' },
+            stepSize: 1
+          }
+        },
+        y: {
+          position: 'right',
+          grid: { display: false },
+          ticks: {
+            color: labelColor,
+            font: { size: 11, family: 'Outfit, Arial' }
+          }
         }
       }
     },
