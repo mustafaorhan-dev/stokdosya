@@ -1467,9 +1467,10 @@ function refreshDashboard() {
           backgroundColor: barColors.map(c => c),
           borderColor: barColors.map(c => c),
           borderWidth: 0,
-          borderRadius: 6,
-          barPercentage: 0.65,
-          categoryPercentage: 0.75
+          borderRadius: { topLeft: 6, topRight: 6, bottomLeft: 0, bottomRight: 0 },
+          borderSkipped: false,
+          barPercentage: 0.55,
+          categoryPercentage: 0.7
         }]
       },
       options: {
@@ -1500,7 +1501,7 @@ function refreshDashboard() {
             }
           },
           y: {
-            min: 0,
+            beginAtZero: true,
             max: 110,
             grid: { color: gridColor, drawBorder: false },
             ticks: {
