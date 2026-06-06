@@ -1315,15 +1315,30 @@ function refreshDashboard() {
     </div>
   `).join('');
 
-  // Bar üzerine etiket plugini (Kategori Dağılımı tarzı)
+  // Bar üzerine etiket plugini (Kategori Dağılımı tarzı, minimum çubuk boyu)
   const qiLabelPlugin = {
     id: 'qiLabel',
     afterDraw(chart) {
       const ctx = chart.ctx;
       const meta = chart.getDatasetMeta(0);
+      const minH = 28;
       meta.data.forEach((bar, idx) => {
         const val = qiData[idx];
         if (!val) return;
+        const h = Math.max(bar.height, minH);
+        const cy = bar.base - h + h / 2;
+        if (bar.height < minH) {
+          ctx.save();
+          ctx.globalAlpha = 0.85;
+          ctx.fillStyle = qiColors[idx];
+          const x = bar.x - bar.width / 2 + 1;
+          const w = bar.width - 2;
+          const by = bar.base - h;
+          ctx.beginPath();
+          ctx.roundRect(x, by, w, h, [6, 6, 0, 0]);
+          ctx.fill();
+          ctx.restore();
+        }
         ctx.save();
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
@@ -1331,7 +1346,7 @@ function refreshDashboard() {
         ctx.fillStyle = '#fff';
         ctx.shadowColor = 'rgba(0,0,0,0.3)';
         ctx.shadowBlur = 3;
-        ctx.fillText(val, bar.x, bar.y + (bar.height / 2));
+        ctx.fillText(val, bar.x, cy);
         ctx.restore();
       });
     }
