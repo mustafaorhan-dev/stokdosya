@@ -1445,11 +1445,12 @@ function refreshDashboard() {
             const val = ds.data[idx];
             ctx.save();
             ctx.textAlign = 'center';
-            ctx.textBaseline = 'middle';
-            ctx.font = 'bold 17px Outfit, Arial, sans-serif';
+            ctx.textBaseline = 'bottom';
+            ctx.font = 'bold 15px Outfit, Arial, sans-serif';
             ctx.fillStyle = '#fff';
-            const rightEdge = bar.base + bar.width;
-            ctx.fillText('%' + val, rightEdge - 16, bar.y);
+            ctx.shadowColor = 'rgba(0,0,0,0.4)';
+            ctx.shadowBlur = 3;
+            ctx.fillText('%' + val, bar.x, bar.y - 4);
             ctx.restore();
           });
         });
@@ -1466,13 +1467,12 @@ function refreshDashboard() {
           backgroundColor: barColors.map(c => c),
           borderColor: barColors.map(c => c),
           borderWidth: 0,
-          borderRadius: 4,
-          barPercentage: 0.7,
-          categoryPercentage: 0.85
+          borderRadius: 6,
+          barPercentage: 0.65,
+          categoryPercentage: 0.75
         }]
       },
       options: {
-        indexAxis: 'y',
         responsive: true,
         maintainAspectRatio: false,
         plugins: {
@@ -1486,26 +1486,27 @@ function refreshDashboard() {
             padding: 10,
             cornerRadius: 8,
             callbacks: {
-              label: ctx => `Teslimat: %${ctx.parsed.x}`
+              label: ctx => `Teslimat: %${ctx.parsed.y}`
             }
           }
         },
         scales: {
           x: {
+            grid: { display: false },
+            ticks: {
+              color: labelColor,
+              font: { size: 9, family: 'Outfit, Arial' },
+              maxRotation: 20
+            }
+          },
+          y: {
             min: 0,
             max: 110,
             grid: { color: gridColor, drawBorder: false },
             ticks: {
               color: labelColor,
-              font: { size: 11, family: 'Outfit, Arial' },
+              font: { size: 10, family: 'Outfit, Arial' },
               callback: v => v + '%'
-            }
-          },
-          y: {
-            grid: { display: false },
-            ticks: {
-              color: labelColor,
-              font: { size: 11, family: 'Outfit, Arial', weight: '600' }
             }
           }
         }
