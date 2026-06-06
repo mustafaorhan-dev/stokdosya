@@ -1206,6 +1206,8 @@ function refreshDashboard() {
       afterDraw(chart) {
         const ctx = chart.ctx;
         const meta = chart.getDatasetMeta(0);
+
+        // Dilim içi değerler
         meta.data.forEach((arc, idx) => {
           const val = catData[idx];
           if (!val) return;
@@ -1221,6 +1223,20 @@ function refreshDashboard() {
           ctx.fillText(val, arc.x + Math.cos(angle) * radius, arc.y + Math.sin(angle) * radius);
           ctx.restore();
         });
+
+        // Merkez toplam
+        const cx = chart.chartArea.left + (chart.chartArea.right - chart.chartArea.left) / 2;
+        const cy = chart.chartArea.top + (chart.chartArea.bottom - chart.chartArea.top) / 2;
+        ctx.save();
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.font = 'bold 26px Outfit, Arial, sans-serif';
+        ctx.fillStyle = isDark ? '#f1f5f9' : '#0f172a';
+        ctx.fillText(catTotal, cx, cy - 10);
+        ctx.font = '600 11px Outfit, Arial, sans-serif';
+        ctx.fillStyle = isDark ? '#94a3b8' : '#64748b';
+        ctx.fillText('Toplam', cx, cy + 16);
+        ctx.restore();
       }
     };
 
@@ -1301,11 +1317,14 @@ function refreshDashboard() {
   `).join('');
 
   // Dilim içi etiket
+  const qiTotal = qiData.reduce((s, v) => s + v, 0);
   const qiLabelPlugin = {
     id: 'qiLabel',
     afterDraw(chart) {
       const ctx = chart.ctx;
       const meta = chart.getDatasetMeta(0);
+
+      // Dilim içi değerler
       meta.data.forEach((arc, idx) => {
         const val = qiData[idx];
         if (!val) return;
@@ -1321,6 +1340,20 @@ function refreshDashboard() {
         ctx.fillText(val, arc.x + Math.cos(angle) * radius, arc.y + Math.sin(angle) * radius);
         ctx.restore();
       });
+
+      // Merkez toplam
+      const cx = chart.chartArea.left + (chart.chartArea.right - chart.chartArea.left) / 2;
+      const cy = chart.chartArea.top + (chart.chartArea.bottom - chart.chartArea.top) / 2;
+      ctx.save();
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.font = 'bold 26px Outfit, Arial, sans-serif';
+      ctx.fillStyle = isDark ? '#f1f5f9' : '#0f172a';
+      ctx.fillText(qiTotal, cx, cy - 10);
+      ctx.font = '600 11px Outfit, Arial, sans-serif';
+      ctx.fillStyle = isDark ? '#94a3b8' : '#64748b';
+      ctx.fillText('Toplam', cx, cy + 16);
+      ctx.restore();
     }
   };
 
