@@ -1315,41 +1315,42 @@ function refreshDashboard() {
     </div>
   `).join('');
 
-  // Bar üzerine etiket plugini (Kategori Dağılımı tarzı)
+  // Polar area etiket plugini
   const qiLabelPlugin = {
     id: 'qiLabel',
     afterDraw(chart) {
       const ctx = chart.ctx;
       const meta = chart.getDatasetMeta(0);
-      meta.data.forEach((bar, idx) => {
+      meta.data.forEach((arc, idx) => {
         const val = qiData[idx];
         if (!val) return;
+        const angle = (arc.startAngle + arc.endAngle) / 2;
+        const radius = (arc.outerRadius + arc.innerRadius) / 2;
+        const x = arc.x + Math.cos(angle) * radius;
+        const y = arc.y + Math.sin(angle) * radius;
         ctx.save();
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
         ctx.font = 'bold 18px Outfit, Arial, sans-serif';
         ctx.fillStyle = '#fff';
-        ctx.shadowColor = 'rgba(0,0,0,0.3)';
-        ctx.shadowBlur = 3;
-        ctx.fillText(val, bar.x, bar.y + (bar.height / 2));
+        ctx.shadowColor = 'rgba(0,0,0,0.5)';
+        ctx.shadowBlur = 4;
+        ctx.fillText(val, x, y);
         ctx.restore();
       });
     }
   };
 
   window._qiChart = new Chart(document.getElementById('quick-info-canvas'), {
-    type: 'bar',
+    type: 'polarArea',
     data: {
       labels: qiLabels,
       datasets: [{
         data: qiData,
-        backgroundColor: qiColors,
-        borderRadius: { topLeft: 6, topRight: 6, bottomLeft: 0, bottomRight: 0 },
-        borderSkipped: false,
-        barPercentage: 0.7,
-        categoryPercentage: 0.8,
-        hoverBackgroundColor: qiColors.map(c => c + 'cc'),
-        minBarLength: 28,
+        backgroundColor: qiColors.map(c => c + 'cc'),
+        borderColor: isDark ? '#1e293b' : '#fff',
+        borderWidth: 2,
+        hoverBackgroundColor: qiColors,
       }]
     },
     options: {
@@ -1368,8 +1369,8 @@ function refreshDashboard() {
           callbacks: {
             label: ctx => {
               const total = qiData.reduce((s, v) => s + v, 0);
-              const pct = total > 0 ? ((ctx.parsed.y / total) * 100).toFixed(1) : '0';
-              return ` ${ctx.label}: ${ctx.parsed.y} (%${pct})`;
+              const pct = total > 0 ? ((ctx.parsed / total) * 100).toFixed(1) : '0';
+              return ` ${ctx.label}: ${ctx.parsed} (%${pct})`;
             }
           }
         }
@@ -1381,28 +1382,11 @@ function refreshDashboard() {
           return ctx.dataIndex * 100;
         }
       },
-      hover: {
-        mode: 'index',
-        intersect: false
-      },
       scales: {
-        x: {
-          grid: { display: false },
-          ticks: {
-            color: labelColor,
-            font: { size: 10, family: 'Outfit, Arial' },
-            maxRotation: 30
-          }
-        },
-        y: {
+        r: {
           beginAtZero: true,
-          grid: { color: isDark ? 'rgba(148,163,184,0.25)' : 'rgba(0,0,0,0.08)' },
-          border: { display: true, color: isDark ? 'rgba(148,163,184,0.3)' : 'rgba(0,0,0,0.12)', width: 1 },
-          ticks: {
-            color: labelColor,
-            font: { size: 10, family: 'Outfit, Arial' },
-            stepSize: 1
-          }
+          ticks: { display: false },
+          grid: { color: isDark ? 'rgba(148,163,184,0.15)' : 'rgba(0,0,0,0.06)' }
         }
       }
     },
