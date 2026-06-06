@@ -2751,12 +2751,17 @@ function refreshTenderChart() {
   const emptyMsg = document.getElementById('tender-page-chart-empty');
   if (!canvas) return;
   const yilFilter = document.getElementById('tender-year-filter');
+  const firmaFilter = document.getElementById('tender-company-filter');
   const seciliYil = yilFilter?.value || '';
+  const seciliFirma = firmaFilter?.value || '';
   const firmaToplam = {};
   const cyil = new Date().getFullYear();
   let filteredTenders = data.tenders || [];
   if (seciliYil) {
     filteredTenders = filteredTenders.filter(t => String(t.year || cyil) === seciliYil);
+  }
+  if (seciliFirma) {
+    filteredTenders = filteredTenders.filter(t => t.companyName === seciliFirma);
   }
   filteredTenders.filter(t => t.quantity > 0).forEach(t => {
     if (!firmaToplam[t.companyName]) firmaToplam[t.companyName] = { quantity: 0, delivered: 0 };
@@ -2860,15 +2865,25 @@ function refreshTenders() {
     yilFilter.innerHTML = '<option value="">Tüm Yıllar</option>' +
       mevcutYillar.map(y => `<option value="${y}"${String(y) === secili ? ' selected' : ''}>${y}</option>`).join('');
   }
+  // Firma filtresini güncelle
+  const firmaFilter = document.getElementById('tender-company-filter');
+  if (firmaFilter) {
+    const seciliFirma = firmaFilter.value;
+    const mevcutFirmalar = [...new Set(data.tenders.map(t => t.companyName))].sort((a, b) => a.localeCompare(b));
+    firmaFilter.innerHTML = '<option value="">Tüm Firmalar</option>' +
+      mevcutFirmalar.map(f => `<option value="${htmlEscape(f)}"${f === seciliFirma ? ' selected' : ''}>${htmlEscape(f)}</option>`).join('');
+  }
   if (!data.tenders.length) {
     tbody.innerHTML = '<tr><td colspan="12" style="text-align:center;color:var(--text-muted);padding:40px;">Henüz ihale kaydı yok.</td></tr>';
     refreshTenderChart();
     return;
   }
-  // Yıl filtresine göre süz
+  // Filtrelere göre süz
   const yilFiltre = yilFilter?.value || '';
+  const firmaFiltre = firmaFilter?.value || '';
   let filtreli = data.tenders;
   if (yilFiltre) filtreli = filtreli.filter(t => String(t.year || new Date().getFullYear()) === yilFiltre);
+  if (firmaFiltre) filtreli = filtreli.filter(t => t.companyName === firmaFiltre);
   tbody.innerHTML = filtreli.map(t => {
     const kalan = t.quantity - t.delivered;
     const sozlesmeTutar = t.price * t.quantity;
@@ -2981,8 +2996,9 @@ document.getElementById('tender-form').addEventListener('submit', (e) => {
   refreshTenders();
 });
 
-// İhale yıl filtresi değişince listeyi güncelle
+// İhale filtreleri değişince listeyi güncelle
 document.getElementById('tender-year-filter')?.addEventListener('change', refreshTenders);
+document.getElementById('tender-company-filter')?.addEventListener('change', refreshTenders);
 
 // ----- AYARLAR -----
 function refreshSettings() {
