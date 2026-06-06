@@ -1326,17 +1326,12 @@ function refreshDashboard() {
         if (!val) return;
         ctx.save();
         ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
         ctx.font = 'bold 18px Outfit, Arial, sans-serif';
         ctx.fillStyle = '#fff';
         ctx.shadowColor = 'rgba(0,0,0,0.3)';
         ctx.shadowBlur = 3;
-        if (bar.height > 20) {
-          ctx.textBaseline = 'middle';
-          ctx.fillText(val, bar.x, bar.y + (bar.height / 2));
-        } else {
-          ctx.textBaseline = 'bottom';
-          ctx.fillText(val, bar.x, bar.y - 2);
-        }
+        ctx.fillText(val, bar.x, bar.y + (bar.height / 2));
         ctx.restore();
       });
     }
