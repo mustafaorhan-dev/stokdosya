@@ -1332,7 +1332,7 @@ function refreshDashboard() {
           ctx.fillStyle = '#fff';
           ctx.shadowColor = 'rgba(0,0,0,0.4)';
           ctx.shadowBlur = 3;
-          ctx.fillText(val, bar.x - bar.width / 2 - 12, bar.y);
+          ctx.fillText(val, bar.x, bar.y);
           ctx.restore();
         });
       });
