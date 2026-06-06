@@ -1152,19 +1152,19 @@ function refreshDashboard() {
 
   // Kategori Dağılımı (normalize edilmiş)
   const catMap = [
-    { names: ['Sebze','Sebzeler','Sebze Grubu','Yeşillik'], key: 'Sebze', color: '#60a5fa' },
-    { names: ['Meyve','Meyveler','Meyve Grubu'], key: 'Meyve', color: '#3b82f6' },
-    { names: ['Bakliyat','Baklagil','Baklagiller','Kuru Baklagil'], key: 'Bakliyat', color: '#2563eb' },
-    { names: ['Temel Gıda','Temel Gida','Gıda','Kuru Gıda'], key: 'Temel Gıda', color: '#1d4ed8' },
-    { names: ['Temizlik','Temizlik Malzemesi','Temizlik Ürünü','Hijyen'], key: 'Temizlik', color: '#1e40af' },
-    { names: ['Süt Ürünleri','Sut Urunleri','Süt','Sut','Peynir','Yoğurt'], key: 'Süt Ürünleri', color: '#172554' }
+    { names: ['Sebze','Sebzeler','Sebze Grubu','Yeşillik'], key: 'Sebze', color: '#2dd4bf' },
+    { names: ['Meyve','Meyveler','Meyve Grubu'], key: 'Meyve', color: '#14b8a6' },
+    { names: ['Bakliyat','Baklagil','Baklagiller','Kuru Baklagil'], key: 'Bakliyat', color: '#0d9488' },
+    { names: ['Temel Gıda','Temel Gida','Gıda','Kuru Gıda'], key: 'Temel Gıda', color: '#0f766e' },
+    { names: ['Temizlik','Temizlik Malzemesi','Temizlik Ürünü','Hijyen'], key: 'Temizlik', color: '#115e59' },
+    { names: ['Süt Ürünleri','Sut Urunleri','Süt','Sut','Peynir','Yoğurt'], key: 'Süt Ürünleri', color: '#134e4a' }
   ];
   const catLookup = {};
   catMap.forEach(g => { g.names.forEach(n => { catLookup[n.toLowerCase()] = g.key; }); });
   const catKeys = catMap.map(g => g.key);
   const catColors = {};
   catMap.forEach(g => { catColors[g.key] = g.color; });
-  catColors['Diğer'] = '#0f172a';
+  catColors['Diğer'] = '#64748b';
   const catCount = {};
   catKeys.forEach(c => catCount[c] = 0);
   catCount['Diğer'] = 0;
@@ -1279,7 +1279,7 @@ function refreshDashboard() {
   const qiContainer = document.getElementById('quick-info-list');
   qiContainer.innerHTML = `
     <div style="display:flex;flex-direction:column;gap:8px;">
-      <div style="width:100%;"><canvas id="quick-info-canvas" style="width:100%;height:200px;"></canvas></div>
+      <div style="height:200px;"><canvas id="quick-info-canvas" style="width:100%;height:100%;"></canvas></div>
       <div style="display:flex;justify-content:center;gap:14px;flex-wrap:wrap;" id="qi-legend"></div>
     </div>
   `;
