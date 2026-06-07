@@ -412,7 +412,7 @@ function initData() {
     }
   }
   if (!data.settings) data.settings = {};
-  if (!data.settings.autoBackupTime) data.settings.autoBackupTime = '17:00';
+  if (!data.settings.autoBackupTime) data.settings.autoBackupTime = '23:00';
   if (data.settings.autoBackupEnabled === undefined) data.settings.autoBackupEnabled = false;
   if (!data.settings.autoSync) data.settings.autoSync = true;
   if (!data.products) data.products = {};
@@ -567,9 +567,6 @@ async function saveData() {
   if (isSupabaseReady() && !_syncLock) {
     const ok = await supabaseSave();
     if (!ok) { toast('⚠️ Supabase\'e kaydedilemedi. Veriler localStorage\'da duruyor.', 'warning'); return false; }
-    // Her başarılı kayıt sonrası Supabase backups tablosuna tam yedek al
-    const backupOk = await supabaseBackup('otomatik');
-    if (!backupOk) toast('⚠️ Yedek alınamadı.', 'warning');
     return true;
   }
   return !isSupabaseReady();
