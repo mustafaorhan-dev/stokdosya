@@ -2361,11 +2361,18 @@ function _fmt(n) {
 // ----- ÇIKIŞ FORMU -----
 function refreshExitForm() {
   const select = document.getElementById('exit-product');
-  const prods = Object.values(data.products).filter(p => p.active !== false).sort((a, b) => a.name.localeCompare(b.name));
-  select.innerHTML = prods.map(p =>
-    `<option value="${htmlEscape(p.partiNo)}">[${htmlEscape(p.partiNo)}] ${htmlEscape(p.name)} (Stok: ${_fmt(p.stock)} ${htmlEscape(p.unit)})</option>`
+  const prods = Object.values(data.products).filter(p => p.active !== false);
+  const grouped = {};
+  prods.forEach(p => {
+    if (!grouped[p.name]) grouped[p.name] = { name: p.name, totalStock: 0, unit: p.unit };
+    grouped[p.name].totalStock += (p.stock || 0);
+    if (p.unit) grouped[p.name].unit = p.unit;
+  });
+  const sorted = Object.values(grouped).sort((a, b) => a.name.localeCompare(b.name));
+  select.innerHTML = sorted.map(g =>
+    `<option value="${htmlEscape(g.name)}">${htmlEscape(g.name)} (Toplam Stok: ${_fmt(g.totalStock)} ${htmlEscape(g.unit)})</option>`
   ).join('');
-  if (!prods.length) select.innerHTML = '<option value="">Önce ürün ekleyin</option>';
+  if (!sorted.length) select.innerHTML = '<option value="">Önce ürün ekleyin</option>';
   document.getElementById('exit-date').value = todayStr();
   document.getElementById('exit-person-count').value = '';
   updateExitCostPreview();
@@ -2375,32 +2382,47 @@ function refreshExitForm() {
 document.getElementById('exit-form').addEventListener('submit', async (e) => {
   e.preventDefault();
   if (isViewOnly()) { toast('Görüntüleme modunda çıkış yapamazsınız.', 'error'); return; }
-  const partiNo = document.getElementById('exit-product').value;
+  const productName = document.getElementById('exit-product').value;
   const amount = _parseAmount(document.getElementById('exit-amount').value);
   const personCount = _parseAmount(document.getElementById('exit-person-count').value) || 0;
   const date = document.getElementById('exit-date').value;
   const note = document.getElementById('exit-note').value.trim();
 
-  if (!partiNo || !amount || amount <= 0 || !date) { toast('Tüm alanları doldurun.', 'error'); return; }
+  if (!productName || !amount || amount <= 0 || !date) { toast('Tüm alanları doldurun.', 'error'); return; }
   if (!isValidDate(date)) { toast('Geçersiz çıkış tarihi!', 'error'); return; }
 
-  const p = data.products[partiNo];
-  if (!p) { toast('Ürün bulunamadı.', 'error'); return; }
-  if (p.stock < amount) { toast(`Yetersiz stok! Güncel: ${_fmt(p.stock)} ${p.unit}`, 'error'); return; }
+  const parts = Object.values(data.products)
+    .filter(p => p.active !== false && p.name === productName && (p.stock || 0) > 0)
+    .sort((a, b) => (a.createdAt || '').localeCompare(b.createdAt || ''));
 
-  const unitPrice = lookupTenderPrice(p.name, p.companyName);
-  const totalCost = unitPrice ? amount * unitPrice : 0;
-  const costPerPerson = personCount > 0 ? totalCost / personCount : 0;
+  if (!parts.length) { toast('Bu ürün için stok bulunamadı.', 'error'); return; }
 
-  p.stock -= amount;
-  data.transactions.push({
-    id: Date.now() + Math.random() * 1000, type: 'cikis', partiNo, productName: p.name,
-    amount, unit: p.unit, date, note: note || 'Ürün çıkış',
-    timestamp: new Date().toISOString(), createdBy: data.activeUser || '',
-    personCount, unitPrice, totalCost, costPerPerson
-  });
+  const totalStock = parts.reduce((s, p) => s + (p.stock || 0), 0);
+  if (totalStock < amount) { toast(`Yetersiz stok! Toplam: ${_fmt(totalStock)} ${parts[0].unit}`, 'error'); return; }
+
+  let remaining = amount;
+  const transactions = [];
+  const unitPrice = lookupTenderPrice(parts[0].name, parts[0].companyName);
+
+  for (const p of parts) {
+    if (remaining <= 0) break;
+    const deduct = Math.min(p.stock, remaining);
+    p.stock -= deduct;
+    remaining -= deduct;
+    const tc = unitPrice ? deduct * unitPrice : 0;
+    const cp = personCount > 0 ? tc / personCount : 0;
+    transactions.push({
+      id: Date.now() + Math.random() * 1000 + transactions.length,
+      type: 'cikis', partiNo: p.partiNo, productName: p.name,
+      amount: deduct, unit: p.unit, date, note: note || 'Ürün çıkış',
+      timestamp: new Date().toISOString(), createdBy: data.activeUser || '',
+      personCount, unitPrice, totalCost: tc, costPerPerson: cp
+    });
+  }
+
+  transactions.forEach(t => data.transactions.push(t));
   await saveData();
-  toast(`${_fmt(amount)} ${p.unit} ${p.name} çıkışı kaydedildi. (Güncel stok: ${_fmt(data.products[partiNo]?.stock ?? 0)} ${p.unit})`, 'success');
+  toast(`${_fmt(amount)} ${parts[0].unit} ${productName} çıkışı kaydedildi.`, 'success');
   navigateTo('dashboard');
   refreshExitForm();
   refreshDashboard();
@@ -2420,17 +2442,17 @@ function lookupTenderPrice(productName, companyName) {
 }
 
 function updateExitCostPreview() {
-  const partiNo = document.getElementById('exit-product').value;
+  const productName = document.getElementById('exit-product').value;
   const amount = _parseAmount(document.getElementById('exit-amount').value) || 0;
   const personCount = _parseAmount(document.getElementById('exit-person-count').value) || 0;
   const upEl = document.getElementById('exit-unit-price-display');
   const tcEl = document.getElementById('exit-total-cost-display');
   const cpEl = document.getElementById('exit-cost-per-person-display');
-  if (!partiNo || !amount) {
+  if (!productName || !amount) {
     upEl.textContent = '—'; tcEl.textContent = '—'; cpEl.textContent = '—';
     return;
   }
-  const p = data.products[partiNo];
+  const p = Object.values(data.products).find(pr => pr.active !== false && pr.name === productName);
   if (!p) return;
   const unitPrice = lookupTenderPrice(p.name, p.companyName);
   const totalCost = unitPrice * amount;
