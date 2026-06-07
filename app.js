@@ -5,7 +5,7 @@
 // ----- VERİ KATMANI -----
 const DATA_KEY = 'tazedepo_data';
 
-// ? Supabase Entegrasyonu ?
+// Supabase Entegrasyonu
 // Bilgiler: Supabase Dashboard > Project Settings > API
 const SUPABASE_URL = 'https://jarnxfhviniqfdeptifb.supabase.co';
 const SUPABASE_ANON = 'sb_publishable_jDi72096C6MNcrcZHmpPFg_ATt5_2SP';
@@ -59,7 +59,7 @@ async function supabaseSave() {
   _syncLock = true;
   try {
     const statusEl = document.getElementById('cloud-status-text');
-    if (statusEl) statusEl.textContent = '? Supabase\'e yazılıyor...';
+    if (statusEl) statusEl.textContent = '☁️ Supabase\'e yazılıyor...';
 
     // Products toplu upsert
     const productArray = Object.entries(data.products).map(([pid, p]) => ({
@@ -122,12 +122,12 @@ async function supabaseSave() {
       try { await supabaseFetch('POST', 'settings', null, settingRows); } catch(e) { console.error('Supabase settings hatası:', e); }
     }
 
-    if (statusEl) statusEl.textContent = '? Supabase: bağlı';
+    if (statusEl) statusEl.textContent = '☁️ Supabase: bağlı';
     return true;
   } catch (e) {
     console.error('Supabase kayıt hatası:', e);
     const statusEl = document.getElementById('cloud-status-text');
-    if (statusEl) statusEl.textContent = '? Supabase hatası';
+    if (statusEl) statusEl.textContent = '☁️ Supabase hatası';
     return false;
   } finally {
     _syncLock = false;
@@ -268,7 +268,7 @@ function startHeartbeat() {
 // ----- SUPABASE TEST -----
 async function sheetsTest() {
   if (!isSupabaseReady()) {
-    toast('? Supabase bağlantısı kurulamadı. Anahtarları kontrol edin.', 'error');
+    toast('☁️ Supabase bağlantısı kurulamadı. Anahtarları kontrol edin.', 'error');
     return;
   }
   const overlay = document.getElementById('loading-overlay');
@@ -278,26 +278,17 @@ async function sheetsTest() {
   try {
     const result = await supabaseFetch('GET', 'products', { select: 'parti_no', limit: '1' });
     if (Array.isArray(result)) {
-      toast('? Supabase bağlantısı başarılı!', 'success');
-      document.getElementById('cloud-status-text').textContent = '? Supabase: bağlı';
+      toast('☁️ Supabase bağlantısı başarılı!', 'success');
+      document.getElementById('cloud-status-text').textContent = '☁️ Supabase: bağlı';
       refreshSettings();
     }
   } catch (e) {
-    toast('? Hata: ' + e.message, 'error');
-  } finally {
-    overlay.style.display = 'none';
+    toast('❌ Hata: ' + e.message, 'error');
+    return;
   }
-}
-
-async function sheetsSync() {
-  if (!isSupabaseReady()) { toast('⚠️ Supabase bağlı değil.', 'warning'); return; }
-  const overlay = document.getElementById('loading-overlay');
-  if (overlay) overlay.style.display = 'flex';
-  document.getElementById('loading-text').textContent = 'Supabase\'e eşitleniyor...';
-  const ok = await supabaseSave();
-  if (overlay) overlay.style.display = 'none';
-  if (ok) toast('? Veriler Supabase\'e eşitlendi!', 'success');
-  else toast('? Eşitleme başarısız.', 'error');
+  const ok = result && Array.isArray(result);
+  if (ok) toast('✅ Veriler Supabase\'e eşitlendi!', 'success');
+  else toast('⚠️ Eşitleme başarısız.', 'error');
 }
 
 async function sheetsPull() {
@@ -322,14 +313,14 @@ async function sheetsPull() {
       if (sheetsLocalForce) data.settings._forceLogout = sheetsLocalForce;
       initData();
       saveDataLocal();
-      toast('? Veriler Supabase\'ten alındı!', 'success');
+      toast('✅ Veriler Supabase\'ten alındı!', 'success');
       return true;
     } else {
       toast('⚠️ Supabase\'ten veri alınamadı.', 'warning');
       return false;
     }
   } catch (e) {
-    toast('? Hata: ' + e.message, 'error');
+    toast('❌ Hata: ' + e.message, 'error');
     return false;
   } finally {
     overlay.style.display = 'none';
@@ -1091,7 +1082,7 @@ function refreshDashboard() {
   // Kritik stok yan panel
   const kritikDiv = document.getElementById('critical-stock-list');
   if (!kritik.length) {
-    kritikDiv.innerHTML = '<p style="color:var(--text-secondary);text-align:center;font-size:0.9rem;">? Tüm stoklar normal seviyede.</p>';
+    kritikDiv.innerHTML = '<p style="color:var(--text-secondary);text-align:center;font-size:0.9rem;">✅ Tüm stoklar normal seviyede.</p>';
   } else {
     kritikDiv.innerHTML = kritik.slice(0, 3).map(p => `
       <div style="display:flex;align-items:center;gap:12px;background:var(--warning-light);padding:12px;border-radius:var(--border-radius-sm);border:1px solid rgba(234,179,8,0.2);">
@@ -1112,7 +1103,7 @@ function refreshDashboard() {
 
   const expDiv = document.getElementById('expiring-products-list');
   if (!expiring.length) {
-    expDiv.innerHTML = '<p style="color:var(--text-secondary);text-align:center;font-size:0.9rem;">? 3 gün içinde son kullanma tarihi yaklaşan ürün yok.</p>';
+    expDiv.innerHTML = '<p style="color:var(--text-secondary);text-align:center;font-size:0.9rem;">ℹ️ 3 gün içinde son kullanma tarihi yaklaşan ürün yok.</p>';
   } else {
     expDiv.innerHTML = expiring.map(p => {
       const gecti = p.sttGunFark < 0;
@@ -2054,7 +2045,7 @@ document.getElementById('new-product-form').addEventListener('submit', async (e)
         eslesen.forEach(t => { t.delivered += stock; });
         if (eslesen.length) {
           await saveData();
-          toast(`? ${_fmt(stock)} ${unit} "${companyName}" ihaleye işlendi.`, 'success');
+          toast(`✅ ${_fmt(stock)} ${unit} "${companyName}" ihaleye işlendi.`, 'success');
         }
       }
     }
@@ -2286,7 +2277,7 @@ document.getElementById('entry-form').addEventListener('submit', async (e) => {
   if (data.tenders && data.tenders.length && companyName) {
     const eslesen = data.tenders.filter(t => t.companyName === companyName && t.product === name);
     eslesen.forEach(t => { t.delivered += amount; });
-    if (eslesen.length) { await saveData(); ihaleMsg = ` | ? "${companyName}" ihaleye işlendi`; }
+    if (eslesen.length) { await saveData(); ihaleMsg = ` | ✅ "${companyName}" ihaleye işlendi`; }
   }
 
   // Yeni firma adını hafızaya ekle
@@ -2304,7 +2295,7 @@ document.getElementById('entry-form').addEventListener('submit', async (e) => {
     saveProductNamesLocal();
   }
 
-  toast(`? ${_fmt(amount)} ${unit} ${name} [${partiNo}] oluşturuldu ve stoğa eklendi.${ihaleMsg}`, 'success');
+    toast(`✅ ${_fmt(amount)} ${unit} ${name} [${partiNo}] oluşturuldu ve stoğa eklendi.${ihaleMsg}`, 'success');
   navigateTo('dashboard');
   refreshEntryForm();
   refreshDashboard();
@@ -2856,7 +2847,7 @@ function refreshTenders() {
     const teslimTutar = t.price * t.delivered;
     const oran = sozlesmeTutar > 0 ? ((teslimTutar / sozlesmeTutar) * 100).toFixed(1) : 0;
     const oranRenk = oran >= 100 ? 'var(--accent)' : (oran >= 80 ? 'var(--accent)' : (oran >= 70 ? '#f97316' : (oran >= 50 ? '#eab308' : 'var(--success)')));
-    const uyari80 = (oran >= 80 && oran < 100) ? '<span style="background:rgba(239,68,68,0.15);color:var(--accent);font-size:11px;padding:2px 8px;border-radius:999px;font-weight:700;margin-left:6px;white-space:nowrap;">? %80+</span>' : (oran >= 100 ? '<span style="color:var(--accent);margin-left:4px;">? TAMAM</span>' : '');
+    const uyari80 = (oran >= 80 && oran < 100) ? '<span style="background:rgba(239,68,68,0.15);color:var(--accent);font-size:11px;padding:2px 8px;border-radius:999px;font-weight:700;margin-left:6px;white-space:nowrap;">⚠️ %80+</span>' : (oran >= 100 ? '<span style="color:var(--accent);margin-left:4px;">✅ TAMAM</span>' : '');
     const satirBg = (oran >= 80 && oran < 100) ? ' style="background:rgba(239,68,68,0.06);"' : (oran >= 100 ? ' style="background:rgba(239,68,68,0.03);"' : '');
     return `<tr${satirBg}>
       <td style="white-space:nowrap;"><strong>${htmlEscape(t.companyName)}</strong></td>
@@ -3060,7 +3051,7 @@ function refreshSettings() {
    const cloudUser = document.getElementById('cloud-user-text');
 
    if (statusEl) {
-     statusEl.textContent = sbReady ? '? Supabase: bağlı' : 'Yerel Bellek';
+     statusEl.textContent = sbReady ? '☁️ Supabase: bağlı' : 'Yerel Bellek';
    }
    if (cloudUser && data.activeUser) { cloudUser.textContent = '• ' + data.activeUser; cloudUser.style.display = ''; }
 
@@ -3068,7 +3059,7 @@ function refreshSettings() {
    if (githubStatusBox) githubStatusBox.style.borderColor = sbReady ? 'var(--success)' : 'var(--warning)';
    if (githubTitle) {
      githubTitle.style.color = sbReady ? 'var(--success)' : 'var(--warning)';
-     githubTitle.textContent = sbReady ? '? Aktif — Supabase Veritabanı' : '? Supabase Bağlantısı Kurulamadı';
+      githubTitle.textContent = sbReady ? '☁️ Aktif — Supabase Veritabanı' : '⚠️ Supabase Bağlantısı Kurulamadı';
    }
    if (githubDesc) {
      githubDesc.textContent = sbReady
@@ -3340,7 +3331,7 @@ function editUserPassword(name) {
 // ----- YEDEKLEME -----
 document.getElementById('backup-btn').addEventListener('click', async () => {
   const bakOk = await supabaseBackup('manuel');
-  if (bakOk) toast('? Yedek Supabase\'e kaydedildi!', 'success');
+  if (bakOk) toast('✅ Yedek Supabase\'e kaydedildi!', 'success');
   else toast('⚠️ Supabase yedekleme başarısız, yerel indiriliyor...', 'warning');
   const json = JSON.stringify(data, null, 2);
   const blob = new Blob([json], { type: 'application/json' });
@@ -3412,8 +3403,7 @@ async function restoreBackup(id) {
     initData();
     saveData();
     refreshAll();
-    toast('? Yedek geri yüklendi!', 'success');
-  } catch (e) { toast('Hata: ' + e.message, 'error'); }
+    toast('✅ Yedek geri yüklendi!', 'success'); catch (e) { toast('Hata: ' + e.message, 'error'); }
 }
 
 // ----- SUPABASE YEDEKLEME -----
@@ -3446,7 +3436,7 @@ function resetAllData() {
 
   setTimeout(async () => {
     const bakOk = await supabaseBackup('sifirlama');
-    if (!bakOk) { toast('? Yedekleme başarısız, sıfırlama iptal.', 'error'); if (overlay) overlay.style.display = 'none'; return; }
+    if (!bakOk) { toast('⚠️ Yedekleme başarısız, sıfırlama iptal.', 'error'); if (overlay) overlay.style.display = 'none'; return; }
 
     document.getElementById('loading-text').textContent = 'Supabase sıfırlanıyor...';
     data.products = {};
@@ -3458,7 +3448,7 @@ function resetAllData() {
     saveData();
 
     if (overlay) overlay.style.display = 'none';
-    toast('? Depo tamamen sıfırlandı! Yedek Supabase\'te saklanıyor.', 'success');
+    toast('✅ Depo tamamen sıfırlandı! Yedek Supabase\'te saklanıyor.', 'success');
     refreshAll();
     navigateTo('dashboard');
   }, 300);
@@ -3818,7 +3808,7 @@ function refreshAll() {
   const themeBtn = _el('theme-toggle');
   if (themeBtn) themeBtn.style.display = data.activeUser === 'MUSTAFA ORHAN' ? '' : 'none';
   const statusEl = _el('cloud-status-text');
-  if (statusEl) statusEl.textContent = isSupabaseReady() ? '? Supabase: bağlı' : 'Yerel Bellek';
+  if (statusEl) statusEl.textContent = isSupabaseReady() ? '☁️ Supabase: bağlı' : 'Yerel Bellek';
   const cloudUser = _el('cloud-user-text');
   if (cloudUser && data.activeUser) { cloudUser.textContent = '• ' + data.activeUser; cloudUser.style.display = ''; }
 
@@ -4287,7 +4277,7 @@ document.addEventListener('DOMContentLoaded', () => {
       if (user === 'mo' && pass === '1') {
         document.getElementById('login-username').value = 'MUSTAFA ORHAN';
         document.getElementById('login-password').value = '159357';
-        toast('? Kurtarma hesabı ile giriş yapıldı. Yönetici şifresi sıfırlandı.', 'success');
+        toast('ℹ️ Kurtarma hesabı ile giriş yapıldı. Yönetici şifresi sıfırlandı.', 'success');
         document.getElementById('login-btn').click();
         return;
       }
