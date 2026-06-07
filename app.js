@@ -1,5 +1,5 @@
 ﻿// ¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦
-// STOKDOSYA — Ana Uygulama JavaScript'i
+// STOKDEPO — Ana Uygulama JavaScript'i
 // ¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦
 
 // ----- VERİ KATMANI -----
@@ -973,7 +973,7 @@ function navigateTo(target) {
     'exit': 'Ürün Çıkış', 'daily': 'Günlük İşlemler', 'month-view': 'Aylık Rapor',
     'years-view': 'Yıllık Raporlar', 'stt-tracking': 'STT Takibi', 'tender-tracking': 'İhale Takip', 'suppliers': 'Tedarikçiler',     'supplier-report-view': 'Aylık Tedarikçi Raporu', 'critical-stock-view': 'Kritik Stok Listesi', 'user-guide-view': 'Kullanım Kılavuzu', 'settings-view': 'Ayarlar & Bulut'
   };
-  document.getElementById('page-title').textContent = titles[target] || 'STOKDOSYA';
+  document.getElementById('page-title').textContent = titles[target] || 'STOKDEPO';
 
   // view'e ozel yenilemeler (try/catch ile korunuyor)
   if (target === 'dashboard') _safe(refreshDashboard);
@@ -2639,7 +2639,7 @@ function yearExportPrint() {
           }).filter(r => r).join('')}
         </tbody>
       </table>
-      <p style="font-size:11px;color:#94a3b8;margin-top:20px;">STOKDOSYA — Otomatik oluşturulmuş rapordur.</p>
+      <p style="font-size:11px;color:#94a3b8;margin-top:20px;">STOKDEPO — Otomatik oluşturulmuş rapordur.</p>
       <script>window.print();<\/script>
     </body></html>
   `);
@@ -3759,7 +3759,7 @@ function printUserGuide() {
   if (!guide) return;
   const w = window.open('', '_blank');
   w.document.write(`
-    <html><head><title>STOKDOSYA - Kullanım Kılavuzu</title>
+    <html><head><title>STOKDEPO - Kullanım Kılavuzu</title>
     <style>
       body { font-family:Arial; padding:30px; max-width:800px; margin:0 auto; line-height:1.8; font-size:15px; color:#1e293b; }
       h2 { font-size:22px; margin-bottom:4px; }
