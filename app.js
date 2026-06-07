@@ -1295,7 +1295,7 @@ function refreshDashboard() {
   const qiContainer = document.getElementById('quick-info-list');
   qiContainer.innerHTML = `
     <div style="display:flex;flex-direction:column;gap:8px;">
-      <div style="max-width:280px;margin:0 auto;width:100%;"><canvas id="quick-info-canvas" style="width:100%;"></canvas></div>
+      <div style="max-width:320px;margin:0 auto;width:100%;"><canvas id="quick-info-canvas" style="width:100%;"></canvas></div>
       <div style="display:flex;justify-content:center;gap:14px;flex-wrap:wrap;" id="qi-legend"></div>
     </div>
   `;
@@ -1307,6 +1307,15 @@ function refreshDashboard() {
   const qiData = [sttOlan, tedarikciSayisi, toplamIslem, bugunHareket.length, (data.productNames || []).length];
   const qiColors = ['#3b82f6', '#2563eb', '#a78bfa', '#94a3b8', '#14b8a6'];
 
+  // Legend
+  document.getElementById('qi-legend').innerHTML = qiLabels.map((l, i) => `
+    <div style="display:flex;align-items:center;gap:6px;">
+      <div style="width:10px;height:10px;border-radius:50%;background:${qiColors[i]};flex-shrink:0;"></div>
+      <span style="font-size:12px;font-weight:600;color:${isDark ? '#94a3b8' : '#64748b'};">${l}</span>
+      <span style="font-size:11px;font-weight:700;color:${labelColor};">${qiData[i]}</span>
+    </div>
+  `).join('');
+
 
   // Harici etiketler (infografik tarzı)
   const qiTotal = qiData.reduce((s, v) => s + v, 0);
@@ -1316,28 +1325,21 @@ function refreshDashboard() {
       const ctx = chart.ctx;
       const meta = chart.getDatasetMeta(0);
       const outerR = meta.data[0]?.outerRadius || 0;
-      const labelOffset = 6;
-      const lineLength = 10;
 
       meta.data.forEach((arc, idx) => {
         const val = qiData[idx];
         if (!val) return;
         const angle = (arc.startAngle + arc.endAngle) / 2;
-        const innerEnd = outerR + labelOffset;
-        const outerEnd = innerEnd + lineLength;
-        const x0 = arc.x + Math.cos(angle) * outerR;
-        const y0 = arc.y + Math.sin(angle) * outerR;
-        const x1 = arc.x + Math.cos(angle) * innerEnd;
-        const y1 = arc.y + Math.sin(angle) * innerEnd;
-        const x2 = arc.x + Math.cos(angle) * outerEnd;
-        const y2 = arc.y + Math.sin(angle) * outerEnd;
+        const x1 = arc.x + Math.cos(angle) * outerR;
+        const y1 = arc.y + Math.sin(angle) * outerR;
+        const x2 = arc.x + Math.cos(angle) * (outerR + 12);
+        const y2 = arc.y + Math.sin(angle) * (outerR + 12);
 
         ctx.save();
         ctx.strokeStyle = isDark ? '#94a3b8' : '#64748b';
         ctx.lineWidth = 1;
         ctx.beginPath();
-        ctx.moveTo(x0, y0);
-        ctx.lineTo(x1, y1);
+        ctx.moveTo(x1, y1);
         ctx.lineTo(x2, y2);
         ctx.stroke();
 
@@ -1385,7 +1387,8 @@ function refreshDashboard() {
     options: {
       responsive: true,
       maintainAspectRatio: true,
-      cutout: '65%',
+      cutout: '70%',
+      layout: { padding: 30 },
       plugins: {
         legend: { display: false },
         tooltip: {
