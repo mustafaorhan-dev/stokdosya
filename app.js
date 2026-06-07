@@ -122,7 +122,7 @@ async function supabaseSave() {
       try { await supabaseFetch('POST', 'settings', null, settingRows); } catch(e) { console.error('Supabase settings hatası:', e); }
     }
 
-    if (statusEl) statusEl.textContent = 'MUSTAFA ORHAN burada sunucuya bağlı';
+    if (statusEl) statusEl.textContent = 'Sunucuya Bağlı';
     return true;
   } catch (e) {
     console.error('Supabase kayıt hatası:', e);
@@ -279,7 +279,7 @@ async function sheetsTest() {
     const result = await supabaseFetch('GET', 'products', { select: 'parti_no', limit: '1' });
     if (Array.isArray(result)) {
       toast('☁️ Supabase bağlantısı başarılı!', 'success');
-      document.getElementById('cloud-status-text').textContent = 'MUSTAFA ORHAN burada sunucuya bağlı';
+      document.getElementById('cloud-status-text').textContent = 'Sunucuya Bağlı';
       refreshSettings();
     }
   } catch (e) {
@@ -3051,7 +3051,7 @@ function refreshSettings() {
    const cloudUser = document.getElementById('cloud-user-text');
 
    if (statusEl) {
-     statusEl.textContent = sbReady ? 'MUSTAFA ORHAN burada sunucuya bağlı' : 'Yerel Bellek';
+     statusEl.textContent = sbReady ? 'Sunucuya Bağlı' : 'Yerel Bellek';
    }
    if (cloudUser && data.activeUser) { cloudUser.textContent = '• ' + data.activeUser; cloudUser.style.display = ''; }
 
@@ -3809,7 +3809,7 @@ function refreshAll() {
   const themeBtn = _el('theme-toggle');
   if (themeBtn) themeBtn.style.display = data.activeUser === 'MUSTAFA ORHAN' ? '' : 'none';
   const statusEl = _el('cloud-status-text');
-  if (statusEl) statusEl.textContent = isSupabaseReady() ? 'MUSTAFA ORHAN burada sunucuya bağlı' : 'Yerel Bellek';
+  if (statusEl) statusEl.textContent = isSupabaseReady() ? 'Sunucuya Bağlı' : 'Yerel Bellek';
   const cloudUser = _el('cloud-user-text');
   if (cloudUser && data.activeUser) { cloudUser.textContent = '• ' + data.activeUser; cloudUser.style.display = ''; }
 
