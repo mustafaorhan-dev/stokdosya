@@ -1325,15 +1325,21 @@ function refreshDashboard() {
       const ctx = chart.ctx;
       const meta = chart.getDatasetMeta(0);
       const outerR = meta.data[0]?.outerRadius || 0;
+      const count = qiData.filter(v => v > 0).length;
+      if (!count) return;
+      const step = (Math.PI * 2) / count;
+      const startAngle = -Math.PI / 2 - step * (count - 1) / 2;
 
+      let vi = 0;
       meta.data.forEach((arc, idx) => {
         const val = qiData[idx];
         if (!val) return;
-        const angle = (arc.startAngle + arc.endAngle) / 2;
+        const angle = startAngle + vi * step;
+        vi++;
         const x1 = arc.x + Math.cos(angle) * outerR;
         const y1 = arc.y + Math.sin(angle) * outerR;
-        const x2 = arc.x + Math.cos(angle) * (outerR + 12);
-        const y2 = arc.y + Math.sin(angle) * (outerR + 12);
+        const x2 = arc.x + Math.cos(angle) * (outerR + 14);
+        const y2 = arc.y + Math.sin(angle) * (outerR + 14);
 
         ctx.save();
         ctx.strokeStyle = isDark ? '#94a3b8' : '#64748b';
@@ -1348,9 +1354,9 @@ function refreshDashboard() {
         ctx.textBaseline = 'middle';
         ctx.font = '500 10px Outfit, Arial, sans-serif';
         ctx.fillStyle = labelColor;
-        const tx = x2 + (isRight ? 3 : -3);
-        const pct = qiTotal > 0 ? ((val / qiTotal) * 100).toFixed(1) : '0';
-        ctx.fillText(`${qiLabels[idx]} ${pct}%`, tx, y2);
+        const tx = x2 + (isRight ? 2 : -2);
+        const pct = qiTotal > 0 ? (val / qiTotal) * 100 : 0;
+        ctx.fillText(`%${pct.toFixed(1)}`, tx, y2);
         ctx.restore();
       });
 
