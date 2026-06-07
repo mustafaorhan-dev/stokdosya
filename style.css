@@ -741,7 +741,7 @@ input[type="file"].form-control { padding: 8px; }
 @media (min-width: 1025px) and (max-width: 1599px) {
   :root { --sidebar-w: clamp(200px, 18vw, 240px); }
   .stats-grid { grid-template-columns: repeat(auto-fill, minmax(min(200px, 100%), 1fr)); }
-  .dashboard-grid-3 { grid-template-columns: repeat(auto-fit, minmax(min(350px, 100%), 1fr)); }
+  .dashboard-grid-3 { grid-template-columns: repeat(3, 1fr); }
 }
 /* TABLET / SMALL (768px–1024px) */
 @media (max-width: 1024px) {
