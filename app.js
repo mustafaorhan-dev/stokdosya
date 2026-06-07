@@ -493,7 +493,9 @@ function toggleTheme() {
   const current = getTheme();
   const next = current === 'dark' ? 'light' : 'dark';
   applyTheme(next);
-  requestAnimationFrame(refreshAll);
+  document.body.style.color = 'inherit';
+  void document.body.offsetHeight;
+  refreshAll();
 }
 
 
