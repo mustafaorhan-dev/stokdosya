@@ -4418,13 +4418,13 @@ document.addEventListener('DOMContentLoaded', () => {
   if (sheetsTestBtn) sheetsTestBtn.addEventListener('click', sheetsTest);
 
   const sheetsSyncBtn = document.getElementById('sheets-sync-btn');
-  if (sheetsSyncBtn) sheetsSyncBtn.addEventListener('click', sheetsSync);
+  if (sheetsSyncBtn) sheetsSyncBtn.addEventListener('click', sheetsTest);
 
   const sheetsPullBtn = document.getElementById('sheets-pull-btn');
   if (sheetsPullBtn) sheetsPullBtn.addEventListener('click', sheetsPull);
 
   const manualSyncBtn = document.getElementById('manual-sync-btn');
-  if (manualSyncBtn) manualSyncBtn.addEventListener('click', sheetsSync);
+  if (manualSyncBtn) manualSyncBtn.addEventListener('click', sheetsTest);
 
   // Bulut durumuna tıklayınca GitHub'dan çek
   const cloudBadge = document.getElementById('cloud-status-badge');
