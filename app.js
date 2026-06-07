@@ -1407,7 +1407,7 @@ function refreshDashboard() {
     plugins: [qiLabelPlugin]
   });
 
-  // İhale Çekilme Yüzdeleri Grafiği
+  // İhale Çekilme Yüzdeleri Grafiği (doughnut)
   const canvas = document.getElementById('tender-chart-canvas');
   const emptyMsg = document.getElementById('tender-chart-empty');
   const tenderYil = new Date().getFullYear();
@@ -1429,55 +1429,87 @@ function refreshDashboard() {
     emptyMsg.style.display = 'none';
     if (window._tenderChart) window._tenderChart.destroy();
 
-    // Yarı şeffaf dolgu + belirgin kenarlıklı + glow efekti
     const isDark = getTheme() === 'dark';
-    const gridColor = isDark ? 'rgba(148,163,184,0.15)' : 'rgba(0,0,0,0.08)';
     const labelColor = isDark ? '#e2e8f0' : '#334155';
-    const distinctColors = ['#22c55e', '#f97316', '#8b5cf6', '#3b82f6', '#14b8a6', '#f472b6', '#eab308', '#a1a1aa'];
-    const barColors = ihaleVeri.map((_, i) => distinctColors[i % distinctColors.length]);
+    const tenderLabels = ihaleVeri.map(v => v.label);
+    const tenderData = ihaleVeri.map(v => v.pct);
+    const ortPct = tenderData.length ? Math.round(tenderData.reduce((s, v) => s + v, 0) / tenderData.length) : 0;
+    const tenderColors = ['#22c55e', '#f97316', '#8b5cf6', '#3b82f6', '#14b8a6', '#f472b6', '#eab308', '#a1a1aa'];
+    const bgColors = tenderData.map((_, i) => tenderColors[i % tenderColors.length]);
 
-    // Etiket plugini (çubuk üstüne % yaz)
-    const barLabelPlugin = {
-      id: 'barLabel',
+    // Legend
+    const chartContainer = canvas.parentElement;
+    let legendDiv = document.getElementById('tender-chart-legend');
+    if (!legendDiv) {
+      legendDiv = document.createElement('div');
+      legendDiv.id = 'tender-chart-legend';
+      legendDiv.style.cssText = 'display:flex;justify-content:center;gap:10px;flex-wrap:wrap;margin-top:4px;';
+      chartContainer.appendChild(legendDiv);
+    }
+    legendDiv.innerHTML = tenderLabels.map((l, i) => `
+      <div style="display:flex;align-items:center;gap:4px;">
+        <div style="width:8px;height:8px;border-radius:50%;background:${bgColors[i]};flex-shrink:0;"></div>
+        <span style="font-size:11px;font-weight:600;color:${isDark ? '#94a3b8' : '#64748b'};">${l}</span>
+        <span style="font-size:11px;font-weight:700;color:${labelColor};">%${tenderData[i]}</span>
+      </div>
+    `).join('');
+
+    const tenderLabelPlugin = {
+      id: 'tenderLabel',
       afterDatasetsDraw(chart) {
         const ctx = chart.ctx;
-        chart.data.datasets.forEach((ds, i) => {
-          const meta = chart.getDatasetMeta(i);
-          meta.data.forEach((bar, idx) => {
-            const val = ds.data[idx];
-            if (val === 0 || val === undefined || val === null) return;
-            ctx.save();
-            ctx.textAlign = 'center';
-            ctx.textBaseline = 'bottom';
-            ctx.font = 'bold 15px Outfit, Arial, sans-serif';
-            ctx.fillStyle = isDark ? '#fff' : '#0f172a';
-            ctx.fillText('%' + val, bar.x, bar.y - 4);
-            ctx.restore();
-          });
+        const meta = chart.getDatasetMeta(0);
+
+        meta.data.forEach((arc, idx) => {
+          const val = tenderData[idx];
+          if (!val) return;
+          const angle = (arc.startAngle + arc.endAngle) / 2;
+          const radius = (arc.outerRadius + arc.innerRadius) / 2;
+          ctx.save();
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.font = 'bold 14px Outfit, Arial, sans-serif';
+          ctx.fillStyle = '#fff';
+          ctx.shadowColor = 'rgba(0,0,0,0.4)';
+          ctx.shadowBlur = 3;
+          ctx.fillText('%' + val, arc.x + Math.cos(angle) * radius, arc.y + Math.sin(angle) * radius);
+          ctx.restore();
         });
+
+        const cx = chart.chartArea.left + (chart.chartArea.right - chart.chartArea.left) / 2;
+        const cy = chart.chartArea.top + (chart.chartArea.bottom - chart.chartArea.top) / 2;
+        ctx.save();
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.font = 'bold 22px Outfit, Arial, sans-serif';
+        ctx.fillStyle = isDark ? '#f1f5f9' : '#0f172a';
+        ctx.fillText('%' + ortPct, cx, cy - 8);
+        ctx.font = '600 10px Outfit, Arial, sans-serif';
+        ctx.fillStyle = isDark ? '#94a3b8' : '#64748b';
+        ctx.fillText('Ortalama', cx, cy + 14);
+        ctx.restore();
       }
     };
 
     window._tenderChart = new Chart(canvas, {
-      type: 'bar',
+      type: 'doughnut',
       data: {
-        labels: ihaleVeri.map(v => v.label),
+        labels: tenderLabels,
         datasets: [{
-          label: 'Çekilme %',
-          data: ihaleVeri.map(v => v.pct),
-          backgroundColor: barColors.map(c => c),
-          borderColor: barColors.map(c => c),
-          borderWidth: 0,
-          borderRadius: { topLeft: 6, topRight: 6, bottomLeft: 0, bottomRight: 0 },
-          borderSkipped: false,
-          barPercentage: 0.55,
-          categoryPercentage: 0.7
+          data: tenderData,
+          backgroundColor: bgColors,
+          borderColor: isDark ? '#1e293b' : '#fff',
+          borderWidth: 2,
+          hoverOffset: 8,
+          borderRadius: 0,
+          spacing: 0
         }]
       },
       options: {
         responsive: true,
         maintainAspectRatio: true,
-        aspectRatio: 1.4,
+        aspectRatio: 1.0,
+        cutout: '65%',
         plugins: {
           legend: { display: false },
           tooltip: {
@@ -1489,32 +1521,19 @@ function refreshDashboard() {
             padding: 10,
             cornerRadius: 8,
             callbacks: {
-              label: ctx => `Teslimat: %${ctx.parsed.y}`
+              label: ctx => ` ${ctx.label}: %${ctx.parsed} teslimat`
             }
           }
         },
-        scales: {
-          x: {
-            grid: { display: false },
-            ticks: {
-              color: labelColor,
-              font: { size: 9, family: 'Outfit, Arial' },
-              maxRotation: 20
-            }
-          },
-          y: {
-            beginAtZero: true,
-            max: 110,
-            grid: { color: gridColor, drawBorder: false },
-            ticks: {
-              color: labelColor,
-              font: { size: 10, family: 'Outfit, Arial' },
-              callback: v => v + '%'
-            }
+        animation: {
+          duration: 800,
+          easing: 'easeOutQuart',
+          delay(ctx) {
+            return ctx.dataIndex * 100;
           }
         }
       },
-      plugins: [barLabelPlugin]
+      plugins: [tenderLabelPlugin]
     });
   }
   } catch (e) { console.error('refreshDashboard hatası:', e); }
