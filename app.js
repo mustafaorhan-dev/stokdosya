@@ -1407,20 +1407,14 @@ function refreshDashboard() {
     plugins: [qiLabelPlugin]
   });
 
-  // İhale Çekilme Yüzdeleri Grafiği (firma bazlı doughnut)
+  // İhale Çekilme Yüzdeleri Grafiği (doughnut)
   const canvas = document.getElementById('tender-chart-canvas');
   const emptyMsg = document.getElementById('tender-chart-empty');
   const tenderYil = new Date().getFullYear();
   let toplamTeslim = 0, toplamKalan = 0;
-  const firmaVeri = {};
   (data.tenders || []).filter(t => t.quantity > 0 && (t.year || new Date().getFullYear()) === tenderYil).forEach(t => {
-    const teslim = t.delivered || 0;
-    const kalan = t.quantity - teslim;
-    if (!firmaVeri[t.companyName]) firmaVeri[t.companyName] = { teslim: 0, kalan: 0 };
-    firmaVeri[t.companyName].teslim += teslim;
-    firmaVeri[t.companyName].kalan += kalan;
-    toplamTeslim += teslim;
-    toplamKalan += kalan;
+    toplamTeslim += (t.delivered || 0);
+    toplamKalan += (t.quantity - (t.delivered || 0));
   });
   const genelOran = (toplamTeslim + toplamKalan) > 0 ? Math.round((toplamTeslim / (toplamTeslim + toplamKalan)) * 100) : 0;
   if (!toplamTeslim && !toplamKalan) {
@@ -1433,26 +1427,9 @@ function refreshDashboard() {
 
     const isDark = getTheme() === 'dark';
     const labelColor = isDark ? '#e2e8f0' : '#334155';
-    const firms = Object.keys(firmaVeri);
-    const tenderLabels = firms;
-    const tenderData = firms.map(name => firmaVeri[name].teslim);
-
-    function getSliceColor(firmaAdi) {
-      const fv = firmaVeri[firmaAdi];
-      const t = fv.teslim + fv.kalan;
-      if (t === 0) return '#a1a1aa';
-      const oran = fv.teslim / t;
-      if (oran >= 1) return '#22c55e';
-      if (oran >= 0.5) return '#facc15';
-      return '#ef4444';
-    }
-    const tenderColors = firms.map(getSliceColor);
-    const firmPct = {};
-    firms.forEach(name => {
-      const fv = firmaVeri[name];
-      const t = fv.teslim + fv.kalan;
-      firmPct[name] = t > 0 ? Math.round((fv.teslim / t) * 100) : 0;
-    });
+    const tenderData = [toplamTeslim, toplamKalan];
+    const tenderLabels = ['Teslim Edilen', 'Kalan'];
+    const tenderColors = ['#22c55e', '#e2e8f0'];
 
     // Legend
     const chartContainer = canvas.parentElement;
@@ -1463,11 +1440,11 @@ function refreshDashboard() {
       legendDiv.style.cssText = 'display:flex;justify-content:center;gap:14px;flex-wrap:wrap;margin-top:4px;';
       chartContainer.appendChild(legendDiv);
     }
-    legendDiv.innerHTML = firms.map((name, i) => `
+    legendDiv.innerHTML = tenderLabels.map((l, i) => `
       <div style="display:flex;align-items:center;gap:4px;">
         <div style="width:8px;height:8px;border-radius:50%;background:${tenderColors[i]};flex-shrink:0;"></div>
-        <span style="font-size:11px;font-weight:600;color:${isDark ? '#94a3b8' : '#64748b'};">${name}</span>
-        <span style="font-size:11px;font-weight:700;color:${labelColor};">${_fmt(firmaVeri[name].teslim)} (%${firmPct[name]})</span>
+        <span style="font-size:11px;font-weight:600;color:${isDark ? '#94a3b8' : '#64748b'};">${l}</span>
+        <span style="font-size:11px;font-weight:700;color:${labelColor};">${_fmt(i === 0 ? toplamTeslim : toplamKalan)}</span>
       </div>
     `).join('');
 
@@ -1476,25 +1453,23 @@ function refreshDashboard() {
       afterDatasetsDraw(chart) {
         const ctx = chart.ctx;
         const meta = chart.getDatasetMeta(0);
+
         meta.data.forEach((arc, idx) => {
-          const val = parseInt(tenderData[idx]);
+          const val = tenderData[idx];
           if (!val) return;
           const angle = (arc.startAngle + arc.endAngle) / 2;
           const radius = (arc.outerRadius + arc.innerRadius) / 2;
-          const name = firms[idx];
-          const shortName = name.length > 10 ? name.slice(0, 8) + '..' : name;
           ctx.save();
           ctx.textAlign = 'center';
           ctx.textBaseline = 'middle';
-          ctx.font = 'bold 13px Outfit, Arial, sans-serif';
-          ctx.fillStyle = '#fff';
-          ctx.shadowColor = 'rgba(0,0,0,0.5)';
-          ctx.shadowBlur = 4;
-          ctx.fillText(shortName, arc.x + Math.cos(angle) * radius, arc.y + Math.sin(angle) * radius - 7);
-          ctx.font = 'bold 11px Outfit, Arial, sans-serif';
-          ctx.fillText('%' + firmPct[firms[idx]], arc.x + Math.cos(angle) * radius, arc.y + Math.sin(angle) * radius + 9);
+          ctx.font = 'bold 14px Outfit, Arial, sans-serif';
+          ctx.fillStyle = idx === 0 ? '#fff' : (isDark ? '#0f172a' : '#334155');
+          ctx.shadowColor = 'rgba(0,0,0,0.4)';
+          ctx.shadowBlur = 3;
+          ctx.fillText(idx === 0 ? 'Teslim' : 'Kalan', arc.x + Math.cos(angle) * radius, arc.y + Math.sin(angle) * radius);
           ctx.restore();
         });
+
         const cx = chart.chartArea.left + (chart.chartArea.right - chart.chartArea.left) / 2;
         const cy = chart.chartArea.top + (chart.chartArea.bottom - chart.chartArea.top) / 2;
         ctx.save();
@@ -1540,7 +1515,7 @@ function refreshDashboard() {
             padding: 10,
             cornerRadius: 8,
             callbacks: {
-              label: ctx => `${ctx.label}: ${_fmt(ctx.parsed)} adet (%${firmPct[ctx.label]})`
+              label: ctx => ` ${ctx.label}: ${_fmt(ctx.parsed)}`
             }
           }
         },
