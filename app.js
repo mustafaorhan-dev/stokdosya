@@ -2774,9 +2774,15 @@ function refreshTenderChart() {
   if (seciliFirma) {
     filteredTenders = filteredTenders.filter(t => t.companyName === seciliFirma);
   }
+  const firmaVeri = {};
   filteredTenders.filter(t => t.quantity > 0).forEach(t => {
-    toplamTeslim += (t.delivered || 0);
-    toplamKalan += (t.quantity - (t.delivered || 0));
+    const teslim = t.delivered || 0;
+    const kalan = t.quantity - teslim;
+    if (!firmaVeri[t.companyName]) firmaVeri[t.companyName] = { teslim: 0, kalan: 0 };
+    firmaVeri[t.companyName].teslim += teslim;
+    firmaVeri[t.companyName].kalan += kalan;
+    toplamTeslim += teslim;
+    toplamKalan += kalan;
   });
   const genelOran = (toplamTeslim + toplamKalan) > 0 ? Math.round((toplamTeslim / (toplamTeslim + toplamKalan)) * 100) : 0;
   if (!toplamTeslim && !toplamKalan) {
@@ -2788,10 +2794,27 @@ function refreshTenderChart() {
   emptyMsg.style.display = 'none';
   if (window._tenderPageChart) window._tenderPageChart.destroy();
   const isDark = getTheme() === 'dark';
-  const labelColor = isDark ? '#e2e8f0' : '#334155';
-  const tenderData = [toplamTeslim, toplamKalan];
-  const tenderLabels = ['Teslim Edilen', 'Kalan'];
-  const tenderColors = ['#22c55e', isDark ? '#334155' : '#cbd5e1'];
+  const distinctColors = ['#22c55e', '#3b82f6', '#f97316', '#8b5cf6', '#14b8a6', '#f472b6', '#eab308', '#a1a1aa', '#6366f1', '#ec4899', '#06b6d4', '#84cc16'];
+  const firms = Object.keys(firmaVeri);
+  const tenderLabels = firms.map(name => name);
+  const tenderData = firms.map(name => firmaVeri[name].teslim);
+
+  function getSliceColor(firmaAdi, idx) {
+    const fv = firmaVeri[firmaAdi];
+    const toplam = fv.teslim + fv.kalan;
+    if (toplam === 0) return '#a1a1aa';
+    const oran = fv.teslim / toplam;
+    if (oran >= 1) return '#22c55e';
+    if (oran >= 0.5) return '#facc15';
+    return '#ef4444';
+  }
+  const tenderColors = firms.map(getSliceColor);
+  const firmPct = {};
+  firms.forEach(name => {
+    const fv = firmaVeri[name];
+    const t = fv.teslim + fv.kalan;
+    firmPct[name] = t > 0 ? Math.round((fv.teslim / t) * 100) : 0;
+  });
 
   const tenderLabelPlugin = {
     id: 'tenderPageLabel',
@@ -2799,18 +2822,22 @@ function refreshTenderChart() {
       const ctx = chart.ctx;
       const meta = chart.getDatasetMeta(0);
       meta.data.forEach((arc, idx) => {
-        const val = tenderData[idx];
+        const val = parseInt(tenderData[idx]);
         if (!val) return;
         const angle = (arc.startAngle + arc.endAngle) / 2;
         const radius = (arc.outerRadius + arc.innerRadius) / 2;
+        const label = firms[idx];
+        const shortName = label.length > 12 ? label.slice(0, 10) + '..' : label;
         ctx.save();
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
-        ctx.font = 'bold 14px Outfit, Arial, sans-serif';
-        ctx.fillStyle = idx === 0 ? '#fff' : (isDark ? '#f1f5f9' : '#0f172a');
-        ctx.shadowColor = 'rgba(0,0,0,0.4)';
-        ctx.shadowBlur = 3;
-        ctx.fillText(idx === 0 ? 'Teslim' : 'Kalan', arc.x + Math.cos(angle) * radius, arc.y + Math.sin(angle) * radius);
+        ctx.font = 'bold 13px Outfit, Arial, sans-serif';
+        ctx.fillStyle = '#fff';
+        ctx.shadowColor = 'rgba(0,0,0,0.5)';
+        ctx.shadowBlur = 4;
+        ctx.fillText(shortName, arc.x + Math.cos(angle) * radius, arc.y + Math.sin(angle) * radius - 7);
+        ctx.font = 'bold 11px Outfit, Arial, sans-serif';
+        ctx.fillText('%' + firmPct[firms[idx]], arc.x + Math.cos(angle) * radius, arc.y + Math.sin(angle) * radius + 9);
         ctx.restore();
       });
       const cx = chart.chartArea.left + (chart.chartArea.right - chart.chartArea.left) / 2;
@@ -2856,7 +2883,7 @@ function refreshTenderChart() {
           borderColor: isDark ? 'rgba(148,163,184,0.2)' : 'rgba(0,0,0,0.1)',
           borderWidth: 1,
           callbacks: {
-            label: ctx => `${ctx.label}: ${_fmt(ctx.parsed)}`
+            label: ctx => `${ctx.label}: ${_fmt(ctx.parsed)} adet teslim (%${firmPct[ctx.label]})`
           }
         }
       },
