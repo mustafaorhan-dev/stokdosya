@@ -1447,9 +1447,9 @@ function refreshDashboard() {
             ctx.save();
             ctx.textAlign = 'center';
             ctx.textBaseline = 'bottom';
-            ctx.font = 'bold 9px Outfit, Arial, sans-serif';
+            ctx.font = 'bold 8px Outfit, Arial, sans-serif';
             ctx.fillStyle = isDark ? '#fff' : '#0f172a';
-            ctx.fillText('%' + val, bar.x, bar.y - 3);
+            ctx.fillText('%' + val, bar.x, bar.y - 2);
             ctx.restore();
           });
         });
@@ -1467,8 +1467,8 @@ function refreshDashboard() {
           borderColor: barColors,
           borderWidth: 0,
           borderRadius: 2,
-          barPercentage: 0.55,
-          categoryPercentage: 0.75
+          barPercentage: 0.5,
+          categoryPercentage: 0.7
         }]
       },
       options: {
@@ -1490,7 +1490,7 @@ function refreshDashboard() {
         scales: {
           x: {
             grid: { display: false },
-            ticks: { color: labelColor, font: { size: 7, weight: '600' }, maxRotation: 0, autoSkip: true, maxTicksLimit: 10 }
+            ticks: { color: labelColor, font: { size: 7, weight: '600' }, maxRotation: 0 }
           },
           y: {
             beginAtZero: true,
@@ -1502,6 +1502,22 @@ function refreshDashboard() {
       },
       plugins: [barLabelPlugin]
     });
+
+    // Alt lejant - tüm firmalar
+    const chartContainer = canvas.parentElement;
+    let legendDiv = document.getElementById('tender-chart-legend');
+    if (!legendDiv) {
+      legendDiv = document.createElement('div');
+      legendDiv.id = 'tender-chart-legend';
+      legendDiv.style.cssText = 'display:flex;justify-content:center;gap:10px;flex-wrap:wrap;margin-top:4px;';
+      chartContainer.appendChild(legendDiv);
+    }
+    legendDiv.innerHTML = ihaleVeri.map((v, i) => `
+      <div style="display:flex;align-items:center;gap:3px;">
+        <div style="width:7px;height:7px;border-radius:2px;background:${barColors[i]};flex-shrink:0;"></div>
+        <span style="font-size:10px;font-weight:600;color:${labelColor};">${v.label}</span>
+      </div>
+    `).join('');
   }
   } catch (e) { console.error('refreshDashboard hatası:', e); }
 }
