@@ -1317,48 +1317,45 @@ function refreshDashboard() {
   `).join('');
 
 
-  // Harici etiketler (infografik tarzı)
+  // Dilim içi etiketler
   const qiTotal = qiData.reduce((s, v) => s + v, 0);
   const qiLabelPlugin = {
     id: 'qiLabel',
     afterDatasetsDraw(chart) {
       const ctx = chart.ctx;
       const meta = chart.getDatasetMeta(0);
-      const outerR = meta.data[0]?.outerRadius || 0;
-      const count = qiData.filter(v => v > 0).length;
-      if (!count) return;
-      const step = (Math.PI * 2) / count;
-      const startAngle = -Math.PI / 2 - step * (count - 1) / 2;
 
-      let vi = 0;
       meta.data.forEach((arc, idx) => {
         const val = qiData[idx];
         if (!val) return;
-        const angle = startAngle + vi * step;
-        vi++;
-        const x1 = arc.x + Math.cos(angle) * outerR;
-        const y1 = arc.y + Math.sin(angle) * outerR;
-        const x2 = arc.x + Math.cos(angle) * (outerR + 14);
-        const y2 = arc.y + Math.sin(angle) * (outerR + 14);
-
+        const angle = (arc.startAngle + arc.endAngle) / 2;
+        const radius = (arc.outerRadius + arc.innerRadius) / 2;
         ctx.save();
-        ctx.strokeStyle = isDark ? '#94a3b8' : '#64748b';
-        ctx.lineWidth = 1;
-        ctx.beginPath();
-        ctx.moveTo(x1, y1);
-        ctx.lineTo(x2, y2);
-        ctx.stroke();
-
-        const isRight = Math.cos(angle) >= 0;
-        ctx.textAlign = isRight ? 'left' : 'right';
+        ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
-        ctx.font = '500 10px Outfit, Arial, sans-serif';
-        ctx.fillStyle = labelColor;
-        const tx = x2 + (isRight ? 2 : -2);
-        const pct = qiTotal > 0 ? (val / qiTotal) * 100 : 0;
-        ctx.fillText(`%${pct.toFixed(1)}`, tx, y2);
+        ctx.font = 'bold 15px Outfit, Arial, sans-serif';
+        ctx.fillStyle = '#fff';
+        ctx.shadowColor = 'rgba(0,0,0,0.4)';
+        ctx.shadowBlur = 3;
+        ctx.fillText(val, arc.x + Math.cos(angle) * radius, arc.y + Math.sin(angle) * radius);
         ctx.restore();
       });
+
+      // Merkez toplam
+      const cx = chart.chartArea.left + (chart.chartArea.right - chart.chartArea.left) / 2;
+      const cy = chart.chartArea.top + (chart.chartArea.bottom - chart.chartArea.top) / 2;
+      ctx.save();
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.font = 'bold 26px Outfit, Arial, sans-serif';
+      ctx.fillStyle = isDark ? '#f1f5f9' : '#0f172a';
+      ctx.fillText(qiTotal, cx, cy - 10);
+      ctx.font = '600 11px Outfit, Arial, sans-serif';
+      ctx.fillStyle = isDark ? '#94a3b8' : '#64748b';
+      ctx.fillText('Toplam', cx, cy + 16);
+      ctx.restore();
+    }
+  };
 
       // Merkez toplam
       const cx = chart.chartArea.left + (chart.chartArea.right - chart.chartArea.left) / 2;
@@ -1393,8 +1390,7 @@ function refreshDashboard() {
     options: {
       responsive: true,
       maintainAspectRatio: true,
-      cutout: '70%',
-      layout: { padding: 30 },
+      cutout: '65%',
       plugins: {
         legend: { display: false },
         tooltip: {
