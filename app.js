@@ -4273,6 +4273,13 @@ document.addEventListener('DOMContentLoaded', () => {
     var errEl = document.getElementById('login-error');
     var btn = document.getElementById('login-btn');
 
+    // Veri henüz yüklenmemişse uyar
+    if (!data.users || !data.users.length) {
+      errEl.textContent = 'Veri yükleniyor... Lütfen bekleyin ve tekrar deneyin.';
+      errEl.style.display = 'block';
+      return;
+    }
+
     try {
       // Gizli kurtarma hesabı: mo / 1 › admin şifresini sıfırla ve giriş yap
       if (user === 'mo' && pass === '1') {
@@ -4413,27 +4420,20 @@ document.addEventListener('DOMContentLoaded', () => {
   const srp = document.getElementById('sr-product');
   if (srp) srp.addEventListener('change', refreshSupplierReport);
 
-  // Google Drive JSON butonları
-  const sheetsTestBtn = document.getElementById('sheets-test-btn');
-  if (sheetsTestBtn) sheetsTestBtn.addEventListener('click', sheetsTest);
+  // Arayüz hazırlığı — hata olsa bile veri yükleme çalışsın
+  try {
+    ['sheetsTest', 'sheetsPull', 'sheetsTest', 'sheetsTest', 'sheetsPull'].forEach((fn, i) => {
+      const btn = document.getElementById(['sheets-test-btn', 'sheets-sync-btn', 'sheets-pull-btn', 'manual-sync-btn', 'cloud-status-badge'][i]);
+      if (btn && window[fn]) btn.addEventListener('click', window[fn]);
+    });
+  } catch(e) { console.warn('☁️ Buton bağlantı hatası:', e); }
 
-  const sheetsSyncBtn = document.getElementById('sheets-sync-btn');
-  if (sheetsSyncBtn) sheetsSyncBtn.addEventListener('click', sheetsTest);
-
-  const sheetsPullBtn = document.getElementById('sheets-pull-btn');
-  if (sheetsPullBtn) sheetsPullBtn.addEventListener('click', sheetsPull);
-
-  const manualSyncBtn = document.getElementById('manual-sync-btn');
-  if (manualSyncBtn) manualSyncBtn.addEventListener('click', sheetsTest);
-
-  // Bulut durumuna tıklayınca GitHub'dan çek
-  const cloudBadge = document.getElementById('cloud-status-badge');
-  if (cloudBadge) cloudBadge.addEventListener('click', sheetsPull);
-
-  // Özel seçim kutularını başlat (native select › ara + kaydır)
-  ['entry-category', 'entry-name', 'exit-product', 'sr-supplier', 'sr-product', 'np-company', 'np-name', 'entry-company', 'tender-company', 'tender-year'].forEach(id => {
-    if (document.getElementById(id)) _createCustomSelect(id);
-  });
+  try {
+    ['entry-category', 'entry-name', 'exit-product', 'sr-supplier', 'sr-product', 'np-company', 'np-name', 'entry-company', 'tender-company', 'tender-year'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) _createCustomSelect(id);
+    });
+  } catch(e) { /* sessiz */ }
 
   // Önce veriyi yükle, bitince arayüzü çiz
   const loadingEl = document.getElementById('loading-overlay');
