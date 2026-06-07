@@ -4078,6 +4078,10 @@ function refreshSupplierReport() {
     </tr>
     ${acik ? `<tr><td colspan="7" style="padding:6px 12px 10px 36px;background:var(--bg-card);border-bottom:1px solid var(--border-color);">
       <div style="font-size:13px;font-weight:600;color:var(--text-secondary);margin-bottom:6px;">Günlük Dağılım (${gunSayisi} gün):</div>
+      <div style="display:flex;justify-content:space-between;padding:2px 0;font-size:11px;font-weight:600;color:var(--text-muted);border-bottom:1px solid var(--border-color);margin-bottom:2px;">
+        <span>Tarih &nbsp;&nbsp; Parti No</span>
+        <span>Miktar</span>
+      </div>
       ${gunHtml}
     </td></tr>` : ''}`;
   }).join('');
