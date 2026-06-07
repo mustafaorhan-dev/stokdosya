@@ -180,8 +180,8 @@ async function supabaseLoad() {
       id: t.id, type: t.type, partiNo: t.parti_no, productName: t.product_name,
       amount: t.amount, unit: t.unit || '', date: t.date, note: t.note || '',
       stt: t.stt || '', timestamp: t.timestamp, createdBy: t.created_by || '',
-      personCount: t.person_count || 0, unitPrice: t.unit_price || 0,
-      totalCost: t.total_cost || 0, costPerPerson: t.cost_per_person || 0
+      personCount: t.person_count, unitPrice: t.unit_price,
+      totalCost: t.total_cost, costPerPerson: t.cost_per_person
     }));
 
     const userList = (users || []).map(u => ({
@@ -421,7 +421,22 @@ async function loadData() {
       const remoteData = await supabaseLoad();
       if (remoteData) {
         if (remoteData.products) data.products = remoteData.products;
-        if (remoteData.transactions && remoteData.transactions.length) data.transactions = remoteData.transactions;
+        if (remoteData.transactions && remoteData.transactions.length) {
+          const localMap = new Map(data.transactions.map(t => [t.id, t]));
+          const remoteMap = new Map(remoteData.transactions.map(t => [t.id, t]));
+          const merged = remoteData.transactions.map(t => {
+            const local = localMap.get(t.id);
+            if (local) {
+              if (t.personCount == null) t.personCount = local.personCount || 0;
+              if (t.unitPrice == null) t.unitPrice = local.unitPrice || 0;
+              if (t.totalCost == null) t.totalCost = local.totalCost || 0;
+              if (t.costPerPerson == null) t.costPerPerson = local.costPerPerson || 0;
+            }
+            return t;
+          });
+          data.transactions.forEach(t => { if (!remoteMap.has(t.id)) merged.push(t); });
+          data.transactions = merged;
+        }
         if (remoteData.users) {
           const userMap = new Map(data.users.map(u => [u.name, u]));
           remoteData.users.forEach(su => {
