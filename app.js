@@ -44,7 +44,7 @@ async function supabaseFetch(method, table, params, body) {
   clearTimeout(timeout);
   if (!res.ok) {
     let msg = `${res.status} ${res.statusText}`;
-    try { const text = await res.text(); msg += ': ' + text; console.error('Supabase yanıtı:', text); } catch(_) { msg += ' (yanıt okunamadı)'; }
+    try { const text = await res.text(); msg += ': ' + text; console.error('🔥 SUPABASE HATA YANITI:', text); } catch(_) { msg += ' (yanıt okunamadı)'; }
     throw new Error(msg);
   }
   if (method === 'DELETE') return null;
@@ -63,6 +63,9 @@ async function supabaseSave() {
   if (_syncLock) { toast('Eşitleme zaten devam ediyor.', 'warning'); return false; }
   _syncLock = true;
   try {
+    // Her kayıt öncesi float ID'leri tam sayıya çevir
+    (data.transactions || []).forEach(function(t) { if (t.id && !Number.isInteger(t.id)) t.id = Math.floor(t.id); });
+    (data.calculations || []).forEach(function(c) { if (c.id && !Number.isInteger(c.id)) c.id = Math.floor(c.id); });
     const statusEl = document.getElementById('cloud-status-text');
     if (statusEl) statusEl.textContent = '☁️ Supabase\'e yazılıyor...';
 
