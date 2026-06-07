@@ -3403,7 +3403,8 @@ async function restoreBackup(id) {
     initData();
     saveData();
     refreshAll();
-    toast('✅ Yedek geri yüklendi!', 'success'); catch (e) { toast('Hata: ' + e.message, 'error'); }
+    toast('✅ Yedek geri yüklendi!', 'success');
+  } catch (e) { toast('Hata: ' + e.message, 'error'); }
 }
 
 // ----- SUPABASE YEDEKLEME -----
