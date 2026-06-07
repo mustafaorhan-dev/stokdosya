@@ -1248,10 +1248,10 @@ function refreshDashboard() {
           data: catData,
           backgroundColor: catBgColors,
           borderColor: isDark ? '#1e293b' : '#fff',
-          borderWidth: 3,
+          borderWidth: 2,
           hoverOffset: 8,
-          borderRadius: 3,
-          spacing: 3
+          borderRadius: 0,
+          spacing: 0
         }]
       },
       options: {
