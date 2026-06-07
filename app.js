@@ -2857,9 +2857,9 @@ function refreshTenders() {
       <td style="text-align:right;white-space:nowrap;">${t.unit || '—'}</td>
       <td style="text-align:right;white-space:nowrap;">${_fmt(t.delivered)} ${t.unit || ''}</td>
       <td style="text-align:right;white-space:nowrap;">${_fmt(kalan)} ${t.unit || ''}</td>
-      <td style="text-align:right;white-space:nowrap;">${_fmt(t.price)} ?</td>
-      <td style="text-align:right;white-space:nowrap;">${_fmt(sozlesmeTutar)} ?</td>
-      <td style="text-align:right;white-space:nowrap;">${_fmt(teslimTutar)} ?</td>
+      <td style="text-align:right;white-space:nowrap;">${_fmt(t.price)} ₺</td>
+      <td style="text-align:right;white-space:nowrap;">${_fmt(sozlesmeTutar)} ₺</td>
+      <td style="text-align:right;white-space:nowrap;">${_fmt(teslimTutar)} ₺</td>
       <td style="text-align:right;white-space:nowrap;color:${oranRenk};font-weight:700;">%${oran} ${uyari80}</td>
       <td style="text-align:right;white-space:nowrap;">
         ${isViewOnly() ? '' : `<button class="btn-ui btn-sm btn-outline" onclick="editTender(${t.id})" title="Düzenle"><i class="fa-solid fa-pen"></i></button>
