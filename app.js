@@ -1411,17 +1411,13 @@ function refreshDashboard() {
   const canvas = document.getElementById('tender-chart-canvas');
   const emptyMsg = document.getElementById('tender-chart-empty');
   const tenderYil = new Date().getFullYear();
-  const firmaToplam = {};
+  let toplamTeslim = 0, toplamKalan = 0;
   (data.tenders || []).filter(t => t.quantity > 0 && (t.year || new Date().getFullYear()) === tenderYil).forEach(t => {
-    if (!firmaToplam[t.companyName]) firmaToplam[t.companyName] = { quantity: 0, delivered: 0 };
-    firmaToplam[t.companyName].quantity += t.quantity;
-    firmaToplam[t.companyName].delivered += (t.delivered || 0);
+    toplamTeslim += (t.delivered || 0);
+    toplamKalan += (t.quantity - (t.delivered || 0));
   });
-  const ihaleVeri = Object.keys(firmaToplam).map(name => {
-    const { quantity, delivered } = firmaToplam[name];
-    return { label: name, pct: Math.min(100, Math.round((delivered / quantity) * 100)) };
-  });
-  if (!ihaleVeri.length) {
+  const genelOran = (toplamTeslim + toplamKalan) > 0 ? Math.round((toplamTeslim / (toplamTeslim + toplamKalan)) * 100) : 0;
+  if (!toplamTeslim && !toplamKalan) {
     canvas.style.display = 'none';
     emptyMsg.style.display = 'block';
   } else {
@@ -1431,11 +1427,9 @@ function refreshDashboard() {
 
     const isDark = getTheme() === 'dark';
     const labelColor = isDark ? '#e2e8f0' : '#334155';
-    const tenderLabels = ihaleVeri.map(v => v.label);
-    const tenderData = ihaleVeri.map(v => v.pct);
-    const ortPct = tenderData.length ? Math.round(tenderData.reduce((s, v) => s + v, 0) / tenderData.length) : 0;
-    const tenderColors = ['#22c55e', '#f97316', '#8b5cf6', '#3b82f6', '#14b8a6', '#f472b6', '#eab308', '#a1a1aa'];
-    const bgColors = tenderData.map((_, i) => tenderColors[i % tenderColors.length]);
+    const tenderData = [toplamTeslim, toplamKalan];
+    const tenderLabels = ['Teslim Edilen', 'Kalan'];
+    const tenderColors = ['#22c55e', '#e2e8f0'];
 
     // Legend
     const chartContainer = canvas.parentElement;
@@ -1443,14 +1437,14 @@ function refreshDashboard() {
     if (!legendDiv) {
       legendDiv = document.createElement('div');
       legendDiv.id = 'tender-chart-legend';
-      legendDiv.style.cssText = 'display:flex;justify-content:center;gap:10px;flex-wrap:wrap;margin-top:4px;';
+      legendDiv.style.cssText = 'display:flex;justify-content:center;gap:14px;flex-wrap:wrap;margin-top:4px;';
       chartContainer.appendChild(legendDiv);
     }
     legendDiv.innerHTML = tenderLabels.map((l, i) => `
       <div style="display:flex;align-items:center;gap:4px;">
-        <div style="width:8px;height:8px;border-radius:50%;background:${bgColors[i]};flex-shrink:0;"></div>
+        <div style="width:8px;height:8px;border-radius:50%;background:${tenderColors[i]};flex-shrink:0;"></div>
         <span style="font-size:11px;font-weight:600;color:${isDark ? '#94a3b8' : '#64748b'};">${l}</span>
-        <span style="font-size:11px;font-weight:700;color:${labelColor};">%${tenderData[i]}</span>
+        <span style="font-size:11px;font-weight:700;color:${labelColor};">${_fmt(i === 0 ? toplamTeslim : toplamKalan)}</span>
       </div>
     `).join('');
 
@@ -1469,10 +1463,10 @@ function refreshDashboard() {
           ctx.textAlign = 'center';
           ctx.textBaseline = 'middle';
           ctx.font = 'bold 14px Outfit, Arial, sans-serif';
-          ctx.fillStyle = '#fff';
+          ctx.fillStyle = idx === 0 ? '#fff' : (isDark ? '#0f172a' : '#334155');
           ctx.shadowColor = 'rgba(0,0,0,0.4)';
           ctx.shadowBlur = 3;
-          ctx.fillText('%' + val, arc.x + Math.cos(angle) * radius, arc.y + Math.sin(angle) * radius);
+          ctx.fillText(idx === 0 ? 'Teslim' : 'Kalan', arc.x + Math.cos(angle) * radius, arc.y + Math.sin(angle) * radius);
           ctx.restore();
         });
 
@@ -1483,10 +1477,10 @@ function refreshDashboard() {
         ctx.textBaseline = 'middle';
         ctx.font = 'bold 22px Outfit, Arial, sans-serif';
         ctx.fillStyle = isDark ? '#f1f5f9' : '#0f172a';
-        ctx.fillText('%' + ortPct, cx, cy - 8);
+        ctx.fillText('%' + genelOran, cx, cy - 8);
         ctx.font = '600 10px Outfit, Arial, sans-serif';
         ctx.fillStyle = isDark ? '#94a3b8' : '#64748b';
-        ctx.fillText('Ortalama', cx, cy + 14);
+        ctx.fillText('Teslimat', cx, cy + 14);
         ctx.restore();
       }
     };
@@ -1497,7 +1491,7 @@ function refreshDashboard() {
         labels: tenderLabels,
         datasets: [{
           data: tenderData,
-          backgroundColor: bgColors,
+          backgroundColor: tenderColors,
           borderColor: isDark ? '#1e293b' : '#fff',
           borderWidth: 2,
           hoverOffset: 8,
@@ -1521,16 +1515,13 @@ function refreshDashboard() {
             padding: 10,
             cornerRadius: 8,
             callbacks: {
-              label: ctx => ` ${ctx.label}: %${ctx.parsed} teslimat`
+              label: ctx => ` ${ctx.label}: ${_fmt(ctx.parsed)}`
             }
           }
         },
         animation: {
           duration: 800,
-          easing: 'easeOutQuart',
-          delay(ctx) {
-            return ctx.dataIndex * 100;
-          }
+          easing: 'easeOutQuart'
         }
       },
       plugins: [tenderLabelPlugin]
