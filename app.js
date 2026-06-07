@@ -18,6 +18,11 @@ function isSupabaseReady() {
   return SUPABASE_URL && SUPABASE_ANON;
 }
 
+function isAdmin() {
+  const u = data.users.find(x => x.name === data.activeUser);
+  return u && u.role === 'Yönetici';
+}
+
 async function supabaseFetch(method, table, params, body) {
   let url = `${SUPABASE_URL}/rest/v1/${table}`;
   if (params) url += '?' + new URLSearchParams(params);
@@ -468,7 +473,7 @@ async function saveData() {
 
 // ----- TEMA -----
 function getTheme() {
-  if (data.activeUser !== 'MUSTAFA ORHAN') return 'light';
+  if (!isAdmin()) return 'light';
   return localStorage.getItem('stokdosya_theme') || 'light';
 }
 
@@ -481,7 +486,7 @@ function applyTheme(theme) {
 }
 
 function toggleTheme() {
-  if (data.activeUser !== 'MUSTAFA ORHAN') return;
+  if (!isAdmin()) return;
   const current = getTheme();
   const next = current === 'dark' ? 'light' : 'dark';
   applyTheme(next);
@@ -955,7 +960,7 @@ function toast(msg, type = 'info') {
 // ----- NAVIGASYON -----
 function navigateTo(target) {
   // Admin değilse ayarlara gidemez
-  if (target === 'settings-view' && data.activeUser !== 'MUSTAFA ORHAN') {
+  if (target === 'settings-view' && !isAdmin()) {
     target = 'dashboard';
   }
 
@@ -2998,15 +3003,15 @@ function refreshSettings() {
 
   // Kullanici listesi
   const ul = document.getElementById('users-list-ul');
-  const isAdmin = data.activeUser === 'MUSTAFA ORHAN';
+  const admin = isAdmin();
   // Admin değilse ekleme formunu gizle
   const addUserSection = document.getElementById('add-user-section');
-  if (addUserSection) addUserSection.style.display = isAdmin ? '' : 'none';
+  if (addUserSection) addUserSection.style.display = admin ? '' : 'none';
   if (!ul) return;
   ul.innerHTML = data.users.map(u => {
     const aktif = u.name === data.activeUser;
     const aktifMi = u.active !== false;
-    const canEditPass = data.activeUser === 'MUSTAFA ORHAN' || aktif;
+    const canEditPass = admin || aktif;
     return `<li style="display:flex;align-items:center;justify-content:space-between;background:var(--bg-primary);padding:10px 14px;border-radius:var(--border-radius-sm);border:1px solid ${aktif ? 'var(--primary)' : 'var(--border-color)'};flex-wrap:wrap;gap:6px;${!aktifMi ? 'opacity:0.6;' : ''}">
       <span style="flex:1;min-width:120px;"><strong>${htmlEscape(u.name)}</strong> <span style="color:var(--text-secondary);font-size:13px;">— ${htmlEscape(u.role)}</span> ${aktif ? '<span style="background:var(--primary-light);color:var(--primary);padding:2px 8px;border-radius:999px;font-size:11px;font-weight:700;margin-left:6px;">AKTİF</span>' : ''} ${!aktifMi ? '<span style="background:var(--accent);color:#fff;padding:2px 8px;border-radius:999px;font-size:11px;font-weight:700;margin-left:6px;">PASİF</span>' : ''}</span>
       <span style="font-size:13px;color:var(--text-muted);font-family:monospace;">${'•'.repeat(8)}</span>
@@ -3020,8 +3025,8 @@ function refreshSettings() {
   const aktifUserBox = document.getElementById('dashboard-active-user-box');
   const userListEl = document.getElementById('settings-user-list');
   if (aktifUserBox && userListEl) {
-    const isAdmin = data.activeUser === 'MUSTAFA ORHAN';
-    aktifUserBox.style.display = isAdmin ? '' : 'none';
+    const a = isAdmin();
+    aktifUserBox.style.display = a ? '' : 'none';
     let activeSessions = [];
     try { activeSessions = JSON.parse(data.settings._activeSessions || '[]'); } catch(e) {}
     const now = Date.now();
@@ -3219,7 +3224,7 @@ document.getElementById('profile-form').addEventListener('submit', (e) => {
 
 // Kullanici ekle (sadece admin)
 document.getElementById('add-user-btn').addEventListener('click', async () => {
-  if (data.activeUser !== 'MUSTAFA ORHAN') { toast('Sadece yönetici kullanıcı ekleyebilir.', 'error'); return; }
+  if (!isAdmin()) { toast('Sadece yönetici kullanıcı ekleyebilir.', 'error'); return; }
   const name = document.getElementById('new-username-input').value.trim();
   const role = document.getElementById('new-userrole-input').value.trim() || 'Depo Kullanıcısı';
   const password = document.getElementById('new-userpassword-input').value.trim();
@@ -3272,7 +3277,7 @@ document.getElementById('upload-names-input').addEventListener('change', (e) => 
 });
 
 async function toggleUserActive(name) {
-  if (data.activeUser !== 'MUSTAFA ORHAN') { toast('Sadece yönetici kullanıcı pasif/aktif yapabilir.', 'error'); return; }
+  if (!isAdmin()) { toast('Sadece yönetici kullanıcı pasif/aktif yapabilir.', 'error'); return; }
   if (name === 'MUSTAFA ORHAN') { toast('Yönetici pasif yapılamaz.', 'error'); return; }
   const u = data.users.find(x => x.name === name);
   if (!u) return;
@@ -3294,7 +3299,7 @@ async function toggleUserActive(name) {
 }
 
 async function deleteUserPermanently(name) {
-  if (data.activeUser !== 'MUSTAFA ORHAN') { toast('Sadece yönetici kullanıcı silebilir.', 'error'); return; }
+  if (!isAdmin()) { toast('Sadece yönetici kullanıcı silebilir.', 'error'); return; }
   if (name === 'MUSTAFA ORHAN') { toast('Yönetici silinemez.', 'error'); return; }
   if (!confirm(`"${name}" kullanıcısını tamamen silmek istediğinize emin misiniz?`)) return;
   data.users = data.users.filter(u => u.name !== name);
@@ -3315,7 +3320,7 @@ async function deleteUserPermanently(name) {
 function refreshUserSelect() {}
 
 function editUserPassword(name) {
-  if (data.activeUser !== 'MUSTAFA ORHAN' && data.activeUser !== name) {
+  if (!isAdmin() && data.activeUser !== name) {
     toast('Sadece kendi şifrenizi değiştirebilirsiniz.', 'error'); return;
   }
   const u = data.users.find(x => x.name === name);
@@ -3805,9 +3810,9 @@ function refreshAll() {
   if (_el('new-supplier-input')) _el('new-supplier-input').style.display = vo ? 'none' : '';
 
   const settingsNav = document.querySelector('.nav-item[data-target="settings-view"]');
-  if (settingsNav) settingsNav.style.display = data.activeUser === 'MUSTAFA ORHAN' ? '' : 'none';
+  if (settingsNav) settingsNav.style.display = isAdmin() ? '' : 'none';
   const themeBtn = _el('theme-toggle');
-  if (themeBtn) themeBtn.style.display = data.activeUser === 'MUSTAFA ORHAN' ? '' : 'none';
+  if (themeBtn) themeBtn.style.display = isAdmin() ? '' : 'none';
   const statusEl = _el('cloud-status-text');
   if (statusEl) statusEl.textContent = isSupabaseReady() ? 'Sunucuya Bağlı' : 'Yerel Bellek';
   const cloudUser = _el('cloud-user-text');
@@ -3821,7 +3826,7 @@ function refreshAll() {
   _safe(refreshAggregatedStock);
   _safe(refreshEntryForm);
   _safe(refreshExitForm);
-  if (data.activeUser === 'MUSTAFA ORHAN') _safe(refreshSettings);
+  if (isAdmin()) _safe(refreshSettings);
 
   const aktifView = document.querySelector('.view-section.active');
   if (aktifView) {
@@ -3885,7 +3890,7 @@ function refreshDailyView() {
         ? '<span style="color:var(--warning);font-weight:700;">DÜZELTME</span>'
         : '<span style="color:var(--accent);font-weight:700;">ÇIKIŞ</span>';
     const birim = t.unit || (data.products[t.partiNo] && data.products[t.partiNo].unit) || '';
-    const isAdmin = data.activeUser === 'MUSTAFA ORHAN';
+    const isAdmin = isAdmin();
     const duzeltBtn = isAdmin && t.type === 'cikis'
       ? `<button class="btn-ui btn-sm btn-outline" onclick="openExitEdit(${t.id})" style="padding:2px 8px;font-size:11px;" title="Düzelt"><i class="fa-solid fa-pen"></i></button>`
       : '';
@@ -3895,7 +3900,7 @@ function refreshDailyView() {
 }
 
 function openExitEdit(id) {
-  if (data.activeUser !== 'MUSTAFA ORHAN') { toast('Bu işlem için yetkiniz yok.', 'error'); return; }
+  if (!isAdmin()) { toast('Bu işlem için yetkiniz yok.', 'error'); return; }
   const t = data.transactions.find(x => x.id === id);
   if (!t || t.type !== 'cikis') return;
   document.getElementById('exit-edit-id').value = id;
@@ -3909,7 +3914,7 @@ function openExitEdit(id) {
 document.getElementById('exit-edit-form').addEventListener('submit', (e) => {
   e.preventDefault();
   if (isViewOnly()) { toast('Görüntüleme modunda düzeltme yapamazsınız.', 'error'); return; }
-  if (data.activeUser !== 'MUSTAFA ORHAN') { toast('Bu işlem için yetkiniz yok.', 'error'); return; }
+  if (!isAdmin()) { toast('Bu işlem için yetkiniz yok.', 'error'); return; }
 
   const id = parseFloat(document.getElementById('exit-edit-id').value);
   const t = data.transactions.find(x => x.id === id);
