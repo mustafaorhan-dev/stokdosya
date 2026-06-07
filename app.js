@@ -3454,7 +3454,8 @@ document.getElementById('restore-btn').addEventListener('click', () => {
   const reader = new FileReader();
   reader.onload = (e) => {
     try {
-      const imported = JSON.parse(e.target.result);
+      var imported = JSON.parse(e.target.result);
+      imported = convertBackupFormat(imported);
       if (!imported.products || !imported.transactions) {
         toast('Geçersiz yedek dosyası!', 'error'); return;
       }
