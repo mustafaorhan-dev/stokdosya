@@ -3945,6 +3945,7 @@ function updateClock() {
 
 // ----- GÜNLÜK İŞLEMLER -----
 function refreshDailyView() {
+  try {
   const prevYil = parseInt(document.getElementById('daily-year-select').value);
   populateYearSelect('daily-year-select', prevYil || new Date().getFullYear());
   const dateStr = document.getElementById('daily-date').value || todayStr();
@@ -3952,8 +3953,9 @@ function refreshDailyView() {
   const yil = parseInt(document.getElementById('daily-year-select').value) || new Date().getFullYear();
 
   // Yıla göre filtrele, tarih seçiliyse ona da daralt
-  let yilHareket = data.transactions.filter(t => new Date(t.date).getFullYear() === yil);
+  let yilHareket = data.transactions.filter(t => t.date && new Date(t.date).getFullYear() === yil);
   let hareketler = dateStr ? yilHareket.filter(t => t.date === dateStr) : yilHareket;
+  console.log('refreshDailyView:', {yil, dateStr, toplamTx: data.transactions.length, yilSayisi: yilHareket.length, filtreSonucu: hareketler.length});
 
   // Kişi filtresi (not veya createdBy üzerinden)
   const kisiFiltre = document.getElementById('daily-person-filter').value;
@@ -3990,6 +3992,7 @@ function refreshDailyView() {
     const silindiNotu = silindi ? ' <span style="color:var(--accent);font-weight:700;">[SİLİNDİ]</span>' : '';
     return `<tr><td>${i+1}</td><td>${tip}</td><td style="font-weight:600;">${htmlEscape(t.partiNo)}${silindiNotu}</td><td>${htmlEscape(t.productName)}</td><td>${_fmt(t.amount)}</td><td>${htmlEscape(birim)}</td><td style="font-weight:600;color:var(--primary);font-size:13px;">${htmlEscape(t.createdBy) || '-'}</td><td style="color:var(--text-secondary);">${htmlEscape(t.note) || '-'}</td><td>${duzeltBtn}</td></tr>`;
   }).join('');
+  } catch(e) { console.error('refreshDailyView hatası:', e); toast('Günlük İşlemler hatası: ' + e.message, 'error'); }
 }
 
 function openExitEdit(id) {
