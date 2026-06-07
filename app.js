@@ -4062,7 +4062,7 @@ function refreshSupplierReport() {
           <span style="font-weight:700;">${_fmt(miktar)} ${v.birim}</span>
         </div>`;
       }).join('');
-    const ok = acik ? '¡' : '?';
+    const ok = acik ? '▼' : '▶';
     return `
     <tr onclick="window._srAcik['${key.replace(/'/g, "\\'")}']=!window._srAcik['${key.replace(/'/g, "\\'")}'];refreshSupplierReport()" style="cursor:pointer;">
       <td style="width:24px;text-align:center;font-size:11px;color:var(--primary);">${ok}</td>
