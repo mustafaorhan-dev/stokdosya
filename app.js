@@ -140,6 +140,18 @@ async function supabaseSave() {
       try { await supabaseFetch('POST', 'settings', null, settingRows); } catch(e) { console.error('Supabase settings hatası:', e); }
     }
 
+    // Calculations upsert
+    const calcRows = (data.calculations || []).map(c => ({
+      id: c.id, transaction_id: c.transactionId, product_name: c.productName,
+      amount: c.amount, unit: c.unit || '', unit_price: c.unitPrice || 0,
+      total_cost: c.totalCost || 0, person_count: c.personCount || 0,
+      cost_per_person: c.costPerPerson || 0, date: c.date || '',
+      created_at: c.createdAt || new Date().toISOString()
+    }));
+    if (calcRows.length > 0) {
+      try { await supabaseFetch('POST', 'calculations', null, calcRows); } catch(e) { console.error('Supabase calculations hatası:', e); }
+    }
+
     if (statusEl) statusEl.textContent = 'Sunucuya Bağlı';
     return true;
   } catch (e) {
@@ -152,17 +164,35 @@ async function supabaseSave() {
   }
 }
 
+function _mergeTransactions(local, remote) {
+  if (!remote || !remote.length) return local;
+  const localMap = new Map(local.map(t => [t.id, t]));
+  const remoteMap = new Map(remote.map(t => [t.id, t]));
+  const merged = remote.map(t => {
+    const localTx = localMap.get(t.id);
+    if (localTx) {
+      if (t.personCount == null) t.personCount = localTx.personCount || 0;
+      if (t.unitPrice == null) t.unitPrice = localTx.unitPrice || 0;
+      if (t.totalCost == null) t.totalCost = localTx.totalCost || 0;
+      if (t.costPerPerson == null) t.costPerPerson = localTx.costPerPerson || 0;
+    }
+    return t;
+  });
+  local.forEach(t => { if (!remoteMap.has(t.id)) merged.push(t); });
+  return merged;
+}
 async function supabaseLoad() {
   if (!isSupabaseReady()) return null;
   try {
-    const [products, transactions, users, tenders, companies, productNames, settings] = await Promise.all([
+    const [products, transactions, users, tenders, companies, productNames, settings, calculations] = await Promise.all([
       supabaseFetch('GET', 'products', { order: 'parti_no.asc' }),
       supabaseFetch('GET', 'transactions', { order: 'id.asc' }),
       supabaseFetch('GET', 'stok_users', { order: 'name.asc' }),
       supabaseFetch('GET', 'tenders', { order: 'id.asc' }),
       supabaseFetch('GET', 'companies', { order: 'name.asc' }),
       supabaseFetch('GET', 'product_names', { order: 'name.asc' }),
-      supabaseFetch('GET', 'settings')
+      supabaseFetch('GET', 'settings'),
+      supabaseFetch('GET', 'calculations', { order: 'id.asc' })
     ]);
 
     const prodMap = {};
@@ -201,7 +231,20 @@ async function supabaseLoad() {
     const settingObj = {};
     (settings || []).forEach(s => { settingObj[s.key] = s.value; });
 
-    return { products: prodMap, transactions: txList, users: userList, tenders: tenderList, companies: compList, productNames: nameList, settings: settingObj, activeUser: data.activeUser || '' };
+    // Calculations verisini transactions'a merge et (cost alanları)
+    const calcByTxId = {};
+    (calculations || []).forEach(c => { if (c.transaction_id) calcByTxId[c.transaction_id] = c; });
+    txList.forEach(t => {
+      const calc = calcByTxId[t.id];
+      if (calc) {
+        if (t.personCount == null) t.personCount = calc.person_count || 0;
+        if (t.unitPrice == null) t.unitPrice = calc.unit_price || 0;
+        if (t.totalCost == null) t.totalCost = calc.total_cost || 0;
+        if (t.costPerPerson == null) t.costPerPerson = calc.cost_per_person || 0;
+      }
+    });
+
+    return { products: prodMap, transactions: txList, users: userList, tenders: tenderList, companies: compList, productNames: nameList, settings: settingObj, activeUser: data.activeUser || '', calculations: calculations || [] };
   } catch (e) {
     console.error('Supabase yükleme hatası:', e);
     return null;
@@ -320,11 +363,14 @@ async function sheetsPull() {
     const remoteData = await supabaseLoad();
     if (remoteData) {
       data.products = remoteData.products || {};
-      data.transactions = remoteData.transactions || [];
+      data.transactions = _mergeTransactions(data.transactions, remoteData.transactions || []);
       data.users = remoteData.users || [];
       if (remoteData.tenders && remoteData.tenders.length) data.tenders = remoteData.tenders;
       data.companies = remoteData.companies || [];
       data.productNames = remoteData.productNames || [];
+      if (remoteData.calculations && remoteData.calculations.length) {
+        data.calculations = remoteData.calculations;
+      }
       const sheetsLocalFlags = data.settings._userActiveFlags;
       const sheetsLocalForce = data.settings._forceLogout;
       data.settings = remoteData.settings || {};
@@ -374,6 +420,9 @@ function initData() {
   if (!data.tenders) data.tenders = [];
   if (!data.companies) data.companies = [];
   if (!data.productNames) data.productNames = [];
+  if (!data.calculations) data.calculations = [];
+  // calculations dizisini transactions'dan yeniden oluştur (eksik veri olursa)
+  rebuildCalculationsFromTransactions();
   // Soft-delete migration: tüm mevcut ürünlere active:true ekle
   if (data.products) {
     Object.values(data.products).forEach(p => {
@@ -422,20 +471,7 @@ async function loadData() {
       if (remoteData) {
         if (remoteData.products) data.products = remoteData.products;
         if (remoteData.transactions && remoteData.transactions.length) {
-          const localMap = new Map(data.transactions.map(t => [t.id, t]));
-          const remoteMap = new Map(remoteData.transactions.map(t => [t.id, t]));
-          const merged = remoteData.transactions.map(t => {
-            const local = localMap.get(t.id);
-            if (local) {
-              if (t.personCount == null) t.personCount = local.personCount || 0;
-              if (t.unitPrice == null) t.unitPrice = local.unitPrice || 0;
-              if (t.totalCost == null) t.totalCost = local.totalCost || 0;
-              if (t.costPerPerson == null) t.costPerPerson = local.costPerPerson || 0;
-            }
-            return t;
-          });
-          data.transactions.forEach(t => { if (!remoteMap.has(t.id)) merged.push(t); });
-          data.transactions = merged;
+          data.transactions = _mergeTransactions(data.transactions, remoteData.transactions);
         }
         if (remoteData.users) {
           const userMap = new Map(data.users.map(u => [u.name, u]));
@@ -456,6 +492,9 @@ async function loadData() {
         if (remoteData.tenders && remoteData.tenders.length) data.tenders = remoteData.tenders;
         if (remoteData.companies && remoteData.companies.length) data.companies = remoteData.companies;
         if (remoteData.productNames && remoteData.productNames.length) data.productNames = remoteData.productNames;
+        if (remoteData.calculations && remoteData.calculations.length) {
+          data.calculations = remoteData.calculations;
+        }
         if (remoteData.settings) {
           // Lokal _userActiveFlags ve _forceLogout korunsun (Supabase'te eski kalabilir)
           const localFlags = data.settings._userActiveFlags;
@@ -488,6 +527,36 @@ function loadProductNamesLocal() {
     }
   } catch (e) {}
   return null;
+}
+
+// ----- MALİYET HESAPLAMALARINI YENİDEN OLUŞTUR -----
+function rebuildCalculationsFromTransactions() {
+  var calcMap = new Map();
+  (data.calculations || []).forEach(function(c) {
+    if (c.transactionId) calcMap.set(c.transactionId, c);
+  });
+  (data.transactions || []).forEach(function(t) {
+    if (t.type !== 'cikis') return;
+    if (!t.personCount && !t.unitPrice && !t.totalCost && !t.costPerPerson) return;
+    if (calcMap.has(t.id)) {
+      var existing = calcMap.get(t.id);
+      if (t.personCount && !existing.personCount) existing.personCount = t.personCount;
+      if (t.unitPrice && !existing.unitPrice) existing.unitPrice = t.unitPrice;
+      if (t.totalCost && !existing.totalCost) existing.totalCost = t.totalCost;
+      if (t.costPerPerson && !existing.costPerPerson) existing.costPerPerson = t.costPerPerson;
+    } else {
+      var calcId = t.id;
+      data.calculations.push({
+        id: calcId,
+        transactionId: t.id, productName: t.productName,
+        amount: t.amount, unit: t.unit || '',
+        unitPrice: t.unitPrice || 0, totalCost: t.totalCost || 0,
+        personCount: t.personCount || 0, costPerPerson: t.costPerPerson || 0,
+        date: t.date, createdAt: new Date().toISOString()
+      });
+      calcMap.set(t.id, data.calculations[data.calculations.length - 1]);
+    }
+  });
 }
 
 async function saveData() {
@@ -1977,7 +2046,8 @@ if (modalAddNameBtn) {
     const yeniIsim = prompt('Yeni ürün adını girin:');
     if (yeniIsim && yeniIsim.trim()) {
       const name = yeniIsim.trim();
-      if (!data.productNames) data.productNames = [];
+  if (!data.productNames) data.productNames = [];
+  if (!data.calculations) data.calculations = [];
       if (data.productNames.includes(name)) { toast('Bu isim zaten listede.', 'warning'); return; }
       data.productNames.push(name);
       data.productNames.sort((a, b) => a.localeCompare(b));
@@ -2421,6 +2491,16 @@ document.getElementById('exit-form').addEventListener('submit', async (e) => {
   }
 
   transactions.forEach(t => data.transactions.push(t));
+  transactions.forEach(t => {
+    data.calculations.push({
+      id: Date.now() + Math.random() * 1000 + transactions.length,
+      transactionId: t.id, productName: t.productName,
+      amount: t.amount, unit: t.unit,
+      unitPrice: t.unitPrice, totalCost: t.totalCost,
+      personCount: t.personCount, costPerPerson: t.costPerPerson,
+      date: t.date, createdAt: new Date().toISOString()
+    });
+  });
   await saveData();
   toast(`${_fmt(amount)} ${parts[0].unit} ${productName} çıkışı kaydedildi.`, 'success');
   navigateTo('dashboard');
@@ -4663,11 +4743,14 @@ document.addEventListener('DOMContentLoaded', () => {
       const remoteData = await supabaseLoad();
       if (!remoteData) return;
       data.products = remoteData.products || {};
-      data.transactions = remoteData.transactions || [];
+      data.transactions = _mergeTransactions(data.transactions, remoteData.transactions || []);
       data.users = remoteData.users || [];
       if (remoteData.tenders && remoteData.tenders.length) data.tenders = remoteData.tenders;
       data.companies = remoteData.companies || [];
       data.productNames = remoteData.productNames || [];
+      if (remoteData.calculations && remoteData.calculations.length) {
+        data.calculations = remoteData.calculations;
+      }
       const autoLocalFlags = data.settings._userActiveFlags;
       const autoLocalForce = data.settings._forceLogout;
       data.settings = remoteData.settings || {};
