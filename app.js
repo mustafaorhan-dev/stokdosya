@@ -75,7 +75,7 @@ async function supabaseSave() {
       deleted_by: p.deletedBy || null, deleted_at: p.deletedAt || null
     }));
     if (productArray.length > 0) {
-      try { await supabaseFetch('POST', 'products', null, productArray); } catch(e) { console.error('Supabase products hatası:', e); }
+      try { await supabaseFetch('POST', 'products', null, productArray); } catch(e) { toast('❌ Ürünler Supabase\'e kaydedilemedi', 'error'); }
     }
 
     // Transactions toplu upsert
@@ -97,8 +97,8 @@ async function supabaseSave() {
       try {
         await supabaseFetch('POST', 'transactions', null, txArrayFull);
       } catch(e) {
-        console.warn('Supabase transactions (full) hatası, temel alanlarla deneniyor:', e.message);
-        try { await supabaseFetch('POST', 'transactions', null, txArrayBasic); } catch(e2) { console.error('Supabase transactions (basic) hatası:', e2); }
+        toast('⚠️ İşlemler kaydedilemedi, basit alanlarla deneniyor...', 'warning');
+        try { await supabaseFetch('POST', 'transactions', null, txArrayBasic); } catch(e2) { toast('❌ İşlemler Supabase\'e kaydedilemedi', 'error'); }
       }
     }
 
@@ -119,25 +119,25 @@ async function supabaseSave() {
         quantity: t.quantity, unit: t.unit || '', delivered: t.delivered || 0,
         price: t.price || 0, year: t.year || new Date().getFullYear()
       }));
-      try { await supabaseFetch('POST', 'tenders', null, tenderArray); } catch(e) { console.error('Supabase tenders hatası:', e); }
+      try { await supabaseFetch('POST', 'tenders', null, tenderArray); } catch(e) { toast('❌ İhale kayıtları Supabase\'e kaydedilemedi', 'error'); }
     }
 
     // Companies upsert
     const compRows = (data.companies || []).map(c => ({ name: c }));
     if (compRows.length > 0) {
-      try { await supabaseFetch('POST', 'companies', null, compRows); } catch(e) { console.error('Supabase companies hatası:', e); }
+      try { await supabaseFetch('POST', 'companies', null, compRows); } catch(e) { toast('❌ Firmalar Supabase\'e kaydedilemedi', 'error'); }
     }
 
     // Product names upsert
     const nameRows = (data.productNames || []).map(n => ({ name: n }));
     if (nameRows.length > 0) {
-      try { await supabaseFetch('POST', 'product_names', null, nameRows); } catch(e) { console.error('Supabase product_names hatası:', e); }
+      try { await supabaseFetch('POST', 'product_names', null, nameRows); } catch(e) { toast('❌ Ürün isimleri Supabase\'e kaydedilemedi', 'error'); }
     }
 
     // Settings upsert
     const settingRows = Object.entries(data.settings || {}).map(([k, v]) => ({ key: k, value: v }));
     if (settingRows.length > 0) {
-      try { await supabaseFetch('POST', 'settings', null, settingRows); } catch(e) { console.error('Supabase settings hatası:', e); }
+      try { await supabaseFetch('POST', 'settings', null, settingRows); } catch(e) { toast('❌ Ayarlar Supabase\'e kaydedilemedi', 'error'); }
     }
 
     // Calculations upsert
@@ -149,7 +149,7 @@ async function supabaseSave() {
       created_at: c.createdAt || new Date().toISOString()
     }));
     if (calcRows.length > 0) {
-      try { await supabaseFetch('POST', 'calculations', null, calcRows); } catch(e) { console.error('Supabase calculations hatası:', e); }
+      try { await supabaseFetch('POST', 'calculations', null, calcRows); } catch(e) { toast('❌ Maliyet hesaplamaları Supabase\'e kaydedilemedi', 'error'); }
     }
 
     if (statusEl) statusEl.textContent = 'Sunucuya Bağlı';
@@ -567,6 +567,9 @@ async function saveData() {
   if (isSupabaseReady() && !_syncLock) {
     const ok = await supabaseSave();
     if (!ok) { toast('⚠️ Supabase\'e kaydedilemedi. Veriler localStorage\'da duruyor.', 'warning'); return false; }
+    // Her başarılı kayıt sonrası Supabase backups tablosuna tam yedek al
+    const backupOk = await supabaseBackup('otomatik');
+    if (!backupOk) toast('⚠️ Yedek alınamadı.', 'warning');
     return true;
   }
   return !isSupabaseReady();
@@ -2463,6 +2466,7 @@ document.getElementById('exit-form').addEventListener('submit', async (e) => {
 
   if (!productName || !amount || amount <= 0 || !date) { toast('Tüm alanları doldurun.', 'error'); return; }
   if (!isValidDate(date)) { toast('Geçersiz çıkış tarihi!', 'error'); return; }
+  if (!personCount && !confirm('⚠️ Kişi sayısı girilmedi! Günlük Maliyet hesaplamaları eksik olabilir. Devam etmek istiyor musunuz?')) { return; }
 
   const parts = Object.values(data.products)
     .filter(p => p.active !== false && p.name === productName && (p.stock || 0) > 0)
