@@ -4060,9 +4060,10 @@ function refreshSupplierReport() {
         const trTarih = d[2] + '.' + d[1] + '.' + d[0];
         const toplam = entries.reduce((s, e) => s + e.amount, 0);
         const partiler = [...new Set(entries.map(e => e.partiNo))].join(', ');
-        return `<div style="display:flex;justify-content:space-between;padding:4px 0;font-size:14px;border-bottom:1px dashed var(--border-color);">
-          <span><span style="color:var(--text-secondary);">${trTarih}</span> <span style="font-size:12px;color:var(--text-muted);">${htmlEscape(partiler)}</span></span>
-          <span style="font-weight:700;">${_fmt(toplam)} ${v.birim}</span>
+        return `<div style="display:grid;grid-template-columns:100px 1fr 100px;padding:4px 0;font-size:14px;border-bottom:1px dashed var(--border-color);">
+          <span style="color:var(--text-secondary);">${trTarih}</span>
+          <span style="font-size:12px;color:var(--text-muted);">${htmlEscape(partiler)}</span>
+          <span style="font-weight:700;text-align:right;">${_fmt(toplam)} ${v.birim}</span>
         </div>`;
       }).join('');
     const ok = acik ? '▼' : '▶';
@@ -4078,9 +4079,10 @@ function refreshSupplierReport() {
     </tr>
     ${acik ? `<tr><td colspan="7" style="padding:6px 12px 10px 36px;background:var(--bg-card);border-bottom:1px solid var(--border-color);">
       <div style="font-size:13px;font-weight:600;color:var(--text-secondary);margin-bottom:6px;">Günlük Dağılım (${gunSayisi} gün):</div>
-      <div style="display:flex;justify-content:space-between;padding:2px 0;font-size:11px;font-weight:600;color:var(--text-muted);border-bottom:1px solid var(--border-color);margin-bottom:2px;">
-        <span>Tarih &nbsp;&nbsp; Parti No</span>
-        <span>Miktar</span>
+      <div style="display:grid;grid-template-columns:100px 1fr 100px;padding:2px 0;font-size:11px;font-weight:600;color:var(--text-muted);border-bottom:1px solid var(--border-color);margin-bottom:2px;">
+        <span>Tarih</span>
+        <span>Parti No</span>
+        <span style="text-align:right;">Miktar</span>
       </div>
       ${gunHtml}
     </td></tr>` : ''}`;
