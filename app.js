@@ -1434,6 +1434,33 @@ function refreshDashboard() {
     const blueScale = ['#3b82f6', '#60a5fa', '#2563eb', '#93c5fd', '#1d4ed8', '#7dd3fc', '#1e40af', '#bae6fd'];
     const barColors = ihaleVeri.map((_, i) => blueScale[i % blueScale.length]);
 
+    const barLabelPlugin = {
+      id: 'barLabel',
+      afterDatasetsDraw(chart) {
+        const ctx = chart.ctx;
+        chart.data.datasets.forEach((ds, i) => {
+          const meta = chart.getDatasetMeta(i);
+          meta.data.forEach((bar, idx) => {
+            const val = ds.data[idx];
+            if (!val) return;
+            const barLen = bar.x - bar.base;
+            ctx.save();
+            ctx.textBaseline = 'middle';
+            ctx.font = 'bold 11px Outfit, Arial, sans-serif';
+            if (barLen > 30) {
+              ctx.textAlign = 'center';
+              ctx.fillStyle = '#fff';
+              ctx.fillText('%' + val, bar.base + barLen / 2, bar.y);
+            }
+            ctx.textAlign = 'left';
+            ctx.fillStyle = isDark ? '#fff' : '#0f172a';
+            ctx.fillText('%' + val, bar.x + 4, bar.y);
+            ctx.restore();
+          });
+        });
+      }
+    };
+
     window._tenderChart = new Chart(canvas, {
       type: 'bar',
       data: {
@@ -1478,7 +1505,8 @@ function refreshDashboard() {
             ticks: { color: labelColor, font: { size: 10, weight: 'bold' } }
           }
         }
-      }
+      },
+      plugins: [barLabelPlugin]
     });
   }
   } catch (e) { console.error('refreshDashboard hatası:', e); }
