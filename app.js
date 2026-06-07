@@ -65,7 +65,6 @@ async function supabaseSave() {
   try {
     // Her kayıt öncesi float ID'leri tam sayıya çevir
     (data.transactions || []).forEach(function(t) { if (t.id && !Number.isInteger(t.id)) t.id = Math.floor(t.id); });
-    (data.calculations || []).forEach(function(c) { if (c.id && !Number.isInteger(c.id)) c.id = Math.floor(c.id); });
     const statusEl = document.getElementById('cloud-status-text');
     if (statusEl) statusEl.textContent = '☁️ Supabase\'e yazılıyor...';
 
@@ -143,18 +142,6 @@ async function supabaseSave() {
       try { await supabaseFetch('POST', 'settings', null, settingRows); } catch(e) { toast('❌ Ayarlar Supabase\'e kaydedilemedi', 'error'); }
     }
 
-    // Calculations upsert
-    const calcRows = (data.calculations || []).map(c => ({
-      id: c.id, transaction_id: c.transactionId || 0, product_name: c.productName || '',
-      amount: c.amount || 0, unit: c.unit || '', unit_price: c.unitPrice || 0,
-      total_cost: c.totalCost || 0, person_count: c.personCount || 0,
-      cost_per_person: c.costPerPerson || 0, date: c.date || '',
-      created_at: c.createdAt || new Date().toISOString()
-    }));
-    if (calcRows.length > 0) {
-      try { await supabaseFetch('POST', 'calculations', null, calcRows); } catch(e) { toast('❌ Maliyet hesaplamaları Supabase\'e kaydedilemedi', 'error'); }
-    }
-
     if (statusEl) statusEl.textContent = 'Sunucuya Bağlı';
     return true;
   } catch (e) {
@@ -187,15 +174,14 @@ function _mergeTransactions(local, remote) {
 async function supabaseLoad() {
   if (!isSupabaseReady()) return null;
   try {
-    const [products, transactions, users, tenders, companies, productNames, settings, calculations] = await Promise.all([
+    const [products, transactions, users, tenders, companies, productNames, settings] = await Promise.all([
       supabaseFetch('GET', 'products', { order: 'parti_no.asc' }),
       supabaseFetch('GET', 'transactions', { order: 'id.asc' }),
       supabaseFetch('GET', 'stok_users', { order: 'name.asc' }),
       supabaseFetch('GET', 'tenders', { order: 'id.asc' }),
       supabaseFetch('GET', 'companies', { order: 'name.asc' }),
       supabaseFetch('GET', 'product_names', { order: 'name.asc' }),
-      supabaseFetch('GET', 'settings'),
-      supabaseFetch('GET', 'calculations', { order: 'id.asc' })
+      supabaseFetch('GET', 'settings')
     ]);
 
     const prodMap = {};
@@ -234,20 +220,7 @@ async function supabaseLoad() {
     const settingObj = {};
     (settings || []).forEach(s => { settingObj[s.key] = s.value; });
 
-    // Calculations verisini transactions'a merge et (cost alanları)
-    const calcByTxId = {};
-    (calculations || []).forEach(c => { if (c.transaction_id) calcByTxId[c.transaction_id] = c; });
-    txList.forEach(t => {
-      const calc = calcByTxId[t.id];
-      if (calc) {
-        if (t.personCount == null) t.personCount = calc.person_count || 0;
-        if (t.unitPrice == null) t.unitPrice = calc.unit_price || 0;
-        if (t.totalCost == null) t.totalCost = calc.total_cost || 0;
-        if (t.costPerPerson == null) t.costPerPerson = calc.cost_per_person || 0;
-      }
-    });
-
-    return { products: prodMap, transactions: txList, users: userList, tenders: tenderList, companies: compList, productNames: nameList, settings: settingObj, activeUser: data.activeUser || '', calculations: calculations || [] };
+    return { products: prodMap, transactions: txList, users: userList, tenders: tenderList, companies: compList, productNames: nameList, settings: settingObj, activeUser: data.activeUser || '' };
   } catch (e) {
     console.error('Supabase yükleme hatası:', e);
     return null;
@@ -371,9 +344,6 @@ async function sheetsPull() {
       if (remoteData.tenders && remoteData.tenders.length) data.tenders = remoteData.tenders;
       data.companies = remoteData.companies || [];
       data.productNames = remoteData.productNames || [];
-      if (remoteData.calculations && remoteData.calculations.length) {
-        data.calculations = remoteData.calculations;
-      }
       const sheetsLocalFlags = data.settings._userActiveFlags;
       const sheetsLocalForce = data.settings._forceLogout;
       data.settings = remoteData.settings || {};
@@ -423,12 +393,6 @@ function initData() {
   if (!data.tenders) data.tenders = [];
   if (!data.companies) data.companies = [];
   if (!data.productNames) data.productNames = [];
-  if (!data.calculations) data.calculations = [];
-  // Eski float ID'leri tam sayıya çevir (BIGINT uyumluluğu)
-  (data.transactions || []).forEach(function(t) { if (t.id && !Number.isInteger(t.id)) t.id = Math.floor(t.id); });
-  (data.calculations || []).forEach(function(c) { if (c.id && !Number.isInteger(c.id)) c.id = Math.floor(c.id); });
-  // calculations dizisini transactions'dan yeniden oluştur (eksik veri olursa)
-  rebuildCalculationsFromTransactions();
   // Soft-delete migration: tüm mevcut ürünlere active:true ekle
   if (data.products) {
     Object.values(data.products).forEach(p => {
@@ -498,9 +462,6 @@ async function loadData() {
         if (remoteData.tenders && remoteData.tenders.length) data.tenders = remoteData.tenders;
         if (remoteData.companies && remoteData.companies.length) data.companies = remoteData.companies;
         if (remoteData.productNames && remoteData.productNames.length) data.productNames = remoteData.productNames;
-        if (remoteData.calculations && remoteData.calculations.length) {
-          data.calculations = remoteData.calculations;
-        }
         if (remoteData.settings) {
           // Lokal _userActiveFlags ve _forceLogout korunsun (Supabase'te eski kalabilir)
           const localFlags = data.settings._userActiveFlags;
@@ -533,36 +494,6 @@ function loadProductNamesLocal() {
     }
   } catch (e) {}
   return null;
-}
-
-// ----- MALİYET HESAPLAMALARINI YENİDEN OLUŞTUR -----
-function rebuildCalculationsFromTransactions() {
-  var calcMap = new Map();
-  (data.calculations || []).forEach(function(c) {
-    if (c.transactionId) calcMap.set(c.transactionId, c);
-  });
-  (data.transactions || []).forEach(function(t) {
-    if (t.type !== 'cikis') return;
-    if (!t.personCount && !t.unitPrice && !t.totalCost && !t.costPerPerson) return;
-    if (calcMap.has(t.id)) {
-      var existing = calcMap.get(t.id);
-      if (t.personCount && !existing.personCount) existing.personCount = t.personCount;
-      if (t.unitPrice && !existing.unitPrice) existing.unitPrice = t.unitPrice;
-      if (t.totalCost && !existing.totalCost) existing.totalCost = t.totalCost;
-      if (t.costPerPerson && !existing.costPerPerson) existing.costPerPerson = t.costPerPerson;
-    } else {
-      var calcId = t.id;
-      data.calculations.push({
-        id: calcId,
-        transactionId: t.id, productName: t.productName,
-        amount: t.amount, unit: t.unit || '',
-        unitPrice: t.unitPrice || 0, totalCost: t.totalCost || 0,
-        personCount: t.personCount || 0, costPerPerson: t.costPerPerson || 0,
-        date: t.date, createdAt: new Date().toISOString()
-      });
-      calcMap.set(t.id, data.calculations[data.calculations.length - 1]);
-    }
-  });
 }
 
 async function saveData() {
@@ -2053,7 +1984,6 @@ if (modalAddNameBtn) {
     if (yeniIsim && yeniIsim.trim()) {
       const name = yeniIsim.trim();
   if (!data.productNames) data.productNames = [];
-  if (!data.calculations) data.calculations = [];
       if (data.productNames.includes(name)) { toast('Bu isim zaten listede.', 'warning'); return; }
       data.productNames.push(name);
       data.productNames.sort((a, b) => a.localeCompare(b));
@@ -2498,16 +2428,6 @@ document.getElementById('exit-form').addEventListener('submit', async (e) => {
   }
 
   transactions.forEach(t => data.transactions.push(t));
-  transactions.forEach(t => {
-    data.calculations.push({
-      id: Math.floor(Date.now() + Math.random() * 1000) + transactions.length,
-      transactionId: t.id, productName: t.productName,
-      amount: t.amount, unit: t.unit || '',
-      unitPrice: t.unitPrice || 0, totalCost: t.totalCost || 0,
-      personCount: t.personCount || 0, costPerPerson: t.costPerPerson || 0,
-      date: t.date, createdAt: new Date().toISOString()
-    });
-  });
   await saveData();
   toast(`${_fmt(amount)} ${parts[0].unit} ${productName} çıkışı kaydedildi.`, 'success');
   navigateTo('dashboard');
@@ -4755,9 +4675,6 @@ document.addEventListener('DOMContentLoaded', () => {
       if (remoteData.tenders && remoteData.tenders.length) data.tenders = remoteData.tenders;
       data.companies = remoteData.companies || [];
       data.productNames = remoteData.productNames || [];
-      if (remoteData.calculations && remoteData.calculations.length) {
-        data.calculations = remoteData.calculations;
-      }
       const autoLocalFlags = data.settings._userActiveFlags;
       const autoLocalForce = data.settings._forceLogout;
       data.settings = remoteData.settings || {};
