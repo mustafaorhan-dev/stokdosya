@@ -1295,7 +1295,7 @@ function refreshDashboard() {
   const qiContainer = document.getElementById('quick-info-list');
   qiContainer.innerHTML = `
     <div style="display:flex;flex-direction:column;gap:8px;">
-      <div style="max-width:280px;margin:0 auto;width:100%;"><canvas id="quick-info-canvas" style="width:100%;"></canvas></div>
+      <div style="max-width:380px;margin:0 auto;width:100%;"><canvas id="quick-info-canvas" style="width:100%;"></canvas></div>
       <div style="display:flex;justify-content:center;gap:14px;flex-wrap:wrap;" id="qi-legend"></div>
     </div>
   `;
@@ -1305,39 +1305,50 @@ function refreshDashboard() {
   const labelColor = isDark ? '#e2e8f0' : '#334155';
   const qiLabels = ["STT'li Ürün", 'Tedarikçi', 'Toplam İşlem', 'Bugünkü İşlem', 'Ürün Listesi'];
   const qiData = [sttOlan, tedarikciSayisi, toplamIslem, bugunHareket.length, (data.productNames || []).length];
-  const qiColors = ['#2dd4bf', '#14b8a6', '#0d9488', '#0f766e', '#115e59'];
+  const qiColors = ['#3b82f6', '#2563eb', '#a78bfa', '#94a3b8', '#14b8a6'];
 
-  // Legend
-  document.getElementById('qi-legend').innerHTML = qiLabels.map((l, i) => `
-    <div style="display:flex;align-items:center;gap:6px;">
-      <div style="width:10px;height:10px;border-radius:50%;background:${qiColors[i]};flex-shrink:0;"></div>
-      <span style="font-size:12px;font-weight:600;color:${isDark ? '#94a3b8' : '#64748b'};">${l}</span>
-      <span style="font-size:11px;font-weight:700;color:${labelColor};">${qiData[i]}</span>
-    </div>
-  `).join('');
 
-  // Dilim içi etiket
+  // Harici etiketler (infografik tarzı)
   const qiTotal = qiData.reduce((s, v) => s + v, 0);
   const qiLabelPlugin = {
     id: 'qiLabel',
     afterDatasetsDraw(chart) {
       const ctx = chart.ctx;
       const meta = chart.getDatasetMeta(0);
+      const outerR = meta.data[0]?.outerRadius || 0;
+      const labelOffset = 14;
+      const lineLength = 16;
 
-      // Dilim içi değerler
       meta.data.forEach((arc, idx) => {
         const val = qiData[idx];
         if (!val) return;
         const angle = (arc.startAngle + arc.endAngle) / 2;
-        const radius = (arc.outerRadius + arc.innerRadius) / 2;
+        const innerEnd = outerR + labelOffset;
+        const outerEnd = innerEnd + lineLength;
+        const x0 = arc.x + Math.cos(angle) * outerR;
+        const y0 = arc.y + Math.sin(angle) * outerR;
+        const x1 = arc.x + Math.cos(angle) * innerEnd;
+        const y1 = arc.y + Math.sin(angle) * innerEnd;
+        const x2 = arc.x + Math.cos(angle) * outerEnd;
+        const y2 = arc.y + Math.sin(angle) * outerEnd;
+
         ctx.save();
-        ctx.textAlign = 'center';
+        ctx.strokeStyle = isDark ? '#94a3b8' : '#64748b';
+        ctx.lineWidth = 1.2;
+        ctx.beginPath();
+        ctx.moveTo(x0, y0);
+        ctx.lineTo(x1, y1);
+        ctx.lineTo(x2, y2);
+        ctx.stroke();
+
+        const isRight = Math.cos(angle) >= 0;
+        ctx.textAlign = isRight ? 'left' : 'right';
         ctx.textBaseline = 'middle';
-        ctx.font = 'bold 16px Outfit, Arial, sans-serif';
-        ctx.fillStyle = '#fff';
-        ctx.shadowColor = 'rgba(0,0,0,0.5)';
-        ctx.shadowBlur = 4;
-        ctx.fillText(val, arc.x + Math.cos(angle) * radius, arc.y + Math.sin(angle) * radius);
+        ctx.font = '500 11px Outfit, Arial, sans-serif';
+        ctx.fillStyle = labelColor;
+        const tx = x2 + (isRight ? 4 : -4);
+        const pct = qiTotal > 0 ? ((val / qiTotal) * 100).toFixed(1) : '0';
+        ctx.fillText(`${qiLabels[idx]} ${pct}%`, tx, y2);
         ctx.restore();
       });
 
@@ -1365,10 +1376,10 @@ function refreshDashboard() {
         data: qiData,
         backgroundColor: qiColors,
         borderColor: isDark ? '#1e293b' : '#fff',
-        borderWidth: 3,
+        borderWidth: 2,
         hoverOffset: 8,
-        borderRadius: 3,
-        spacing: 3
+        borderRadius: 0,
+        spacing: 0
       }]
     },
     options: {
