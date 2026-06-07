@@ -975,7 +975,7 @@ function navigateTo(target) {
   const titles = {
     'dashboard': 'Genel Bakış', 'warehouse': 'Anbar Listesi', 'aggregated-stock': 'Depodaki Ürün Miktarları', 'entry': 'Yeni Ürün & Parti Tanımı',
     'exit': 'Ürün Çıkış', 'daily': 'Günlük İşlemler', 'month-view': 'Aylık Rapor',
-    'years-view': 'Yıllık Raporlar', 'stt-tracking': 'STT Takibi', 'tender-tracking': 'İhale Takip', 'suppliers': 'Tedarikçiler',     'supplier-report-view': 'Aylık Tedarikçi Raporu', 'critical-stock-view': 'Kritik Stok Listesi', 'user-guide-view': 'Kullanım Kılavuzu', 'settings-view': 'Ayarlar & Bulut'
+    'years-view': 'Yıllık Raporlar', 'stt-tracking': 'STT Takibi', 'tender-tracking': 'İhale Takip', 'suppliers': 'Tedarikçiler',     'supplier-report-view': 'Aylık Tedarikçi Raporu', 'critical-stock-view': 'Kritik Stok Listesi', 'user-guide-view': 'Kullanım Kılavuzu', 'settings-view': 'Ayarlar & Bulut', 'daily-cost': 'Günlük Maliyet'
   };
   document.getElementById('page-title').textContent = titles[target] || 'STOKDEPO';
 
@@ -995,6 +995,11 @@ function navigateTo(target) {
     var _ddEl = document.getElementById('daily-date');
     if (_ddEl) _ddEl.value = todayStr();
     _safe(refreshDailyView);
+  }
+  if (target === 'daily-cost') {
+    var _dcEl = document.getElementById('daily-cost-date');
+    if (_dcEl && !_dcEl.value) _dcEl.value = todayStr();
+    _safe(refreshDailyCost);
   }
   if (target === 'supplier-report-view') {
     _safe(function() { populateMonthSelect('sr-month'); });
@@ -2332,6 +2337,8 @@ function refreshExitForm() {
   ).join('');
   if (!prods.length) select.innerHTML = '<option value="">Önce ürün ekleyin</option>';
   document.getElementById('exit-date').value = todayStr();
+  document.getElementById('exit-person-count').value = '';
+  updateExitCostPreview();
   _csRefresh('exit-product');
 }
 
@@ -2340,29 +2347,27 @@ document.getElementById('exit-form').addEventListener('submit', async (e) => {
   if (isViewOnly()) { toast('Görüntüleme modunda çıkış yapamazsınız.', 'error'); return; }
   const partiNo = document.getElementById('exit-product').value;
   const amount = _parseAmount(document.getElementById('exit-amount').value);
+  const personCount = _parseAmount(document.getElementById('exit-person-count').value) || 0;
   const date = document.getElementById('exit-date').value;
   const note = document.getElementById('exit-note').value.trim();
 
   if (!partiNo || !amount || amount <= 0 || !date) { toast('Tüm alanları doldurun.', 'error'); return; }
   if (!isValidDate(date)) { toast('Geçersiz çıkış tarihi!', 'error'); return; }
 
-  // Supabase'ten son veriyi çek, stok kontrolünü GÜNCEL veriyle yap
-  if (isSupabaseReady()) {
-    try {
-      const r = await supabaseLoad();
-      if (r) { data.products = r.products || {}; data.transactions = r.transactions || []; recalculateStocks(); }
-    } catch (e) { /* sessiz */ }
-  }
-
   const p = data.products[partiNo];
   if (!p) { toast('Ürün bulunamadı.', 'error'); return; }
   if (p.stock < amount) { toast(`Yetersiz stok! Güncel: ${_fmt(p.stock)} ${p.unit}`, 'error'); return; }
+
+  const unitPrice = lookupTenderPrice(p.name, p.companyName);
+  const totalCost = unitPrice ? amount * unitPrice : 0;
+  const costPerPerson = personCount > 0 ? totalCost / personCount : 0;
 
   p.stock -= amount;
   data.transactions.push({
     id: Date.now() + Math.random() * 1000, type: 'cikis', partiNo, productName: p.name,
     amount, unit: p.unit, date, note: note || 'Ürün çıkış',
-    timestamp: new Date().toISOString(), createdBy: data.activeUser || ''
+    timestamp: new Date().toISOString(), createdBy: data.activeUser || '',
+    personCount, unitPrice, totalCost, costPerPerson
   });
   await saveData();
   toast(`${_fmt(amount)} ${p.unit} ${p.name} çıkışı kaydedildi. (Güncel stok: ${_fmt(data.products[partiNo]?.stock ?? 0)} ${p.unit})`, 'success');
@@ -2371,6 +2376,41 @@ document.getElementById('exit-form').addEventListener('submit', async (e) => {
   refreshDashboard();
   buildMonthMenu();
 });
+
+function lookupTenderPrice(productName, companyName) {
+  if (!data.tenders || !data.tenders.length) return 0;
+  const eslesen = data.tenders.filter(t =>
+    t.product === productName && (!companyName || t.companyName === companyName)
+  );
+  if (!eslesen.length) return 0;
+  eslesen.sort((a, b) => (b.year || 0) - (a.year || 0));
+  return eslesen[0].price || 0;
+}
+
+function updateExitCostPreview() {
+  const partiNo = document.getElementById('exit-product').value;
+  const amount = _parseAmount(document.getElementById('exit-amount').value) || 0;
+  const personCount = _parseAmount(document.getElementById('exit-person-count').value) || 0;
+  const upEl = document.getElementById('exit-unit-price-display');
+  const tcEl = document.getElementById('exit-total-cost-display');
+  const cpEl = document.getElementById('exit-cost-per-person-display');
+  if (!partiNo || !amount) {
+    upEl.textContent = '—'; tcEl.textContent = '—'; cpEl.textContent = '—';
+    return;
+  }
+  const p = data.products[partiNo];
+  if (!p) return;
+  const unitPrice = lookupTenderPrice(p.name, p.companyName);
+  const totalCost = unitPrice * amount;
+  const costPerPerson = personCount > 0 ? totalCost / personCount : 0;
+  upEl.textContent = unitPrice ? `${_fmt(unitPrice)} ₺` : '—';
+  tcEl.textContent = totalCost ? `${_fmt(totalCost)} ₺` : '—';
+  cpEl.textContent = costPerPerson ? `${_fmt(costPerPerson)} ₺` : '—';
+}
+
+document.getElementById('exit-product').addEventListener('change', updateExitCostPreview);
+document.getElementById('exit-amount').addEventListener('input', updateExitCostPreview);
+document.getElementById('exit-person-count').addEventListener('input', updateExitCostPreview);
 
 // ----- AYLIK RAPOR -----
 function refreshMonthView() {
@@ -3967,6 +4007,84 @@ document.getElementById('exit-edit-form').addEventListener('submit', (e) => {
   buildMonthMenu();
 });
 
+// ----- GÜNLÜK MALİYET -----
+function refreshDailyCost() {
+  const date = document.getElementById('daily-cost-date').value;
+  if (!date) { toast('Tarih seçin.', 'warning'); return; }
+  const cikislar = data.transactions.filter(t =>
+    t.type === 'cikis' && t.date === date && data.products[t.partiNo]?.active !== false
+  );
+  document.getElementById('dc-count').textContent = cikislar.length + ' kayıt';
+  const tbody = document.getElementById('dc-body');
+  if (!cikislar.length) {
+    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:var(--text-muted);padding:40px;">Bu tarihte maliyetli çıkış bulunamadı.</td></tr>';
+    document.getElementById('dc-total-qty').textContent = '0';
+    document.getElementById('dc-total-cost').textContent = '0 ₺';
+    document.getElementById('dc-total-persons').textContent = '0';
+    return;
+  }
+  let totalQty = 0, totalCost = 0, totalPersons = 0;
+  tbody.innerHTML = cikislar.map(t => {
+    const up = t.unitPrice || lookupTenderPrice(t.productName, data.products[t.partiNo]?.companyName || '');
+    const tc = t.totalCost || (up ? t.amount * up : 0);
+    const pp = t.costPerPerson || (t.personCount > 0 ? tc / t.personCount : 0);
+    totalQty += t.amount;
+    totalCost += tc;
+    totalPersons += t.personCount || 0;
+    return `<tr>
+      <td style="font-weight:600;">${htmlEscape(t.productName)}</td>
+      <td style="text-align:right;">${_fmt(t.amount)} ${htmlEscape(t.unit || '')}</td>
+      <td style="text-align:right;">${up ? _fmt(up) + ' ₺' : '—'}</td>
+      <td style="text-align:right;font-weight:700;color:var(--primary);">${_fmt(tc)} ₺</td>
+      <td style="text-align:right;">${t.personCount ? _fmt(t.personCount) : '—'}</td>
+      <td style="text-align:right;font-weight:700;color:var(--success);">${pp ? _fmt(pp) + ' ₺' : '—'}</td>
+      <td style="color:var(--text-secondary);font-size:13px;">${htmlEscape(t.note) || '-'}</td>
+    </tr>`;
+  }).join('');
+  document.getElementById('dc-total-qty').textContent = _fmt(totalQty);
+  document.getElementById('dc-total-cost').textContent = _fmt(totalCost) + ' ₺';
+  document.getElementById('dc-total-persons').textContent = _fmt(totalPersons);
+}
+
+function pdfCiktiMaliyet() {
+  const date = document.getElementById('daily-cost-date').value;
+  if (!date) { toast('Tarih seçin.', 'warning'); return; }
+  const cikislar = data.transactions.filter(t =>
+    t.type === 'cikis' && t.date === date && data.products[t.partiNo]?.active !== false
+  );
+  if (!cikislar.length) { toast('Yazdırılacak kayıt yok.', 'info'); return; }
+  let totalQty = 0, totalCost = 0, totalPersons = 0;
+  const satirlar = cikislar.map(t => {
+    const tc = t.totalCost || (t.unitPrice ? t.amount * t.unitPrice : 0);
+    const pp = t.costPerPerson || (t.personCount > 0 ? tc / t.personCount : 0);
+    totalQty += t.amount; totalCost += tc; totalPersons += t.personCount || 0;
+    return `<tr><td>${htmlEscape(t.productName)}</td><td style="text-align:right">${_fmt(t.amount)} ${htmlEscape(t.unit || '')}</td><td style="text-align:right">${t.unitPrice ? _fmt(t.unitPrice) + ' ₺' : '—'}</td><td style="text-align:right">${_fmt(tc)} ₺</td><td style="text-align:right">${t.personCount ? _fmt(t.personCount) : '—'}</td><td style="text-align:right">${pp ? _fmt(pp) + ' ₺' : '—'}</td></tr>`;
+  }).join('');
+  const w = window.open('', '_blank');
+  w.document.write(`
+    <html><head><title>Günlük Maliyet - ${date}</title>
+    <style>
+      body { font-family:Arial; padding:24px; color:#1e293b; }
+      h2 { margin-bottom:4px; }
+      .sub { color:#64748b; margin-bottom:16px; font-size:13px; }
+      table { width:100%; border-collapse:collapse; font-size:12px; }
+      th, td { border:1px solid #cbd5e1; padding:6px 10px; text-align:left; }
+      th { background:#f1f5f9; text-transform:uppercase; font-size:11px; }
+      .toplam { font-weight:700; background:#f8fafc; }
+    </style></head>
+    <body>
+      <h2>Günlük Maliyet Raporu</h2>
+      <p class="sub">Tarih: ${date} &nbsp;|&nbsp; Toplam Çıkış: ${_fmt(totalQty)} &nbsp;|&nbsp; Toplam Maliyet: ${_fmt(totalCost)} ₺ &nbsp;|&nbsp; Toplam Kişi: ${_fmt(totalPersons)}</p>
+      <table>
+        <thead><tr><th>Ürün</th><th style="text-align:right">Miktar</th><th style="text-align:right">Birim Fiyat</th><th style="text-align:right">Toplam Maliyet</th><th style="text-align:right">Kişi Sayısı</th><th style="text-align:right">Kişi Başı</th></tr></thead>
+        <tbody>${satirlar}</tbody>
+      </table>
+      <script>window.print();<\/script>
+    </body></html>
+  `);
+  w.document.close();
+}
+
 function _partiDurumHtml(partiNo) {
   const p = data.products[partiNo];
   if (!p) return htmlEscape(partiNo);
@@ -4231,7 +4349,7 @@ document.addEventListener('DOMContentLoaded', () => {
       if (nameEl && data.activeUser) nameEl.textContent = data.activeUser;
       if (roleEl) roleEl.textContent = data.users.find(function(u) { return u.name === data.activeUser; })?.role || '';
       var hashTarget = location.hash ? location.hash.slice(1) : 'dashboard';
-      var validViews = ['dashboard','warehouse','aggregated-stock','entry','exit','daily','month-view','years-view','stt-tracking','tender-tracking','suppliers','supplier-report-view','critical-stock-view','user-guide-view','settings-view'];
+      var validViews = ['dashboard','warehouse','aggregated-stock','entry','exit','daily','daily-cost','month-view','years-view','stt-tracking','tender-tracking','suppliers','supplier-report-view','critical-stock-view','user-guide-view','settings-view'];
       setTimeout(function() { navigateTo(validViews.includes(hashTarget) ? hashTarget : 'dashboard'); }, 0);
       setTimeout(startHeartbeat, 1000);
     }
@@ -4328,7 +4446,7 @@ document.addEventListener('DOMContentLoaded', () => {
         startHeartbeat();
         // URL'de hash varsa o sayfaya git, yoksa dashboard
         var hashTarget = location.hash ? location.hash.slice(1) : 'dashboard';
-        var validViews = ['dashboard','warehouse','aggregated-stock','entry','exit','daily','month-view','years-view','stt-tracking','tender-tracking','suppliers','supplier-report-view','critical-stock-view','user-guide-view','settings-view'];
+        var validViews = ['dashboard','warehouse','aggregated-stock','entry','exit','daily','daily-cost','month-view','years-view','stt-tracking','tender-tracking','suppliers','supplier-report-view','critical-stock-view','user-guide-view','settings-view'];
         navigateTo(validViews.includes(hashTarget) ? hashTarget : 'dashboard');
         return;
       }
@@ -4581,7 +4699,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // Hash değişince sayfayı güncelle (tarayıcı geri/ileri butonları)
   window.addEventListener('hashchange', () => {
     var hashTarget = location.hash ? location.hash.slice(1) : 'dashboard';
-    var validViews = ['dashboard','warehouse','aggregated-stock','entry','exit','daily','month-view','years-view','stt-tracking','tender-tracking','suppliers','supplier-report-view','critical-stock-view','user-guide-view','settings-view'];
+    var validViews = ['dashboard','warehouse','aggregated-stock','entry','exit','daily','daily-cost','month-view','years-view','stt-tracking','tender-tracking','suppliers','supplier-report-view','critical-stock-view','user-guide-view','settings-view'];
     if (validViews.includes(hashTarget)) navigateTo(hashTarget);
   });
 });

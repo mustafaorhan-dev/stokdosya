@@ -84,6 +84,10 @@
                         <i class="fa-solid fa-clipboard-list"></i>
                         <span>Günlük İşlemler</span>
                     </a>
+                    <a href="#daily-cost" class="nav-item" data-target="daily-cost">
+                        <i class="fa-solid fa-coins"></i>
+                        <span>Günlük Maliyet</span>
+                    </a>
                 </div>
 
                 <div class="nav-group">
@@ -455,10 +459,14 @@
                             <label>Ürün / Parti Seçimi</label>
                             <select id="exit-product" class="form-control" required></select>
                         </div>
-                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem;">
                             <div class="form-group">
                                 <label>Miktar</label>
                                 <input type="text" inputmode="decimal" id="exit-amount" class="form-control" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Kişi Sayısı</label>
+                                <input type="text" inputmode="decimal" id="exit-person-count" class="form-control" placeholder="Örn: 300">
                             </div>
                             <div class="form-group">
                                 <label>Çıkış Tarihi</label>
@@ -468,6 +476,14 @@
                         <div class="form-group">
                             <label>Teslim Alan / Sevkiyat Notu</label>
                             <input type="text" id="exit-note" class="form-control" placeholder="Örn: X Market - Şoför Ahmet">
+                        </div>
+                        <div style="display:flex; gap:1rem; align-items:center; flex-wrap:wrap; margin-bottom:0.75rem;">
+                            <span style="font-size:13px;color:var(--text-secondary);font-weight:600;">Birim Fiyat:</span>
+                            <span id="exit-unit-price-display" style="font-size:14px;font-weight:700;color:var(--text-primary);">—</span>
+                            <span style="font-size:13px;color:var(--text-secondary);font-weight:600;">Toplam Maliyet:</span>
+                            <span id="exit-total-cost-display" style="font-size:14px;font-weight:700;color:var(--primary);">—</span>
+                            <span style="font-size:13px;color:var(--text-secondary);font-weight:600;">Kişi Başı:</span>
+                            <span id="exit-cost-per-person-display" style="font-size:14px;font-weight:700;color:var(--success);">—</span>
                         </div>
                         <button type="submit" class="btn-ui btn-primary"
                             style="width:100%; background: linear-gradient(135deg, var(--accent), hsl(12, 88%, 65%)); box-shadow: 0 8px 24px -6px rgba(239, 68, 68, 0.35);"><i class="fa-solid fa-truck-dispatch"></i> Çıkış Yap</button>
@@ -604,6 +620,63 @@
             </div>
 
             <!-- 8. YEARS VIEW -->
+            <!-- Günlük Maliyet -->
+            <div id="daily-cost" class="view-section">
+                <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:20px; flex-wrap:wrap; gap:12px;">
+                    <div style="display:flex; align-items:center; gap:12px;">
+                        <div class="icon-box st-blue" style="width:40px;height:40px;font-size:1.1rem;"><i class="fa-solid fa-coins"></i></div>
+                        <h3 style="margin:0;font-size:1.3rem;">Günlük Maliyet</h3>
+                    </div>
+                    <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
+                        <input type="date" id="daily-cost-date" class="form-control" style="width:160px;">
+                        <button class="btn-ui btn-primary" onclick="pdfCiktiMaliyet()"><i class="fa-solid fa-file-pdf"></i> PDF</button>
+                    </div>
+                </div>
+
+                <div class="stats-grid" style="grid-template-columns: repeat(3,1fr); margin-bottom:20px;">
+                    <div class="stat-card">
+                        <div class="icon-box st-green"><i class="fa-solid fa-circle-down"></i></div>
+                        <div class="stat-details"><h3>Toplam Çıkış</h3><p id="dc-total-qty">0</p></div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="icon-box st-purple"><i class="fa-solid fa-calculator"></i></div>
+                        <div class="stat-details"><h3>Toplam Maliyet</h3><p id="dc-total-cost">0 ₺</p></div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="icon-box st-orange"><i class="fa-solid fa-user"></i></div>
+                        <div class="stat-details"><h3>Toplam Kişi</h3><p id="dc-total-persons">0</p></div>
+                    </div>
+                </div>
+
+                <div class="panel-container">
+                    <div class="panel-header">
+                        <h3><i class="fa-solid fa-table"></i> Maliyet Detayı</h3>
+                        <span id="dc-count" style="font-size:13px;color:var(--text-muted);">0 kayıt</span>
+                    </div>
+                    <div class="table-wrap">
+                        <table class="minimal-table">
+                            <thead>
+                                <tr>
+                                    <th>Ürün</th>
+                                    <th style="text-align:right">Miktar</th>
+                                    <th style="text-align:right">Birim Fiyat</th>
+                                    <th style="text-align:right">Toplam Maliyet</th>
+                                    <th style="text-align:right">Kişi Sayısı</th>
+                                    <th style="text-align:right">Kişi Başı</th>
+                                    <th>Not</th>
+                                </tr>
+                            </thead>
+                            <tbody id="dc-body">
+                                <tr><td colspan="7" style="text-align:center;color:var(--text-muted);padding:40px;">Tarih seçip Maliyetleri Göster butonuna tıklayın.</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div style="padding:0.75rem 1rem; display:flex; gap:10px; flex-wrap:wrap;">
+                        <button class="btn-ui btn-primary" onclick="refreshDailyCost()"><i class="fa-solid fa-magnifying-glass"></i> Maliyetleri Göster</button>
+                    </div>
+                </div>
+            </div>
+
             <div id="years-view" class="view-section">
                 <div class="panel-container">
                     <div class="panel-header">
