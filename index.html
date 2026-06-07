@@ -204,7 +204,7 @@
                 </div>
 
                 <!-- 3'lü grafik paneli: Kategori Dağılımı + İhale (dikey çubuk) + Hızlı Bilgiler -->
-                <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1.5rem; margin-bottom: 1.5rem;">
+                <div class="dashboard-grid-3">
                     <div class="panel-container" style="margin-bottom:0;">
                         <div class="panel-header">
                             <h3><i class="fa-solid fa-chart-simple"></i> Kategori Dağılımı (Çeşit)</h3>
@@ -220,7 +220,7 @@
                             <h3><i class="fa-solid fa-chart-bar"></i> İhale Çekilme Yüzdeleri</h3>
                         </div>
                         <div style="padding:0.5rem 0.75rem;">
-                            <canvas id="tender-chart-canvas" width="484" height="380" style="width:484px;height:380px;display:block;box-sizing:border-box;"></canvas>
+                            <canvas id="tender-chart-canvas"></canvas>
                             <div id="tender-chart-empty" style="color:var(--text-secondary);text-align:center;font-size:0.9rem;padding:40px 0;display:none;">Henüz ihale kaydı bulunamadı.</div>
                         </div>
                     </div>
@@ -1038,7 +1038,7 @@
 
             <!-- 8. SETTINGS VIEW -->
             <div id="settings-view" class="view-section">
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;">
+                <div class="settings-grid">
                     <!-- Profil & Kullanıcı Yönetimi -->
                     <div class="panel-container">
                         <div class="panel-header">
@@ -1112,65 +1112,7 @@
                      </div>
 
                     <!-- Yedekleme -->
-                    <div class="panel-container" style="grid-column: span 2;">
-                        <div class="panel-header">
-                            <h3><i class="fa-solid fa-database"></i> Veri Yedekleme ve Kurtarma</h3>
-                        </div>
-                        <div style="padding: 1.5rem;">
-                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;">
-                                <div>
-                                    <h4 style="margin-bottom: 0.5rem; font-weight:700;"><i class="fa-solid fa-clock"></i> Otomatik Zamanlı Yedek</h4>
-                                    <p style="font-size: 0.9rem; color: var(--text-secondary); margin-bottom: 1rem; line-height: 1.4;">
-                                        Uygulama tarayıcınızda açık olduğu sürece, belirlediğiniz saatte otomatik olarak tüm verilerinizin JSON yedeğini bilgisayarınıza indirir.
-                                    </p>
-                                    <div style="display: flex; gap: 15px; align-items: center;">
-                                        <input type="time" id="auto-backup-time" class="form-control" style="width: 150px;">
-                                        <div style="display: flex; align-items: center; gap: 8px;">
-                                            <input type="checkbox" id="auto-backup-toggle" style="width: 20px; height: 20px; cursor:pointer;">
-                                            <label for="auto-backup-toggle" style="margin:0; font-weight: 700; cursor:pointer;">Otomatik İndir</label>
-                                        </div>
-                                    </div>
-                                    <div style="display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-top:10px;">
-                                        <button id="pick-backup-dir" class="btn btn-secondary" style="display:flex;align-items:center;gap:5px;font-size:13px;"><i class="fa-solid fa-folder-open"></i> Yedek Klasörü Seç</button>
-                                        <span id="backup-dir-label" style="font-size:12px;color:var(--text-muted);">Henüz klasör seçilmedi (varsayılan: tarayıcı indirme)</span>
-                                    </div>
-                                    <span id="backup-status-msg" style="display:block; margin-top: 10px; font-size: 0.85rem; font-weight:600; color: var(--success);"></span>
-                                </div>
-
-                                <div>
-                                    <h4 style="margin-bottom: 0.5rem; font-weight:700;"><i class="fa-solid fa-file-export"></i> Manuel İşlemler</h4>
-                                    <p style="font-size: 0.9rem; color: var(--text-secondary); margin-bottom: 1.25rem;">
-                                        Verilerinizi istediğiniz zaman bilgisayarınıza yedek olarak kaydedebilir veya indirdiğiniz bir yedeği sisteme yükleyebilirsiniz.
-                                    </p>
-
-                                    <div style="display:flex; flex-direction:column; gap:1.25rem;">
-                                        <button type="button" id="backup-btn" class="btn-ui btn-outline" style="align-self: flex-start;">
-                                            <i class="fa-solid fa-download"></i> Veri Tabanını JSON Olarak İndir
-                                        </button>
-
-                                         <button type="button" id="manual-sync-btn" class="btn-ui btn-primary" style="align-self: flex-start;">
-                                              <i class="fa-solid fa-cloud-upload-alt"></i> Verileri Supabase'e Eşitle
-                                          </button>
-
-                                        <div style="border-top: 1px solid var(--border-color); padding-top: 1.25rem;">
-                                            <label style="display:block; font-size: 0.8rem; font-weight:700; margin-bottom:0.5rem; color: var(--text-secondary);">Yedekten Geri Yükle</label>
-                                            <div style="display: flex; gap: 10px;">
-                                                <input type="file" id="restore-file" accept=".json" class="form-control">
-                                                <button type="button" id="restore-btn" class="btn-ui btn-primary"><i class="fa-solid fa-upload"></i> Yükle</button>
-                                            </div>
-                                            <button type="button" id="list-backups-btn" class="btn-ui btn-outline" style="margin-top:10px;width:100%;">
-                                                <i class="fa-solid fa-clock-rotate-left"></i> Supabase Yedeklerini Listele
-                                            </button>
-                                            <div id="backup-list-container" style="margin-top:8px;display:none;max-height:200px;overflow-y:auto;"></div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Sıfırla Butonu -->
-                    <div class="panel-container" style="grid-column: span 2; border-color: var(--accent);">
+                    <div class="panel-container full-width" style="border-color: var(--accent);">
                         <div class="panel-header" style="border-bottom-color: var(--accent);">
                             <h3 style="color: var(--accent);"><i class="fa-solid fa-bomb"></i> Veri Sıfırlama</h3>
                         </div>
@@ -1186,7 +1128,7 @@
                     </div>
 
                     <!-- Aktif Kullanıcılar -->
-                    <div class="panel-container" style="grid-column: span 2;">
+                    <div class="panel-container full-width">
                         <div class="panel-header">
                             <h3><i class="fa-regular fa-users"></i> Aktif Kullanıcılar</h3>
                         </div>
