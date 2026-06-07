@@ -1443,16 +1443,10 @@ function refreshDashboard() {
           meta.data.forEach((bar, idx) => {
             const val = ds.data[idx];
             if (!val) return;
-            const barLen = bar.x - bar.base;
             ctx.save();
+            ctx.textAlign = 'left';
             ctx.textBaseline = 'middle';
             ctx.font = 'bold 11px Outfit, Arial, sans-serif';
-            if (barLen > 30) {
-              ctx.textAlign = 'center';
-              ctx.fillStyle = '#fff';
-              ctx.fillText('%' + val, bar.base + barLen / 2, bar.y);
-            }
-            ctx.textAlign = 'left';
             ctx.fillStyle = isDark ? '#fff' : '#0f172a';
             ctx.fillText('%' + val, bar.x + 4, bar.y);
             ctx.restore();
