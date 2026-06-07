@@ -91,7 +91,7 @@ async function supabaseSave() {
       last_login: u.lastLogin || null
     }));
     if (userArray.length > 0) {
-      try { await supabaseFetch('POST', 'stok_users', null, userArray); } catch(e) { toast('?? Kullanıcı Supabase\'e kaydedilemedi: ' + e.message, 'error'); }
+      try { await supabaseFetch('POST', 'stok_users', null, userArray); } catch(e) { toast('❌ Kullanıcı Supabase\'e kaydedilemedi: ' + e.message, 'error'); }
     }
 
     // Tenders upsert
@@ -290,7 +290,7 @@ async function sheetsTest() {
 }
 
 async function sheetsSync() {
-  if (!isSupabaseReady()) { toast('?? Supabase bağlı değil.', 'warning'); return; }
+  if (!isSupabaseReady()) { toast('⚠️ Supabase bağlı değil.', 'warning'); return; }
   const overlay = document.getElementById('loading-overlay');
   if (overlay) overlay.style.display = 'flex';
   document.getElementById('loading-text').textContent = 'Supabase\'e eşitleniyor...';
@@ -325,7 +325,7 @@ async function sheetsPull() {
       toast('? Veriler Supabase\'ten alındı!', 'success');
       return true;
     } else {
-      toast('?? Supabase\'ten veri alınamadı.', 'warning');
+      toast('⚠️ Supabase\'ten veri alınamadı.', 'warning');
       return false;
     }
   } catch (e) {
@@ -469,7 +469,7 @@ async function saveData() {
   saveDataLocal();
   if (isSupabaseReady() && !_syncLock) {
     const ok = await supabaseSave();
-    if (!ok) { toast('?? Supabase\'e kaydedilemedi. Veriler localStorage\'da duruyor.', 'warning'); return false; }
+    if (!ok) { toast('⚠️ Supabase\'e kaydedilemedi. Veriler localStorage\'da duruyor.', 'warning'); return false; }
     return true;
   }
   return !isSupabaseReady();
@@ -486,6 +486,7 @@ function applyTheme(theme) {
   const tt = document.getElementById('theme-toggle');
   if (tt) tt.textContent = theme === 'light' ? '🌙' : '☀️';
   localStorage.setItem('stokdosya_theme', theme);
+  document.body.style.setProperty('color', theme === 'dark' ? '#f1f5f9' : '#0f172a', 'important');
 }
 
 function toggleTheme() {
@@ -493,8 +494,6 @@ function toggleTheme() {
   const current = getTheme();
   const next = current === 'dark' ? 'light' : 'dark';
   applyTheme(next);
-  document.body.style.color = 'inherit';
-  void document.body.offsetHeight;
   refreshAll();
 }
 
@@ -956,7 +955,7 @@ function toast(msg, type = 'info') {
   const container = document.getElementById('toast-container');
   const el = document.createElement('div');
   el.className = `toast ${type}`;
-  const icons = { success: '?', error: '?', warning: '??', info: '??' };
+  const icons = { success: '✅', error: '❌', warning: '⚠️', info: 'ℹ️' };
   el.textContent = `${icons[type] || '??'} ${msg}`;
   container.appendChild(el);
   setTimeout(() => { el.style.opacity = '0'; el.style.transition = '0.3s'; setTimeout(() => el.remove(), 300); }, 3000);
@@ -1526,7 +1525,7 @@ function refreshWarehouse() {
   if (badge) {
     if (aktifFiltreler.length) {
       badge.style.display = 'inline';
-      badge.textContent = '?? ' + aktifFiltreler.join(' | ');
+      badge.textContent = '🔍 ' + aktifFiltreler.join(' | ');
     } else {
       badge.style.display = 'none';
     }
@@ -2464,7 +2463,7 @@ function monthExportPrint() {
         <tbody>${cikislar.map(t => `<tr><td>${htmlEscape(_firma(t))}</td><td>${formatDate(t.date)}</td><td>${htmlEscape(t.productName)}</td><td>${t.amount}</td><td>${htmlEscape(_birim(t))}</td></tr>`).join('')}</tbody>
       </table>
 
-      <button class="no-print" onclick="window.print()" style="padding:8px 20px;font-size:14px;cursor:pointer;">?? Yazdır</button>
+      <button class="no-print" onclick="window.print()" style="padding:8px 20px;font-size:14px;cursor:pointer;"><i class="fa-solid fa-print"></i> Yazdır</button>
     </body></html>
   `);
   w.document.close();
@@ -3342,7 +3341,7 @@ function editUserPassword(name) {
 document.getElementById('backup-btn').addEventListener('click', async () => {
   const bakOk = await supabaseBackup('manuel');
   if (bakOk) toast('? Yedek Supabase\'e kaydedildi!', 'success');
-  else toast('?? Supabase yedekleme başarısız, yerel indiriliyor...', 'warning');
+  else toast('⚠️ Supabase yedekleme başarısız, yerel indiriliyor...', 'warning');
   const json = JSON.stringify(data, null, 2);
   const blob = new Blob([json], { type: 'application/json' });
   const a = document.createElement('a');
