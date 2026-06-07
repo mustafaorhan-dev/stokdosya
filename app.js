@@ -1474,6 +1474,7 @@ function refreshDashboard() {
       options: {
         responsive: true,
         maintainAspectRatio: false,
+        layout: { padding: 0 },
         plugins: {
           legend: { display: false },
           tooltip: {
@@ -1489,14 +1490,16 @@ function refreshDashboard() {
         },
         scales: {
           x: {
+            offset: false,
             grid: { display: false },
-            ticks: { color: labelColor, font: { size: 7, weight: '600' }, maxRotation: 0 }
+            ticks: { color: labelColor, font: { size: 7, weight: '600' }, maxRotation: 0, padding: 0 }
           },
           y: {
+            offset: false,
             beginAtZero: true,
             max: 100,
             grid: { color: gridColor, tickLength: 4 },
-            ticks: { callback: v => v + '%', color: labelColor, font: { size: 8 } }
+            ticks: { callback: v => v + '%', color: labelColor, font: { size: 8 }, padding: 0 }
           }
         }
       },
