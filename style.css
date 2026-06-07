@@ -1,20 +1,4 @@
 :root {
-  --bg-primary: #0a0e1a;
-  --bg-secondary: #111827;
-  --bg-card: #1a2035;
-  --bg-hover: #1f2a45;
-  --border-color: #27304a;
-  --text-primary: #f1f5f9;
-  --text-secondary: #94a3b8;
-  --text-muted: #475569;
-  --primary: #3b82f6;
-  --primary-light: rgba(59,130,246,0.12);
-  --success: #22c55e;
-  --success-light: rgba(34,197,94,0.12);
-  --accent: #ef4444;
-  --warning: #eab308;
-  --theme-toggle-bg: #1e293b;
-  --theme-toggle-icon: #fbbf24;
   --warning-light: rgba(234,179,8,0.12);
   --purple: #8b5cf6;
   --purple-light: rgba(139,92,246,0.12);
@@ -28,8 +12,8 @@
 }
 
 /* AÇIK TEMA (varsayılan) */
-:root,
-[data-theme="light"] {
+[data-theme="light"],
+:root:not([data-theme]) {
   --bg-primary: #f1f5f9;
   --bg-secondary: #ffffff;
   --bg-card: #ffffff;
