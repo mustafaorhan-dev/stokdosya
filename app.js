@@ -1293,20 +1293,22 @@ function refreshDashboard() {
   const sttOlan = prods.filter(p => p.stt).length;
   const tedarikciSayisi = data.companies.length;
   const toplamIslem = data.transactions.length;
+  const bugunHareketAdet = bugunHareket.length;
   const qiContainer = document.getElementById('quick-info-list');
   qiContainer.innerHTML = `
     <div style="display:flex;flex-direction:column;">
       <div style="max-width:300px;margin:0 auto;"><canvas id="quick-info-canvas" style="width:100%;"></canvas></div>
       <div style="display:flex;justify-content:center;gap:14px;flex-wrap:wrap;" id="qi-legend"></div>
+      <div id="qi-bugun" style="display:flex;justify-content:center;margin-top:6px;"></div>
     </div>
   `;
   if (window._qiChart) window._qiChart.destroy();
 
   const isDark = getTheme() === 'dark';
   const labelColor = isDark ? '#e2e8f0' : '#334155';
-  const qiLabels = ["STT'li Ürün", 'Tedarikçi', 'Toplam İşlem', 'Bugünkü İşlem', 'Ürün Listesi'];
-  const qiData = [sttOlan, tedarikciSayisi, toplamIslem, bugunHareket.length, (data.productNames || []).length];
-  const qiColors = ['#3b82f6', '#2563eb', '#a78bfa', '#94a3b8', '#10b981'];
+  const qiLabels = ["STT'li Ürün", 'Tedarikçi', 'Toplam İşlem', 'Ürün Listesi'];
+  const qiData = [sttOlan, tedarikciSayisi, toplamIslem, (data.productNames || []).length];
+  const qiColors = ['#3b82f6', '#2563eb', '#a78bfa', '#10b981'];
 
   // Legend
   document.getElementById('qi-legend').innerHTML = qiLabels.map((l, i) => `
@@ -1316,6 +1318,15 @@ function refreshDashboard() {
       <span style="font-size:11px;font-weight:700;color:${labelColor};">${qiData[i]}</span>
     </div>
   `).join('');
+
+  // Bugünkü Haremet (chart dışında)
+  document.getElementById('qi-bugun').innerHTML = `
+    <div style="display:flex;align-items:center;gap:6px;">
+      <div style="width:10px;height:10px;border-radius:50%;background:#94a3b8;flex-shrink:0;"></div>
+      <span style="font-size:12px;font-weight:600;color:${isDark ? '#94a3b8' : '#64748b'};">Bugünkü İşlem</span>
+      <span style="font-size:11px;font-weight:700;color:${labelColor};">${bugunHareketAdet}</span>
+    </div>
+  `;
 
 
   // Dilim içi etiketler
