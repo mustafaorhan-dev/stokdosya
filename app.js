@@ -1446,11 +1446,10 @@ function refreshDashboard() {
             if (!val) return;
             ctx.save();
             ctx.textAlign = 'center';
-            ctx.textBaseline = 'middle';
-            ctx.font = 'bold 17px Outfit, Arial, sans-serif';
+            ctx.textBaseline = 'bottom';
+            ctx.font = 'bold 13px Outfit, Arial, sans-serif';
             ctx.fillStyle = isDark ? '#fff' : '#0f172a';
-            const rightEdge = bar.base + bar.width;
-            ctx.fillText('%' + val, rightEdge - 16, bar.y);
+            ctx.fillText('%' + val, bar.x, bar.y - 6);
             ctx.restore();
           });
         });
@@ -1473,7 +1472,6 @@ function refreshDashboard() {
         }]
       },
       options: {
-        indexAxis: 'y',
         responsive: true,
         maintainAspectRatio: false,
         plugins: {
@@ -1485,20 +1483,20 @@ function refreshDashboard() {
             borderColor: isDark ? 'rgba(148,163,184,0.2)' : 'rgba(0,0,0,0.1)',
             borderWidth: 1,
             callbacks: {
-              label: ctx => ctx.parsed.x + '% teslimat'
+              label: ctx => ctx.parsed.y + '% teslimat'
             }
           }
         },
         scales: {
           x: {
+            grid: { display: false },
+            ticks: { color: labelColor, font: { size: 11, weight: 'bold' } }
+          },
+          y: {
             beginAtZero: true,
             max: 100,
             grid: { color: gridColor },
             ticks: { callback: v => v + '%', color: labelColor, font: { size: 11 } }
-          },
-          y: {
-            grid: { display: false },
-            ticks: { color: labelColor, font: { size: 12, weight: 'bold' } }
           }
         }
       },
