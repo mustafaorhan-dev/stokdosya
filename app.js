@@ -3437,8 +3437,8 @@ async function supabaseBackup(label) {
 // ----- DEPO SIFIRLAMA -----
 function resetAllData() {
   if (isViewOnly()) { toast('Görüntüleme modunda sıfırlama yapamazsınız.', 'error'); return; }
-  if (!confirm('?? Tüm stok verileri silinecek! Bu işlem geri alınamaz. Devam etmek istediğinize emin misiniz?')) return;
-  if (!confirm('?? Son bir kez daha: Tüm ürünler, stok hareketleri, STT kayıtları, ihaleler ve tedarikçiler silinecek. Onaylıyor musunuz?')) return;
+  if (!confirm('⚠️ Tüm stok verileri silinecek! Bu işlem geri alınamaz. Devam etmek istediğinize emin misiniz?')) return;
+  if (!confirm('⚠️ Son bir kez daha: Tüm ürünler, stok hareketleri, STT kayıtları, ihaleler ve tedarikçiler silinecek. Onaylıyor musunuz?')) return;
 
   const overlay = document.getElementById('loading-overlay');
   if (overlay) overlay.style.display = 'flex';
@@ -3645,10 +3645,10 @@ function updateBackupDirLabel() {
   const label = document.getElementById('backup-dir-label');
   if (!label) return;
   if (_backupDirHandle) {
-    label.textContent = `?? ${_backupDirHandle.name}`;
+    label.textContent = `📁 ${_backupDirHandle.name}`;
     label.style.color = 'var(--success)';
   } else if (document.cookie.split(';').some(c => c.trim().startsWith('backup_dir_set=1'))) {
-    label.textContent = '?? Klasör seçimi kayboldu — lütfen butona tıklayıp yeniden seçin';
+    label.textContent = '⚠️ Klasör seçimi kayboldu — lütfen butona tıklayıp yeniden seçin';
     label.style.color = 'var(--accent)';
   } else {
     label.textContent = 'Henüz klasör seçilmedi (varsayılan: tarayıcı indirme)';
