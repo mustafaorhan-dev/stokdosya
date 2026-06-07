@@ -4034,8 +4034,8 @@ function refreshSupplierReport() {
     if (!gruplar[key]) gruplar[key] = { tedarikci, urun, miktar: 0, birim: t.unit || '', gunler: {}, sonPartiNo: '', sonTarih: '' };
     gruplar[key].miktar += t.amount;
     if (!gruplar[key].birim && t.unit) gruplar[key].birim = t.unit;
-    if (!gruplar[key].gunler[t.date]) gruplar[key].gunler[t.date] = 0;
-    gruplar[key].gunler[t.date] += t.amount;
+    if (!gruplar[key].gunler[t.date]) gruplar[key].gunler[t.date] = [];
+    gruplar[key].gunler[t.date].push({ amount: t.amount, partiNo: t.partiNo });
     if (t.date > gruplar[key].sonTarih) { gruplar[key].sonTarih = t.date; gruplar[key].sonPartiNo = t.partiNo; }
   });
 
@@ -4055,12 +4055,14 @@ function refreshSupplierReport() {
     const partiHtml = _partiDurumHtml(v.sonPartiNo);
     const gunHtml = Object.entries(v.gunler)
       .sort((a, b) => a[0].localeCompare(b[0]))
-      .map(([tarih, miktar]) => {
+      .map(([tarih, entries]) => {
         const d = tarih.split('-');
         const trTarih = d[2] + '.' + d[1] + '.' + d[0];
+        const toplam = entries.reduce((s, e) => s + e.amount, 0);
+        const partiler = [...new Set(entries.map(e => e.partiNo))].join(', ');
         return `<div style="display:flex;justify-content:space-between;padding:4px 0;font-size:14px;border-bottom:1px dashed var(--border-color);">
-          <span style="color:var(--text-secondary);">${trTarih}</span>
-          <span style="font-weight:700;">${_fmt(miktar)} ${v.birim}</span>
+          <span><span style="color:var(--text-secondary);">${trTarih}</span> <span style="font-size:12px;color:var(--text-muted);">${htmlEscape(partiler)}</span></span>
+          <span style="font-weight:700;">${_fmt(toplam)} ${v.birim}</span>
         </div>`;
       }).join('');
     const ok = acik ? '▼' : '▶';
@@ -4115,8 +4117,8 @@ function srExportPrint() {
     if (!gruplar[key]) gruplar[key] = { tedarikci, urun, miktar: 0, birim: t.unit || '', gunler: {}, sonPartiNo: '', sonTarih: '' };
     gruplar[key].miktar += t.amount;
     if (!gruplar[key].birim && t.unit) gruplar[key].birim = t.unit;
-    if (!gruplar[key].gunler[t.date]) gruplar[key].gunler[t.date] = 0;
-    gruplar[key].gunler[t.date] += t.amount;
+    if (!gruplar[key].gunler[t.date]) gruplar[key].gunler[t.date] = [];
+    gruplar[key].gunler[t.date].push({ amount: t.amount, partiNo: t.partiNo });
     if (t.date > gruplar[key].sonTarih) { gruplar[key].sonTarih = t.date; gruplar[key].sonPartiNo = t.partiNo; }
   });
 
@@ -4124,10 +4126,12 @@ function srExportPrint() {
   Object.values(gruplar).forEach((v, i) => {
     const gunHtml = Object.entries(v.gunler)
       .sort((a, b) => a[0].localeCompare(b[0]))
-      .map(([tarih, miktar]) => {
+      .map(([tarih, entries]) => {
         const d = tarih.split('-');
         const trTarih = d[2] + '.' + d[1] + '.' + d[0];
-        return `<tr style="background:#f8fafc;"><td></td><td></td><td></td><td style="padding-left:24px;font-size:13px;font-weight:500;color:#475569;">${trTarih}</td><td style="text-align:right;font-weight:700;font-size:13px;">${_fmt(miktar)}</td><td style="font-size:13px;">${v.birim || '-'}</td></tr>`;
+        const toplam = entries.reduce((s, e) => s + e.amount, 0);
+        const partiler = [...new Set(entries.map(e => e.partiNo))].join(', ');
+        return `<tr style="background:#f8fafc;"><td></td><td style="font-size:11px;color:#64748b;">${htmlEscape(partiler)}</td><td></td><td style="padding-left:24px;font-size:13px;font-weight:500;color:#475569;">${trTarih}</td><td style="text-align:right;font-weight:700;font-size:13px;">${_fmt(toplam)}</td><td style="font-size:13px;">${v.birim || '-'}</td></tr>`;
       }).join('');
     const partiHtml = _partiDurumHtml(v.sonPartiNo);
     satirHtml += `
