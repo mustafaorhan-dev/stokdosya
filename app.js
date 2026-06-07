@@ -2123,7 +2123,7 @@ document.getElementById('new-product-form').addEventListener('submit', async (e)
         const tip = fark > 0 ? 'giris' : 'cikis';
         const mutlakFark = Math.abs(fark);
         data.transactions.push({
-          id: Date.now() + Math.random() * 1000, type: tip, partiNo, productName: p.name,
+          id: Math.floor(Date.now() + Math.random() * 1000), type: tip, partiNo, productName: p.name,
           amount: mutlakFark, unit: p.unit, date: todayStr(),
           note: tip === 'giris' ? 'Düzenleme ile stok artışı' : 'Düzenleme ile stok azalışı',
           timestamp: new Date().toISOString(), createdBy: data.activeUser || ''
@@ -2142,7 +2142,7 @@ document.getElementById('new-product-form').addEventListener('submit', async (e)
     };
     if (stock > 0) {
       data.transactions.push({
-        id: Date.now() + Math.random() * 1000, type: 'giris', partiNo, productName: name,
+        id: Math.floor(Date.now() + Math.random() * 1000), type: 'giris', partiNo, productName: name,
         amount: stock, unit: unit, date: todayStr(), note: 'İlk giriş',
         timestamp: new Date().toISOString(), createdBy: data.activeUser || ''
       });
@@ -2199,7 +2199,7 @@ function deleteProduct(partiNo) {
         eslesen.forEach(t => { t.delivered = Math.max(0, t.delivered - p.stock); });
       }
       data.transactions.push({
-        id: Date.now() + Math.random() * 1000, type: 'cikis', partiNo,
+        id: Math.floor(Date.now() + Math.random() * 1000), type: 'cikis', partiNo,
         productName: p.name, amount: p.stock, unit: p.unit,
         date: todayStr(), note: 'Ürün silindi',
         timestamp: new Date().toISOString(), createdBy: data.activeUser || ''
@@ -2374,7 +2374,7 @@ document.getElementById('entry-form').addEventListener('submit', async (e) => {
 
   // Stok hareketi ekle
   data.transactions.push({
-    id: Date.now() + Math.random() * 1000, type: 'giris', partiNo, productName: name,
+    id: Math.floor(Date.now() + Math.random() * 1000), type: 'giris', partiNo, productName: name,
     amount, unit, date, note: note || 'Mal kabul', stt: stt || '',
     timestamp: new Date().toISOString(), createdBy: data.activeUser || ''
   });
@@ -2482,7 +2482,7 @@ document.getElementById('exit-form').addEventListener('submit', async (e) => {
     const tc = unitPrice ? deduct * unitPrice : 0;
     const cp = personCount > 0 ? tc / personCount : 0;
     transactions.push({
-      id: Date.now() + Math.random() * 1000 + transactions.length,
+      id: Math.floor(Date.now() + Math.random() * 1000) + transactions.length,
       type: 'cikis', partiNo: p.partiNo, productName: p.name,
       amount: deduct, unit: p.unit, date, note: note || 'Ürün çıkış',
       timestamp: new Date().toISOString(), createdBy: data.activeUser || '',
@@ -2493,7 +2493,7 @@ document.getElementById('exit-form').addEventListener('submit', async (e) => {
   transactions.forEach(t => data.transactions.push(t));
   transactions.forEach(t => {
     data.calculations.push({
-      id: Date.now() + Math.random() * 1000 + transactions.length,
+      id: Math.floor(Date.now() + Math.random() * 1000) + transactions.length,
       transactionId: t.id, productName: t.productName,
       amount: t.amount, unit: t.unit,
       unitPrice: t.unitPrice, totalCost: t.totalCost,
@@ -3153,7 +3153,7 @@ document.getElementById('tender-form').addEventListener('submit', (e) => {
     toast('İhale güncellendi.', 'success');
   } else {
     _stokGuncelle(0, delivered);
-    data.tenders.push({ id: Date.now() + Math.random() * 1000, companyName, product, quantity, unit, delivered, price, year });
+    data.tenders.push({ id: Math.floor(Date.now() + Math.random() * 1000), companyName, product, quantity, unit, delivered, price, year });
     toast('İhale eklendi.', 'success');
   }
   saveData();
@@ -4123,7 +4123,7 @@ document.getElementById('exit-edit-form').addEventListener('submit', (e) => {
 
   // Denetim kaydı (duzeltme)
   data.transactions.push({
-    id: Date.now() + Math.random() * 1000, type: 'duzeltme', partiNo: t.partiNo, productName: t.productName,
+    id: Math.floor(Date.now() + Math.random() * 1000), type: 'duzeltme', partiNo: t.partiNo, productName: t.productName,
     amount: Math.abs(fark), unit: t.unit, date: todayStr(),
     note: (fark < 0 ? 'İade' : 'Ek çıkış') + `: ${_fmt(eskiMiktar)} › ${_fmt(yeniMiktar)} | Delta: ${_fmt(Math.abs(fark))} ${t.unit} (${t.partiNo})${duzeltmeNotu ? ' — ' + duzeltmeNotu : ''}`,
     timestamp: new Date().toISOString(), createdBy: data.activeUser || ''
