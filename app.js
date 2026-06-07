@@ -1257,7 +1257,8 @@ function refreshDashboard() {
       options: {
         responsive: true,
         maintainAspectRatio: true,
-      cutout: '70%',
+      cutout: '65%',
+        layout: { padding: 15 },
         plugins: {
           legend: { display: false },
           tooltip: {
@@ -1295,7 +1296,7 @@ function refreshDashboard() {
   const qiContainer = document.getElementById('quick-info-list');
   qiContainer.innerHTML = `
     <div style="display:flex;flex-direction:column;gap:8px;">
-      <div style="max-width:320px;margin:0 auto;width:100%;"><canvas id="quick-info-canvas" style="width:100%;"></canvas></div>
+      <div style="max-width:340px;margin:0 auto;width:100%;"><canvas id="quick-info-canvas" style="width:100%;"></canvas></div>
       <div style="display:flex;justify-content:center;gap:14px;flex-wrap:wrap;" id="qi-legend"></div>
     </div>
   `;
@@ -1375,6 +1376,7 @@ function refreshDashboard() {
       responsive: true,
       maintainAspectRatio: true,
       cutout: '65%',
+      layout: { padding: 15 },
       plugins: {
         legend: { display: false },
         tooltip: {
