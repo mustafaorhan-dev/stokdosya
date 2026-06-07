@@ -4044,8 +4044,10 @@ document.getElementById('exit-edit-form').addEventListener('submit', (e) => {
   // Delta kadar stok düzeltmesi (negatif fark otomatik iade eder)
   p.stock -= fark;
 
-  // Çıkış kaydını güncelle
+  // Çıkış kaydını güncelle ve cost'ları yeniden hesapla
   t.amount = yeniMiktar;
+  t.totalCost = (t.unitPrice || 0) * yeniMiktar;
+  t.costPerPerson = (t.personCount || 0) > 0 ? t.totalCost / t.personCount : 0;
   t.note = (duzeltmeNotu ? duzeltmeNotu + ' | ' : '') + `Düzeltme: ${_fmt(eskiMiktar)} › ${_fmt(yeniMiktar)} (${data.activeUser})`;
 
   // Denetim kaydı (duzeltme)
@@ -4053,7 +4055,9 @@ document.getElementById('exit-edit-form').addEventListener('submit', (e) => {
     id: Math.floor(Date.now() + Math.random() * 1000), type: 'duzeltme', partiNo: t.partiNo, productName: t.productName,
     amount: Math.abs(fark), unit: t.unit, date: todayStr(),
     note: (fark < 0 ? 'İade' : 'Ek çıkış') + `: ${_fmt(eskiMiktar)} › ${_fmt(yeniMiktar)} | Delta: ${_fmt(Math.abs(fark))} ${t.unit} (${t.partiNo})${duzeltmeNotu ? ' — ' + duzeltmeNotu : ''}`,
-    timestamp: new Date().toISOString(), createdBy: data.activeUser || ''
+    timestamp: new Date().toISOString(), createdBy: data.activeUser || '',
+    personCount: t.personCount || 0, unitPrice: t.unitPrice || 0,
+    totalCost: t.totalCost || 0, costPerPerson: t.costPerPerson || 0
   });
 
   saveData();
