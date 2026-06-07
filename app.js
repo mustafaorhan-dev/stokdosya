@@ -1357,22 +1357,6 @@ function refreshDashboard() {
     }
   };
 
-      // Merkez toplam
-      const cx = chart.chartArea.left + (chart.chartArea.right - chart.chartArea.left) / 2;
-      const cy = chart.chartArea.top + (chart.chartArea.bottom - chart.chartArea.top) / 2;
-      ctx.save();
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-      ctx.font = 'bold 26px Outfit, Arial, sans-serif';
-      ctx.fillStyle = isDark ? '#f1f5f9' : '#0f172a';
-      ctx.fillText(qiTotal, cx, cy - 10);
-      ctx.font = '600 11px Outfit, Arial, sans-serif';
-      ctx.fillStyle = isDark ? '#94a3b8' : '#64748b';
-      ctx.fillText('Toplam', cx, cy + 16);
-      ctx.restore();
-    }
-  };
-
   window._qiChart = new Chart(document.getElementById('quick-info-canvas'), {
     type: 'doughnut',
     data: {
