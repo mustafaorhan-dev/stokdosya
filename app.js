@@ -83,7 +83,9 @@ async function supabaseSave() {
       id: t.id, type: t.type, parti_no: t.partiNo, product_name: t.productName,
       amount: t.amount, unit: t.unit || '', date: t.date, note: t.note || '',
       stt: t.stt || '', timestamp: t.timestamp || new Date().toISOString(),
-      created_by: t.createdBy || ''
+      created_by: t.createdBy || '',
+      person_count: t.personCount || 0, unit_price: t.unitPrice || 0,
+      total_cost: t.totalCost || 0, cost_per_person: t.costPerPerson || 0
     }));
     if (txArray.length > 0) {
       try { await supabaseFetch('POST', 'transactions', null, txArray); } catch(e) { console.error('Supabase transactions hatası:', e); }
@@ -166,7 +168,9 @@ async function supabaseLoad() {
     const txList = (transactions || []).map(t => ({
       id: t.id, type: t.type, partiNo: t.parti_no, productName: t.product_name,
       amount: t.amount, unit: t.unit || '', date: t.date, note: t.note || '',
-      stt: t.stt || '', timestamp: t.timestamp, createdBy: t.created_by || ''
+      stt: t.stt || '', timestamp: t.timestamp, createdBy: t.created_by || '',
+      personCount: t.person_count || 0, unitPrice: t.unit_price || 0,
+      totalCost: t.total_cost || 0, costPerPerson: t.cost_per_person || 0
     }));
 
     const userList = (users || []).map(u => ({
@@ -2379,8 +2383,10 @@ document.getElementById('exit-form').addEventListener('submit', async (e) => {
 
 function lookupTenderPrice(productName, companyName) {
   if (!data.tenders || !data.tenders.length) return 0;
+  const pLow = productName.toLowerCase();
+  const cLow = (companyName || '').toLowerCase();
   const eslesen = data.tenders.filter(t =>
-    t.product === productName && (!companyName || t.companyName === companyName)
+    t.product.toLowerCase() === pLow && (!cLow || t.companyName.toLowerCase() === cLow)
   );
   if (!eslesen.length) return 0;
   eslesen.sort((a, b) => (b.year || 0) - (a.year || 0));
@@ -4025,19 +4031,19 @@ function refreshDailyCost() {
   }
   let totalQty = 0, totalCost = 0, totalPersons = 0;
   tbody.innerHTML = cikislar.map(t => {
-    const up = t.unitPrice || lookupTenderPrice(t.productName, data.products[t.partiNo]?.companyName || '');
-    const tc = t.totalCost || (up ? t.amount * up : 0);
-    const pp = t.costPerPerson || (t.personCount > 0 ? tc / t.personCount : 0);
+    const up = (t.unitPrice != null && t.unitPrice > 0) ? t.unitPrice : lookupTenderPrice(t.productName, data.products[t.partiNo]?.companyName || '');
+    const tc = (t.totalCost != null && t.totalCost > 0) ? t.totalCost : (up > 0 ? t.amount * up : 0);
+    const pp = (t.costPerPerson != null && t.costPerPerson > 0) ? t.costPerPerson : (t.personCount > 0 ? tc / t.personCount : 0);
     totalQty += t.amount;
     totalCost += tc;
     totalPersons += t.personCount || 0;
     return `<tr>
       <td style="font-weight:600;">${htmlEscape(t.productName)}</td>
       <td style="text-align:right;">${_fmt(t.amount)} ${htmlEscape(t.unit || '')}</td>
-      <td style="text-align:right;">${up ? _fmt(up) + ' ₺' : '—'}</td>
-      <td style="text-align:right;font-weight:700;color:var(--primary);">${_fmt(tc)} ₺</td>
-      <td style="text-align:right;">${t.personCount ? _fmt(t.personCount) : '—'}</td>
-      <td style="text-align:right;font-weight:700;color:var(--success);">${pp ? _fmt(pp) + ' ₺' : '—'}</td>
+      <td style="text-align:right;">${up > 0 ? _fmt(up) + ' ₺' : '—'}</td>
+      <td style="text-align:right;font-weight:700;color:var(--primary);">${tc > 0 ? _fmt(tc) + ' ₺' : '—'}</td>
+      <td style="text-align:right;">${t.personCount > 0 ? _fmt(t.personCount) : '—'}</td>
+      <td style="text-align:right;font-weight:700;color:var(--success);">${pp > 0 ? _fmt(pp) + ' ₺' : '—'}</td>
       <td style="color:var(--text-secondary);font-size:13px;">${htmlEscape(t.note) || '-'}</td>
     </tr>`;
   }).join('');
