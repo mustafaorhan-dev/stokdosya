@@ -79,7 +79,7 @@ async function supabaseSave() {
     }
 
     // Transactions toplu upsert
-    const txArray = data.transactions.map(t => ({
+    const txArrayFull = data.transactions.map(t => ({
       id: t.id, type: t.type, parti_no: t.partiNo, product_name: t.productName,
       amount: t.amount, unit: t.unit || '', date: t.date, note: t.note || '',
       stt: t.stt || '', timestamp: t.timestamp || new Date().toISOString(),
@@ -87,8 +87,19 @@ async function supabaseSave() {
       person_count: t.personCount || 0, unit_price: t.unitPrice || 0,
       total_cost: t.totalCost || 0, cost_per_person: t.costPerPerson || 0
     }));
-    if (txArray.length > 0) {
-      try { await supabaseFetch('POST', 'transactions', null, txArray); } catch(e) { console.error('Supabase transactions hatası:', e); }
+    const txArrayBasic = data.transactions.map(t => ({
+      id: t.id, type: t.type, parti_no: t.partiNo, product_name: t.productName,
+      amount: t.amount, unit: t.unit || '', date: t.date, note: t.note || '',
+      stt: t.stt || '', timestamp: t.timestamp || new Date().toISOString(),
+      created_by: t.createdBy || ''
+    }));
+    if (txArrayFull.length > 0) {
+      try {
+        await supabaseFetch('POST', 'transactions', null, txArrayFull);
+      } catch(e) {
+        console.warn('Supabase transactions (full) hatası, temel alanlarla deneniyor:', e.message);
+        try { await supabaseFetch('POST', 'transactions', null, txArrayBasic); } catch(e2) { console.error('Supabase transactions (basic) hatası:', e2); }
+      }
     }
 
     // Users upsert (benzersiz) — sadece tabloda var olan kolonlar gönderilsin
@@ -410,7 +421,7 @@ async function loadData() {
       const remoteData = await supabaseLoad();
       if (remoteData) {
         if (remoteData.products) data.products = remoteData.products;
-        if (remoteData.transactions) data.transactions = remoteData.transactions;
+        if (remoteData.transactions && remoteData.transactions.length) data.transactions = remoteData.transactions;
         if (remoteData.users) {
           const userMap = new Map(data.users.map(u => [u.name, u]));
           remoteData.users.forEach(su => {
@@ -428,7 +439,7 @@ async function loadData() {
         }
         if (remoteData.activeUser) data.activeUser = remoteData.activeUser;
         if (remoteData.tenders && remoteData.tenders.length) data.tenders = remoteData.tenders;
-        if (remoteData.companies) data.companies = remoteData.companies;
+        if (remoteData.companies && remoteData.companies.length) data.companies = remoteData.companies;
         if (remoteData.productNames && remoteData.productNames.length) data.productNames = remoteData.productNames;
         if (remoteData.settings) {
           // Lokal _userActiveFlags ve _forceLogout korunsun (Supabase'te eski kalabilir)
