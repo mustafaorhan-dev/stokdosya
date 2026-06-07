@@ -1447,9 +1447,9 @@ function refreshDashboard() {
             ctx.save();
             ctx.textAlign = 'center';
             ctx.textBaseline = 'bottom';
-            ctx.font = 'bold 11px Outfit, Arial, sans-serif';
+            ctx.font = 'bold 9px Outfit, Arial, sans-serif';
             ctx.fillStyle = isDark ? '#fff' : '#0f172a';
-            ctx.fillText('%' + val, bar.x, bar.y - 4);
+            ctx.fillText('%' + val, bar.x, bar.y - 3);
             ctx.restore();
           });
         });
@@ -1466,9 +1466,9 @@ function refreshDashboard() {
           backgroundColor: barColors,
           borderColor: barColors,
           borderWidth: 0,
-          borderRadius: 3,
-          barPercentage: 0.65,
-          categoryPercentage: 0.8
+          borderRadius: 2,
+          barPercentage: 0.55,
+          categoryPercentage: 0.75
         }]
       },
       options: {
@@ -1490,13 +1490,13 @@ function refreshDashboard() {
         scales: {
           x: {
             grid: { display: false },
-            ticks: { color: labelColor, font: { size: 8, weight: '600' }, maxRotation: 0 }
+            ticks: { color: labelColor, font: { size: 7, weight: '600' }, maxRotation: 0, autoSkip: true, maxTicksLimit: 10 }
           },
           y: {
             beginAtZero: true,
             max: 100,
-            grid: { color: gridColor },
-            ticks: { callback: v => v + '%', color: labelColor, font: { size: 9 } }
+            grid: { color: gridColor, tickLength: 4 },
+            ticks: { callback: v => v + '%', color: labelColor, font: { size: 8 } }
           }
         }
       },
