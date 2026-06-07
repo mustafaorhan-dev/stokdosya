@@ -3985,8 +3985,8 @@ function refreshDailyView() {
         ? '<span style="color:var(--warning);font-weight:700;">DÜZELTME</span>'
         : '<span style="color:var(--accent);font-weight:700;">ÇIKIŞ</span>';
     const birim = t.unit || (data.products[t.partiNo] && data.products[t.partiNo].unit) || '';
-    const isAdmin = isAdmin();
-    const duzeltBtn = isAdmin && t.type === 'cikis'
+    const adminUser = isAdmin();
+    const duzeltBtn = adminUser && t.type === 'cikis'
       ? `<button class="btn-ui btn-sm btn-outline" onclick="openExitEdit(${t.id})" style="padding:2px 8px;font-size:11px;" title="Düzelt"><i class="fa-solid fa-pen"></i></button>`
       : '';
     const silindiNotu = silindi ? ' <span style="color:var(--accent);font-weight:700;">[SİLİNDİ]</span>' : '';
