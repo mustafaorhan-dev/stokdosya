@@ -3523,7 +3523,7 @@ function scheduleAutoBackup() {
         await writable.write(blob);
         await writable.close();
         const statusMsg = document.getElementById('backup-status-msg');
-        if (statusMsg) statusMsg.textContent = `? ${new Date().toLocaleTimeString('tr-TR')} — "${filename}" kaydedildi.`;
+        if (statusMsg) statusMsg.textContent = `✅ ${new Date().toLocaleTimeString('tr-TR')} — "${filename}" kaydedildi.`;
       } catch (e) {
         console.error('Dizin yazma hatası, tarayıcı indirmeye düşülüyor:', e);
         fallbackDownload(blob, filename);
@@ -3543,7 +3543,7 @@ function fallbackDownload(blob, filename) {
   a.click();
   URL.revokeObjectURL(a.href);
   const statusMsg = document.getElementById('backup-status-msg');
-  if (statusMsg) statusMsg.textContent = `? ${new Date().toLocaleTimeString('tr-TR')} — "${filename}" indirildi.`;
+  if (statusMsg) statusMsg.textContent = `✅ ${new Date().toLocaleTimeString('tr-TR')} — "${filename}" indirildi.`;
 }
 
 // ----- DİZİN YÖNETİCİSİ (File System Access API - IndexedDB kalıcı) -----
