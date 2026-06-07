@@ -2502,9 +2502,9 @@ document.getElementById('exit-form').addEventListener('submit', async (e) => {
     data.calculations.push({
       id: Math.floor(Date.now() + Math.random() * 1000) + transactions.length,
       transactionId: t.id, productName: t.productName,
-      amount: t.amount, unit: t.unit,
-      unitPrice: t.unitPrice, totalCost: t.totalCost,
-      personCount: t.personCount, costPerPerson: t.costPerPerson,
+      amount: t.amount, unit: t.unit || '',
+      unitPrice: t.unitPrice || 0, totalCost: t.totalCost || 0,
+      personCount: t.personCount || 0, costPerPerson: t.costPerPerson || 0,
       date: t.date, createdAt: new Date().toISOString()
     });
   });
