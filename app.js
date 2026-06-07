@@ -1054,29 +1054,6 @@ function refreshDashboard() {
   const prods = Object.values(data.products).filter(p => p.active !== false);
   const el = _el;
   if (el('total-varieties')) el('total-varieties').textContent = prods.length;
-  const aktifUserBox = el('dashboard-active-user-box');
-  const userListEl = el('dashboard-user-list');
-  if (aktifUserBox && userListEl) {
-    const isAdmin = data.activeUser === 'MUSTAFA ORHAN';
-    aktifUserBox.style.display = isAdmin ? '' : 'none';
-    let activeSessions = [];
-    try { activeSessions = JSON.parse(data.settings._activeSessions || '[]'); } catch(e) {}
-    const now = Date.now();
-    activeSessions = activeSessions.filter(s => (now - new Date(s.time).getTime()) < 120000);
-    const aktifSet = new Set(activeSessions.map(s => s.user));
-    const aktifCount = aktifSet.size;
-    const countEl = el('dashboard-active-count');
-    if (countEl) countEl.textContent = aktifCount + ' Aktif';
-    userListEl.innerHTML = data.users.filter(u => u.active !== false).map(u => {
-      const isAktif = aktifSet.has(u.name);
-      return `<div style="display:inline-flex;align-items:center;gap:3px;padding:1px 6px;border-radius:999px;background:${isAktif ? 'var(--primary-light)' : 'var(--bg-secondary)'};border:1px solid ${isAktif ? 'var(--primary)' : 'var(--border-color)'};">
-        <i class="fa-solid fa-circle" style="font-size:4px;color:${isAktif ? 'var(--success)' : 'var(--text-muted)'};flex-shrink:0;"></i>
-        <span style="font-size:10px;font-weight:${isAktif ? '700' : '400'};color:var(--text-primary);white-space:nowrap;">${htmlEscape(u.name)}</span>
-        <span style="font-size:9px;color:var(--text-secondary);">${htmlEscape(u.role)}</span>
-        ${isAktif ? '<span style="background:var(--success);color:#fff;padding:0 4px;border-radius:999px;font-size:7px;font-weight:700;line-height:12px;">AKTİF</span>' : ''}
-      </div>`;
-    }).join('');
-  }
 
   const now = new Date();
   now.setHours(0, 0, 0, 0);
@@ -1299,16 +1276,15 @@ function refreshDashboard() {
     <div style="display:flex;flex-direction:column;">
       <div style="max-width:300px;margin:0 auto;"><canvas id="quick-info-canvas" style="width:100%;"></canvas></div>
       <div style="display:flex;justify-content:center;gap:14px;flex-wrap:wrap;" id="qi-legend"></div>
-      <div id="qi-bugun" style="display:flex;justify-content:center;margin-top:6px;"></div>
     </div>
   `;
   if (window._qiChart) window._qiChart.destroy();
 
   const isDark = getTheme() === 'dark';
   const labelColor = isDark ? '#e2e8f0' : '#334155';
-  const qiLabels = ["STT'li Ürün", 'Tedarikçi', 'Toplam İşlem', 'Ürün Listesi'];
-  const qiData = [sttOlan, tedarikciSayisi, toplamIslem, (data.productNames || []).length];
-  const qiColors = ['#3b82f6', '#2563eb', '#a78bfa', '#10b981'];
+  const qiLabels = ["STT'li Ürün", 'Tedarikçi', 'Toplam İşlem', 'Bugünkü İşlem', 'Ürün Listesi'];
+  const qiData = [sttOlan, tedarikciSayisi, toplamIslem, bugunHareketAdet, (data.productNames || []).length];
+  const qiColors = ['#3b82f6', '#2563eb', '#a78bfa', '#94a3b8', '#10b981'];
 
   // Legend
   document.getElementById('qi-legend').innerHTML = qiLabels.map((l, i) => `
@@ -1318,15 +1294,6 @@ function refreshDashboard() {
       <span style="font-size:11px;font-weight:700;color:${labelColor};">${qiData[i]}</span>
     </div>
   `).join('');
-
-  // Bugünkü Haremet (chart dışında)
-  document.getElementById('qi-bugun').innerHTML = `
-    <div style="display:flex;align-items:center;gap:6px;">
-      <div style="width:10px;height:10px;border-radius:50%;background:#94a3b8;flex-shrink:0;"></div>
-      <span style="font-size:12px;font-weight:600;color:${isDark ? '#94a3b8' : '#64748b'};">Bugünkü İşlem</span>
-      <span style="font-size:11px;font-weight:700;color:${labelColor};">${bugunHareketAdet}</span>
-    </div>
-  `;
 
 
   // Dilim içi etiketler
@@ -3056,6 +3023,31 @@ function refreshSettings() {
       <button class="btn-ui btn-sm btn-outline" onclick="deleteUserPermanently('${u.name.replace(/'/g, '&#39;')}')" title="Kullanıcıyı Sil" style="color:var(--accent);padding:4px 8px;font-size:12px;margin-left:4px;"><i class="fa-solid fa-trash-can"></i></button>` : ''}
     </li>`;
   }).join('');
+
+  // Aktif Kullanıcılar
+  const aktifUserBox = document.getElementById('dashboard-active-user-box');
+  const userListEl = document.getElementById('settings-user-list');
+  if (aktifUserBox && userListEl) {
+    const isAdmin = data.activeUser === 'MUSTAFA ORHAN';
+    aktifUserBox.style.display = isAdmin ? '' : 'none';
+    let activeSessions = [];
+    try { activeSessions = JSON.parse(data.settings._activeSessions || '[]'); } catch(e) {}
+    const now = Date.now();
+    activeSessions = activeSessions.filter(s => (now - new Date(s.time).getTime()) < 120000);
+    const aktifSet = new Set(activeSessions.map(s => s.user));
+    const aktifCount = aktifSet.size;
+    const countEl = document.getElementById('settings-active-count');
+    if (countEl) countEl.textContent = 'Aktif Kullanıcı: ' + aktifCount + ' / Toplam: ' + data.users.filter(u => u.active !== false).length;
+    userListEl.innerHTML = data.users.filter(u => u.active !== false).map(u => {
+      const isAktif = aktifSet.has(u.name);
+      return `<div style="display:inline-flex;align-items:center;gap:3px;padding:2px 8px;border-radius:999px;background:${isAktif ? 'var(--primary-light)' : 'var(--bg-secondary)'};border:1px solid ${isAktif ? 'var(--primary)' : 'var(--border-color)'};">
+        <i class="fa-solid fa-circle" style="font-size:4px;color:${isAktif ? 'var(--success)' : 'var(--text-muted)'};flex-shrink:0;"></i>
+        <span style="font-size:11px;font-weight:${isAktif ? '700' : '400'};color:var(--text-primary);white-space:nowrap;">${htmlEscape(u.name)}</span>
+        <span style="font-size:10px;color:var(--text-secondary);">${htmlEscape(u.role)}</span>
+        ${isAktif ? '<span style="background:var(--success);color:#fff;padding:0 5px;border-radius:999px;font-size:8px;font-weight:700;line-height:14px;">AKTİF</span>' : ''}
+      </div>`;
+    }).join('');
+  }
 
 // Supabase Durum Göstergesi
    const sbReady = isSupabaseReady();
