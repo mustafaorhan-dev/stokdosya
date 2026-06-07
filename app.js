@@ -484,7 +484,7 @@ function getTheme() {
 function applyTheme(theme) {
   document.documentElement.setAttribute('data-theme', theme);
   const tt = document.getElementById('theme-toggle');
-  if (tt) tt.textContent = theme === 'light' ? '??' : '??';
+  if (tt) tt.textContent = theme === 'light' ? '🌙' : '☀️';
   localStorage.setItem('stokdosya_theme', theme);
 }
 
