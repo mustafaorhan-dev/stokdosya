@@ -3488,7 +3488,7 @@ document.getElementById('list-backups-btn')?.addEventListener('click', async () 
     let html = '<table class="minimal-table" style="font-size:12px;"><thead><tr><th>Tarih</th><th>Etiket</th><th>İşlem</th></tr></thead><tbody>';
     data.forEach(b => {
       const d = new Date(b.created_at || b.id).toLocaleString('tr-TR');
-      html += `<tr><td style="white-space:nowrap;">${d}</td><td>${b.label || b.filename || ''}</td><td><button class="btn-ui btn-sm btn-outline" onclick="restoreBackup('${b.id}')" style="font-size:11px;padding:2px 8px;">Yükle</button></td></tr>`;
+      html += `<tr><td style="white-space:nowrap;">${d}</td><td>${b.label || b.filename || ''}</td><td><button class="btn-ui btn-sm btn-outline" onclick="restoreBackup('${b.id}')" style="font-size:11px;padding:2px 8px;">Yükle</button> <button class="btn-ui btn-sm btn-outline" onclick="downloadBackup('${b.id}')" style="font-size:11px;padding:2px 8px;">İndir</button></td></tr>`;
     });
     html += '</tbody></table>';
     container.innerHTML = html;
@@ -3497,12 +3497,82 @@ document.getElementById('list-backups-btn')?.addEventListener('click', async () 
   }
 });
 
+async function downloadBackup(id) {
+  try {
+    const data = await supabaseFetch('GET', 'backups', { id: `eq.${id}`, limit: '1' });
+    if (!data || data.length === 0) { toast('Yedek bulunamadı.', 'error'); return; }
+    var parsed = JSON.parse(data[0].data);
+    parsed = convertBackupFormat(parsed);
+    const json = JSON.stringify(parsed, null, 2);
+    const blob = new Blob([json], { type: 'application/json' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = data[0].filename || `yedek_${todayStr()}.json`;
+    a.click();
+    URL.revokeObjectURL(a.href);
+  } catch (e) { toast('Hata: ' + e.message, 'error'); }
+}
+
+function convertBackupFormat(parsed) {
+  // SQL yedek formatını uygulama formatına çevir (products array ise)
+  if (Array.isArray(parsed.products)) {
+    var prodObj = {};
+    parsed.products.forEach(function(p) {
+      prodObj[p.parti_no || p.partiNo] = {
+        partiNo: p.parti_no || p.partiNo, name: p.name, category: p.category || '',
+        unit: p.unit || 'kg', stock: p.stock || 0, criticalLevel: p.critical_level || p.criticalLevel || 0,
+        stt: p.stt || '', companyName: p.company_name || p.companyName || '',
+        active: p.active !== false, createdAt: p.created_at || p.createdAt || '',
+        createdBy: p.created_by || p.createdBy || '',
+        deletedBy: p.deleted_by || p.deletedBy || '',
+        deletedAt: p.deleted_at || p.deletedAt
+      };
+    });
+    parsed.products = prodObj;
+  }
+  if (Array.isArray(parsed.transactions)) {
+    parsed.transactions = parsed.transactions.map(function(t) {
+      if (t.parti_no !== undefined) {
+        return {
+          id: t.id, type: t.type, partiNo: t.parti_no, productName: t.product_name || t.productName,
+          amount: t.amount, unit: t.unit || '', date: t.date, note: t.note || '',
+          stt: t.stt || '', timestamp: t.timestamp, createdBy: t.created_by || t.createdBy || '',
+          personCount: t.person_count || t.personCount || 0,
+          unitPrice: t.unit_price || t.unitPrice || 0,
+          totalCost: t.total_cost || t.totalCost || 0,
+          costPerPerson: t.cost_per_person || t.costPerPerson || 0
+        };
+      }
+      return t;
+    });
+  }
+  if (parsed.users && Array.isArray(parsed.users)) {
+    parsed.users = parsed.users.map(function(u) {
+      return { name: u.name, role: u.role || 'Depo Kullanıcısı', password: u.password, lastLogin: u.last_login || u.lastLogin || null, active: u.active !== false };
+    });
+  }
+  if (parsed.tenders && Array.isArray(parsed.tenders)) {
+    parsed.tenders = parsed.tenders.map(function(t) {
+      return { id: t.id, companyName: t.company_name || t.companyName, product: t.product, quantity: t.quantity, unit: t.unit || '', delivered: t.delivered || 0, price: t.price || 0, year: t.year || new Date().getFullYear() };
+    });
+  }
+  if (Array.isArray(parsed.settings) && parsed.settings[0] && parsed.settings[0].key !== undefined) {
+    var setObj = {};
+    parsed.settings.forEach(function(s) { setObj[s.key] = s.value; });
+    parsed.settings = setObj;
+  }
+  if (parsed.product_names) { parsed.productNames = parsed.product_names.map(function(n) { return n.name || n; }); delete parsed.product_names; }
+  if (!parsed.productNames && Array.isArray(parsed.products)) { parsed.productNames = Object.values(parsed.products).map(function(p) { return p.name; }); }
+  return parsed;
+}
+
 async function restoreBackup(id) {
   if (!confirm('Bu yedeği yüklemek mevcut verilerin üzerine yazar. Devam?')) return;
   try {
     const data = await supabaseFetch('GET', 'backups', { id: `eq.${id}`, limit: '1' });
     if (!data || data.length === 0) { toast('Yedek bulunamadı.', 'error'); return; }
-    const parsed = JSON.parse(data[0].data);
+    var parsed = JSON.parse(data[0].data);
+    parsed = convertBackupFormat(parsed);
     if (!parsed.products || !parsed.transactions) { toast('Geçersiz yedek.', 'error'); return; }
     window.data = parsed;
     initData();
