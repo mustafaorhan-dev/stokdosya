@@ -1257,7 +1257,7 @@ function refreshDashboard() {
       options: {
         responsive: true,
         maintainAspectRatio: true,
-        cutout: '65%',
+      cutout: '70%',
         plugins: {
           legend: { display: false },
           tooltip: {
@@ -1295,7 +1295,7 @@ function refreshDashboard() {
   const qiContainer = document.getElementById('quick-info-list');
   qiContainer.innerHTML = `
     <div style="display:flex;flex-direction:column;gap:8px;">
-      <div style="max-width:380px;margin:0 auto;width:100%;"><canvas id="quick-info-canvas" style="width:100%;"></canvas></div>
+      <div style="max-width:280px;margin:0 auto;width:100%;"><canvas id="quick-info-canvas" style="width:100%;"></canvas></div>
       <div style="display:flex;justify-content:center;gap:14px;flex-wrap:wrap;" id="qi-legend"></div>
     </div>
   `;
@@ -1316,8 +1316,8 @@ function refreshDashboard() {
       const ctx = chart.ctx;
       const meta = chart.getDatasetMeta(0);
       const outerR = meta.data[0]?.outerRadius || 0;
-      const labelOffset = 14;
-      const lineLength = 16;
+      const labelOffset = 6;
+      const lineLength = 10;
 
       meta.data.forEach((arc, idx) => {
         const val = qiData[idx];
@@ -1334,7 +1334,7 @@ function refreshDashboard() {
 
         ctx.save();
         ctx.strokeStyle = isDark ? '#94a3b8' : '#64748b';
-        ctx.lineWidth = 1.2;
+        ctx.lineWidth = 1;
         ctx.beginPath();
         ctx.moveTo(x0, y0);
         ctx.lineTo(x1, y1);
@@ -1344,9 +1344,9 @@ function refreshDashboard() {
         const isRight = Math.cos(angle) >= 0;
         ctx.textAlign = isRight ? 'left' : 'right';
         ctx.textBaseline = 'middle';
-        ctx.font = '500 11px Outfit, Arial, sans-serif';
+        ctx.font = '500 10px Outfit, Arial, sans-serif';
         ctx.fillStyle = labelColor;
-        const tx = x2 + (isRight ? 4 : -4);
+        const tx = x2 + (isRight ? 3 : -3);
         const pct = qiTotal > 0 ? ((val / qiTotal) * 100).toFixed(1) : '0';
         ctx.fillText(`${qiLabels[idx]} ${pct}%`, tx, y2);
         ctx.restore();
