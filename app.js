@@ -44,7 +44,7 @@ async function supabaseFetch(method, table, params, body) {
   clearTimeout(timeout);
   if (!res.ok) {
     let msg = `${res.status} ${res.statusText}`;
-    try { const e = await res.json(); msg += ': ' + (e.message || JSON.stringify(e)); } catch(_) {}
+    try { const text = await res.text(); msg += ': ' + text; console.error('Supabase yanıtı:', text); } catch(_) { msg += ' (yanıt okunamadı)'; }
     throw new Error(msg);
   }
   if (method === 'DELETE') return null;
