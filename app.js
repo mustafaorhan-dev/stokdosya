@@ -1407,17 +1407,21 @@ function refreshDashboard() {
     plugins: [qiLabelPlugin]
   });
 
-  // İhale Çekilme Yüzdeleri Grafiği (doughnut)
+  // İhale Çekilme Yüzdeleri Grafiği (bar)
   const canvas = document.getElementById('tender-chart-canvas');
   const emptyMsg = document.getElementById('tender-chart-empty');
   const tenderYil = new Date().getFullYear();
-  let toplamTeslim = 0, toplamKalan = 0;
+  const firmaToplam = {};
   (data.tenders || []).filter(t => t.quantity > 0 && (t.year || new Date().getFullYear()) === tenderYil).forEach(t => {
-    toplamTeslim += (t.delivered || 0);
-    toplamKalan += (t.quantity - (t.delivered || 0));
+    if (!firmaToplam[t.companyName]) firmaToplam[t.companyName] = { quantity: 0, delivered: 0 };
+    firmaToplam[t.companyName].quantity += t.quantity;
+    firmaToplam[t.companyName].delivered += (t.delivered || 0);
   });
-  const genelOran = (toplamTeslim + toplamKalan) > 0 ? Math.round((toplamTeslim / (toplamTeslim + toplamKalan)) * 100) : 0;
-  if (!toplamTeslim && !toplamKalan) {
+  const ihaleVeri = Object.keys(firmaToplam).map(name => {
+    const { quantity, delivered } = firmaToplam[name];
+    return { label: name, pct: Math.min(100, Math.round((delivered / quantity) * 100)) };
+  });
+  if (!ihaleVeri.length) {
     canvas.style.display = 'none';
     emptyMsg.style.display = 'block';
   } else {
@@ -1427,83 +1431,51 @@ function refreshDashboard() {
 
     const isDark = getTheme() === 'dark';
     const labelColor = isDark ? '#e2e8f0' : '#334155';
-    const tenderData = [toplamTeslim, toplamKalan];
-    const tenderLabels = ['Teslim Edilen', 'Kalan'];
-    const tenderColors = ['#22c55e', '#e2e8f0'];
+    const gridColor = isDark ? 'rgba(148,163,184,0.15)' : 'rgba(0,0,0,0.08)';
+    const blueScale = ['#3b82f6', '#60a5fa', '#2563eb', '#93c5fd', '#1d4ed8', '#7dd3fc', '#1e40af', '#bae6fd'];
+    const barColors = ihaleVeri.map((_, i) => blueScale[i % blueScale.length]);
 
-    // Legend
-    const chartContainer = canvas.parentElement;
-    let legendDiv = document.getElementById('tender-chart-legend');
-    if (!legendDiv) {
-      legendDiv = document.createElement('div');
-      legendDiv.id = 'tender-chart-legend';
-      legendDiv.style.cssText = 'display:flex;justify-content:center;gap:14px;flex-wrap:wrap;margin-top:4px;';
-      chartContainer.appendChild(legendDiv);
-    }
-    legendDiv.innerHTML = tenderLabels.map((l, i) => `
-      <div style="display:flex;align-items:center;gap:4px;">
-        <div style="width:8px;height:8px;border-radius:50%;background:${tenderColors[i]};flex-shrink:0;"></div>
-        <span style="font-size:11px;font-weight:600;color:${isDark ? '#94a3b8' : '#64748b'};">${l}</span>
-        <span style="font-size:11px;font-weight:700;color:${labelColor};">${_fmt(i === 0 ? toplamTeslim : toplamKalan)}</span>
-      </div>
-    `).join('');
-
-    const tenderLabelPlugin = {
-      id: 'tenderLabel',
+    const barLabelPlugin = {
+      id: 'tenderBarLabel',
       afterDatasetsDraw(chart) {
         const ctx = chart.ctx;
-        const meta = chart.getDatasetMeta(0);
-
-        meta.data.forEach((arc, idx) => {
-          const val = tenderData[idx];
-          if (!val) return;
-          const angle = (arc.startAngle + arc.endAngle) / 2;
-          const radius = (arc.outerRadius + arc.innerRadius) / 2;
-          ctx.save();
-          ctx.textAlign = 'center';
-          ctx.textBaseline = 'middle';
-          ctx.font = 'bold 14px Outfit, Arial, sans-serif';
-          ctx.fillStyle = idx === 0 ? '#fff' : (isDark ? '#0f172a' : '#334155');
-          ctx.shadowColor = 'rgba(0,0,0,0.4)';
-          ctx.shadowBlur = 3;
-          ctx.fillText(idx === 0 ? 'Teslim' : 'Kalan', arc.x + Math.cos(angle) * radius, arc.y + Math.sin(angle) * radius);
-          ctx.restore();
+        chart.data.datasets.forEach((ds, i) => {
+          const meta = chart.getDatasetMeta(i);
+          meta.data.forEach((bar, idx) => {
+            const val = ds.data[idx];
+            if (!val) return;
+            ctx.save();
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.font = 'bold 17px Outfit, Arial, sans-serif';
+            ctx.fillStyle = isDark ? '#fff' : '#0f172a';
+            const rightEdge = bar.base + bar.width;
+            ctx.fillText('%' + val, rightEdge - 16, bar.y);
+            ctx.restore();
+          });
         });
-
-        const cx = chart.chartArea.left + (chart.chartArea.right - chart.chartArea.left) / 2;
-        const cy = chart.chartArea.top + (chart.chartArea.bottom - chart.chartArea.top) / 2;
-        ctx.save();
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
-        ctx.font = 'bold 22px Outfit, Arial, sans-serif';
-        ctx.fillStyle = isDark ? '#f1f5f9' : '#0f172a';
-        ctx.fillText('%' + genelOran, cx, cy - 8);
-        ctx.font = '600 10px Outfit, Arial, sans-serif';
-        ctx.fillStyle = isDark ? '#94a3b8' : '#64748b';
-        ctx.fillText('Teslimat', cx, cy + 14);
-        ctx.restore();
       }
     };
 
     window._tenderChart = new Chart(canvas, {
-      type: 'doughnut',
+      type: 'bar',
       data: {
-        labels: tenderLabels,
+        labels: ihaleVeri.map(v => v.label),
         datasets: [{
-          data: tenderData,
-          backgroundColor: tenderColors,
-          borderColor: isDark ? '#1e293b' : '#fff',
-          borderWidth: 2,
-          hoverOffset: 8,
-          borderRadius: 0,
-          spacing: 0
+          label: 'Çekilme %',
+          data: ihaleVeri.map(v => v.pct),
+          backgroundColor: barColors,
+          borderColor: barColors,
+          borderWidth: 0,
+          borderRadius: 4,
+          barPercentage: 0.7,
+          categoryPercentage: 0.85
         }]
       },
       options: {
+        indexAxis: 'y',
         responsive: true,
-        maintainAspectRatio: true,
-        aspectRatio: 1.0,
-        cutout: '65%',
+        maintainAspectRatio: false,
         plugins: {
           legend: { display: false },
           tooltip: {
@@ -1512,19 +1484,25 @@ function refreshDashboard() {
             bodyColor: isDark ? '#cbd5e1' : '#334155',
             borderColor: isDark ? 'rgba(148,163,184,0.2)' : 'rgba(0,0,0,0.1)',
             borderWidth: 1,
-            padding: 10,
-            cornerRadius: 8,
             callbacks: {
-              label: ctx => ` ${ctx.label}: ${_fmt(ctx.parsed)}`
+              label: ctx => ctx.parsed.x + '% teslimat'
             }
           }
         },
-        animation: {
-          duration: 800,
-          easing: 'easeOutQuart'
+        scales: {
+          x: {
+            beginAtZero: true,
+            max: 100,
+            grid: { color: gridColor },
+            ticks: { callback: v => v + '%', color: labelColor, font: { size: 11 } }
+          },
+          y: {
+            grid: { display: false },
+            ticks: { color: labelColor, font: { size: 12, weight: 'bold' } }
+          }
         }
       },
-      plugins: [tenderLabelPlugin]
+      plugins: [barLabelPlugin]
     });
   }
   } catch (e) { console.error('refreshDashboard hatası:', e); }
