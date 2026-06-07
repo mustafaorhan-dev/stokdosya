@@ -1473,7 +1473,8 @@ function refreshDashboard() {
       },
       options: {
         responsive: true,
-        maintainAspectRatio: false,
+        maintainAspectRatio: true,
+        aspectRatio: 1.3,
         layout: { padding: 0 },
         plugins: {
           legend: { display: false },
