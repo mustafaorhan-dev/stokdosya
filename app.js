@@ -1431,30 +1431,8 @@ function refreshDashboard() {
 
     const isDark = getTheme() === 'dark';
     const labelColor = isDark ? '#e2e8f0' : '#334155';
-    const gridColor = isDark ? 'rgba(148,163,184,0.15)' : 'rgba(0,0,0,0.08)';
     const blueScale = ['#3b82f6', '#60a5fa', '#2563eb', '#93c5fd', '#1d4ed8', '#7dd3fc', '#1e40af', '#bae6fd'];
     const barColors = ihaleVeri.map((_, i) => blueScale[i % blueScale.length]);
-
-    const barLabelPlugin = {
-      id: 'tenderBarLabel',
-      afterDatasetsDraw(chart) {
-        const ctx = chart.ctx;
-        chart.data.datasets.forEach((ds, i) => {
-          const meta = chart.getDatasetMeta(i);
-          meta.data.forEach((bar, idx) => {
-            const val = ds.data[idx];
-            if (!val) return;
-            ctx.save();
-            ctx.textAlign = 'center';
-            ctx.textBaseline = 'bottom';
-            ctx.font = 'bold 8px Outfit, Arial, sans-serif';
-            ctx.fillStyle = isDark ? '#fff' : '#0f172a';
-            ctx.fillText('%' + val, bar.x, bar.y - 2);
-            ctx.restore();
-          });
-        });
-      }
-    };
 
     window._tenderChart = new Chart(canvas, {
       type: 'bar',
@@ -1466,16 +1444,15 @@ function refreshDashboard() {
           backgroundColor: barColors,
           borderColor: barColors,
           borderWidth: 0,
-          borderRadius: 2,
-          barPercentage: 0.5,
-          categoryPercentage: 0.7
+          borderRadius: 6,
+          barPercentage: 0.6,
+          categoryPercentage: 0.8
         }]
       },
       options: {
+        indexAxis: 'y',
         responsive: true,
-        maintainAspectRatio: true,
-        aspectRatio: 1.3,
-        layout: { padding: 0 },
+        maintainAspectRatio: false,
         plugins: {
           legend: { display: false },
           tooltip: {
@@ -1485,43 +1462,24 @@ function refreshDashboard() {
             borderColor: isDark ? 'rgba(148,163,184,0.2)' : 'rgba(0,0,0,0.1)',
             borderWidth: 1,
             callbacks: {
-              label: ctx => ctx.parsed.y + '% teslimat'
+              label: ctx => ctx.parsed.x + '% teslimat'
             }
           }
         },
         scales: {
           x: {
-            offset: false,
-            grid: { display: false },
-            ticks: { color: labelColor, font: { size: 7, weight: '600' }, maxRotation: 0, padding: 0 }
-          },
-          y: {
-            offset: false,
             beginAtZero: true,
             max: 100,
-            grid: { color: gridColor, tickLength: 4 },
-            ticks: { callback: v => v + '%', color: labelColor, font: { size: 8 }, padding: 0 }
+            grid: { color: isDark ? 'rgba(148,163,184,0.15)' : 'rgba(0,0,0,0.08)' },
+            ticks: { callback: v => v + '%', color: labelColor, font: { size: 9 } }
+          },
+          y: {
+            grid: { display: false },
+            ticks: { color: labelColor, font: { size: 10, weight: 'bold' } }
           }
         }
-      },
-      plugins: [barLabelPlugin]
+      }
     });
-
-    // Alt lejant - tüm firmalar
-    const chartContainer = canvas.parentElement;
-    let legendDiv = document.getElementById('tender-chart-legend');
-    if (!legendDiv) {
-      legendDiv = document.createElement('div');
-      legendDiv.id = 'tender-chart-legend';
-      legendDiv.style.cssText = 'display:flex;justify-content:center;gap:10px;flex-wrap:wrap;margin-top:4px;';
-      chartContainer.appendChild(legendDiv);
-    }
-    legendDiv.innerHTML = ihaleVeri.map((v, i) => `
-      <div style="display:flex;align-items:center;gap:3px;">
-        <div style="width:7px;height:7px;border-radius:2px;background:${barColors[i]};flex-shrink:0;"></div>
-        <span style="font-size:10px;font-weight:600;color:${labelColor};">${v.label}</span>
-      </div>
-    `).join('');
   }
   } catch (e) { console.error('refreshDashboard hatası:', e); }
 }
