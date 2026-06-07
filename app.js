@@ -3460,7 +3460,9 @@ document.getElementById('restore-btn').addEventListener('click', () => {
         toast('Geçersiz yedek dosyası!', 'error'); return;
       }
       if (!confirm('Mevcut tüm veri değişecek. Devam et?')) return;
+      var oldUser = data.activeUser;
       data = imported;
+      data.activeUser = oldUser;
       initData();
       saveData();
       toast('Veri başarıyla geri yüklendi!', 'success');
@@ -3575,7 +3577,9 @@ async function restoreBackup(id) {
     var parsed = JSON.parse(data[0].data);
     parsed = convertBackupFormat(parsed);
     if (!parsed.products || !parsed.transactions) { toast('Geçersiz yedek.', 'error'); return; }
+    var oldUser = window.data.activeUser;
     window.data = parsed;
+    window.data.activeUser = oldUser;
     initData();
     saveData();
     refreshAll();
