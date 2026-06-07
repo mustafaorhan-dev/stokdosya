@@ -286,14 +286,13 @@ async function sheetsTest() {
       toast('☁️ Supabase bağlantısı başarılı!', 'success');
       document.getElementById('cloud-status-text').textContent = 'Sunucuya Bağlı';
       refreshSettings();
+    } else {
+      toast('⚠️ Beklenmeyen yanıt.', 'error');
     }
   } catch (e) {
     toast('❌ Hata: ' + e.message, 'error');
-    return;
   }
-  const ok = result && Array.isArray(result);
-  if (ok) toast('✅ Veriler Supabase\'e eşitlendi!', 'success');
-  else toast('⚠️ Eşitleme başarısız.', 'error');
+  overlay.style.display = 'none';
 }
 
 async function sheetsPull() {
