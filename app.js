@@ -1490,7 +1490,7 @@ function refreshDashboard() {
         scales: {
           x: {
             grid: { display: false },
-            ticks: { color: labelColor, font: { size: 11, weight: 'bold' } }
+            ticks: { color: labelColor, font: { size: 9, weight: 'bold' }, maxRotation: 45 }
           },
           y: {
             beginAtZero: true,
