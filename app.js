@@ -4031,12 +4031,12 @@ function refreshSupplierReport() {
     const tedarikci = p ? (p.companyName || 'Belirtilmemiş') : 'Belirtilmemiş';
     const urun = t.productName || t.partiNo;
     const key = tedarikci + '|||' + urun;
-    if (!gruplar[key]) gruplar[key] = { tedarikci, urun, miktar: 0, birim: t.unit || '', partiNolar: new Set(), gunler: {} };
+    if (!gruplar[key]) gruplar[key] = { tedarikci, urun, miktar: 0, birim: t.unit || '', gunler: {}, sonPartiNo: '', sonTarih: '' };
     gruplar[key].miktar += t.amount;
-    gruplar[key].partiNolar.add(t.partiNo);
     if (!gruplar[key].birim && t.unit) gruplar[key].birim = t.unit;
     if (!gruplar[key].gunler[t.date]) gruplar[key].gunler[t.date] = 0;
     gruplar[key].gunler[t.date] += t.amount;
+    if (t.date > gruplar[key].sonTarih) { gruplar[key].sonTarih = t.date; gruplar[key].sonPartiNo = t.partiNo; }
   });
 
   const entries = Object.values(gruplar);
@@ -4052,7 +4052,7 @@ function refreshSupplierReport() {
     const key = v.tedarikci + '|||' + v.urun;
     const acik = window._srAcik[key] || false;
     const gunSayisi = Object.keys(v.gunler).length;
-    const partiList = [...v.partiNolar].sort().map(p => _partiDurumHtml(p)).join('<br>');
+    const partiHtml = _partiDurumHtml(v.sonPartiNo);
     const gunHtml = Object.entries(v.gunler)
       .sort((a, b) => a[0].localeCompare(b[0]))
       .map(([tarih, miktar]) => {
@@ -4068,7 +4068,7 @@ function refreshSupplierReport() {
     <tr onclick="window._srAcik['${key.replace(/'/g, "\\'")}']=!window._srAcik['${key.replace(/'/g, "\\'")}'];refreshSupplierReport()" style="cursor:pointer;">
       <td style="width:24px;text-align:center;font-size:11px;color:var(--primary);">${ok}</td>
       <td>${i + 1}</td>
-      <td style="font-size:12px;color:var(--text-secondary);vertical-align:top;">${partiList}</td>
+      <td style="font-weight:700;font-size:14px;color:var(--text-primary);">${partiHtml}</td>
       <td style="font-weight:600;color:var(--primary);">${htmlEscape(v.tedarikci)}</td>
       <td>${htmlEscape(v.urun)}</td>
       <td style="font-weight:700;">${_fmt(v.miktar)}</td>
@@ -4112,12 +4112,12 @@ function srExportPrint() {
     const tedarikci = p ? (p.companyName || 'Belirtilmemiş') : 'Belirtilmemiş';
     const urun = t.productName || t.partiNo;
     const key = tedarikci + '|||' + urun;
-    if (!gruplar[key]) gruplar[key] = { tedarikci, urun, miktar: 0, birim: t.unit || '', partiNolar: new Set(), gunler: {} };
+    if (!gruplar[key]) gruplar[key] = { tedarikci, urun, miktar: 0, birim: t.unit || '', gunler: {}, sonPartiNo: '', sonTarih: '' };
     gruplar[key].miktar += t.amount;
-    gruplar[key].partiNolar.add(t.partiNo);
     if (!gruplar[key].birim && t.unit) gruplar[key].birim = t.unit;
     if (!gruplar[key].gunler[t.date]) gruplar[key].gunler[t.date] = 0;
     gruplar[key].gunler[t.date] += t.amount;
+    if (t.date > gruplar[key].sonTarih) { gruplar[key].sonTarih = t.date; gruplar[key].sonPartiNo = t.partiNo; }
   });
 
   let satirHtml = '';
@@ -4129,10 +4129,10 @@ function srExportPrint() {
         const trTarih = d[2] + '.' + d[1] + '.' + d[0];
         return `<tr style="background:#f8fafc;"><td></td><td></td><td></td><td style="padding-left:24px;font-size:13px;font-weight:500;color:#475569;">${trTarih}</td><td style="text-align:right;font-weight:700;font-size:13px;">${_fmt(miktar)}</td><td style="font-size:13px;">${v.birim || '-'}</td></tr>`;
       }).join('');
-    const partiList = [...v.partiNolar].sort().map(p => _partiDurumHtml(p)).join('<br>');
+    const partiHtml = _partiDurumHtml(v.sonPartiNo);
     satirHtml += `
     <tr style="font-weight:600;">
-      <td>${i + 1}</td><td style="font-size:11px;color:#64748b;">${partiList}</td><td>${htmlEscape(v.tedarikci)}</td><td>${htmlEscape(v.urun)}</td>
+      <td>${i + 1}</td><td style="font-size:12px;font-weight:700;color:#1e293b;">${partiHtml}</td><td>${htmlEscape(v.tedarikci)}</td><td>${htmlEscape(v.urun)}</td>
       <td style="text-align:right">${_fmt(v.miktar)}</td><td>${htmlEscape(v.birim) || '-'}</td>
     </tr>${gunHtml}`;
   });
