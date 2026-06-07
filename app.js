@@ -421,6 +421,9 @@ function initData() {
   if (!data.companies) data.companies = [];
   if (!data.productNames) data.productNames = [];
   if (!data.calculations) data.calculations = [];
+  // Eski float ID'leri tam sayıya çevir (BIGINT uyumluluğu)
+  (data.transactions || []).forEach(function(t) { if (t.id && !Number.isInteger(t.id)) t.id = Math.floor(t.id); });
+  (data.calculations || []).forEach(function(c) { if (c.id && !Number.isInteger(c.id)) c.id = Math.floor(c.id); });
   // calculations dizisini transactions'dan yeniden oluştur (eksik veri olursa)
   rebuildCalculationsFromTransactions();
   // Soft-delete migration: tüm mevcut ürünlere active:true ekle
