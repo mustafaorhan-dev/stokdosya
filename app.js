@@ -83,16 +83,16 @@ async function supabaseSave() {
 
     // Transactions toplu upsert
     const txArrayFull = data.transactions.map(t => ({
-      id: t.id, type: t.type, parti_no: t.partiNo, product_name: t.productName,
-      amount: t.amount, unit: t.unit || '', date: t.date, note: t.note || '',
+      id: t.id, type: t.type || '', parti_no: t.partiNo || '', product_name: t.productName || '',
+      amount: t.amount || 0, unit: t.unit || '', date: t.date || '', note: t.note || '',
       stt: t.stt || '', timestamp: t.timestamp || new Date().toISOString(),
       created_by: t.createdBy || '',
       person_count: t.personCount || 0, unit_price: t.unitPrice || 0,
       total_cost: t.totalCost || 0, cost_per_person: t.costPerPerson || 0
     }));
     const txArrayBasic = data.transactions.map(t => ({
-      id: t.id, type: t.type, parti_no: t.partiNo, product_name: t.productName,
-      amount: t.amount, unit: t.unit || '', date: t.date, note: t.note || '',
+      id: t.id, type: t.type || '', parti_no: t.partiNo || '', product_name: t.productName || '',
+      amount: t.amount || 0, unit: t.unit || '', date: t.date || '', note: t.note || '',
       stt: t.stt || '', timestamp: t.timestamp || new Date().toISOString(),
       created_by: t.createdBy || ''
     }));
@@ -145,8 +145,8 @@ async function supabaseSave() {
 
     // Calculations upsert
     const calcRows = (data.calculations || []).map(c => ({
-      id: c.id, transaction_id: c.transactionId, product_name: c.productName,
-      amount: c.amount, unit: c.unit || '', unit_price: c.unitPrice || 0,
+      id: c.id, transaction_id: c.transactionId || 0, product_name: c.productName || '',
+      amount: c.amount || 0, unit: c.unit || '', unit_price: c.unitPrice || 0,
       total_cost: c.totalCost || 0, person_count: c.personCount || 0,
       cost_per_person: c.costPerPerson || 0, date: c.date || '',
       created_at: c.createdAt || new Date().toISOString()
