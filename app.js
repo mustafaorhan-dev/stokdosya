@@ -1,11 +1,11 @@
-// ─────────────────────────────────────────────
+﻿// ¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦
 // STOKDOSYA — Ana Uygulama JavaScript'i
-// ─────────────────────────────────────────────
+// ¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦
 
 // ----- VERİ KATMANI -----
 const DATA_KEY = 'tazedepo_data';
 
-// ★ Supabase Entegrasyonu ★
+// ? Supabase Entegrasyonu ?
 // Bilgiler: Supabase Dashboard > Project Settings > API
 const SUPABASE_URL = 'https://jarnxfhviniqfdeptifb.supabase.co';
 const SUPABASE_ANON = 'sb_publishable_jDi72096C6MNcrcZHmpPFg_ATt5_2SP';
@@ -59,7 +59,7 @@ async function supabaseSave() {
   _syncLock = true;
   try {
     const statusEl = document.getElementById('cloud-status-text');
-    if (statusEl) statusEl.textContent = '⏳ Supabase\'e yazılıyor...';
+    if (statusEl) statusEl.textContent = '? Supabase\'e yazılıyor...';
 
     // Products toplu upsert
     const productArray = Object.entries(data.products).map(([pid, p]) => ({
@@ -91,7 +91,7 @@ async function supabaseSave() {
       last_login: u.lastLogin || null
     }));
     if (userArray.length > 0) {
-      try { await supabaseFetch('POST', 'stok_users', null, userArray); } catch(e) { toast('⚠️ Kullanıcı Supabase\'e kaydedilemedi: ' + e.message, 'error'); }
+      try { await supabaseFetch('POST', 'stok_users', null, userArray); } catch(e) { toast('?? Kullanıcı Supabase\'e kaydedilemedi: ' + e.message, 'error'); }
     }
 
     // Tenders upsert
@@ -122,12 +122,12 @@ async function supabaseSave() {
       try { await supabaseFetch('POST', 'settings', null, settingRows); } catch(e) { console.error('Supabase settings hatası:', e); }
     }
 
-    if (statusEl) statusEl.textContent = '✅ Supabase: bağlı';
+    if (statusEl) statusEl.textContent = '? Supabase: bağlı';
     return true;
   } catch (e) {
     console.error('Supabase kayıt hatası:', e);
     const statusEl = document.getElementById('cloud-status-text');
-    if (statusEl) statusEl.textContent = '❌ Supabase hatası';
+    if (statusEl) statusEl.textContent = '? Supabase hatası';
     return false;
   } finally {
     _syncLock = false;
@@ -268,7 +268,7 @@ function startHeartbeat() {
 // ----- SUPABASE TEST -----
 async function sheetsTest() {
   if (!isSupabaseReady()) {
-    toast('❌ Supabase bağlantısı kurulamadı. Anahtarları kontrol edin.', 'error');
+    toast('? Supabase bağlantısı kurulamadı. Anahtarları kontrol edin.', 'error');
     return;
   }
   const overlay = document.getElementById('loading-overlay');
@@ -278,26 +278,26 @@ async function sheetsTest() {
   try {
     const result = await supabaseFetch('GET', 'products', { select: 'parti_no', limit: '1' });
     if (Array.isArray(result)) {
-      toast('✅ Supabase bağlantısı başarılı!', 'success');
-      document.getElementById('cloud-status-text').textContent = '✅ Supabase: bağlı';
+      toast('? Supabase bağlantısı başarılı!', 'success');
+      document.getElementById('cloud-status-text').textContent = '? Supabase: bağlı';
       refreshSettings();
     }
   } catch (e) {
-    toast('❌ Hata: ' + e.message, 'error');
+    toast('? Hata: ' + e.message, 'error');
   } finally {
     overlay.style.display = 'none';
   }
 }
 
 async function sheetsSync() {
-  if (!isSupabaseReady()) { toast('⚠️ Supabase bağlı değil.', 'warning'); return; }
+  if (!isSupabaseReady()) { toast('?? Supabase bağlı değil.', 'warning'); return; }
   const overlay = document.getElementById('loading-overlay');
   if (overlay) overlay.style.display = 'flex';
   document.getElementById('loading-text').textContent = 'Supabase\'e eşitleniyor...';
   const ok = await supabaseSave();
   if (overlay) overlay.style.display = 'none';
-  if (ok) toast('✅ Veriler Supabase\'e eşitlendi!', 'success');
-  else toast('❌ Eşitleme başarısız.', 'error');
+  if (ok) toast('? Veriler Supabase\'e eşitlendi!', 'success');
+  else toast('? Eşitleme başarısız.', 'error');
 }
 
 async function sheetsPull() {
@@ -322,14 +322,14 @@ async function sheetsPull() {
       if (sheetsLocalForce) data.settings._forceLogout = sheetsLocalForce;
       initData();
       saveDataLocal();
-      toast('✅ Veriler Supabase\'ten alındı!', 'success');
+      toast('? Veriler Supabase\'ten alındı!', 'success');
       return true;
     } else {
-      toast('⚠️ Supabase\'ten veri alınamadı.', 'warning');
+      toast('?? Supabase\'ten veri alınamadı.', 'warning');
       return false;
     }
   } catch (e) {
-    toast('❌ Hata: ' + e.message, 'error');
+    toast('? Hata: ' + e.message, 'error');
     return false;
   } finally {
     overlay.style.display = 'none';
@@ -469,7 +469,7 @@ async function saveData() {
   saveDataLocal();
   if (isSupabaseReady() && !_syncLock) {
     const ok = await supabaseSave();
-    if (!ok) { toast('⚠️ Supabase\'e kaydedilemedi. Veriler localStorage\'da duruyor.', 'warning'); return false; }
+    if (!ok) { toast('?? Supabase\'e kaydedilemedi. Veriler localStorage\'da duruyor.', 'warning'); return false; }
     return true;
   }
   return !isSupabaseReady();
@@ -484,7 +484,7 @@ function getTheme() {
 function applyTheme(theme) {
   document.documentElement.setAttribute('data-theme', theme);
   const tt = document.getElementById('theme-toggle');
-  if (tt) tt.textContent = theme === 'light' ? '☀️' : '🌙';
+  if (tt) tt.textContent = theme === 'light' ? '??' : '??';
   localStorage.setItem('stokdosya_theme', theme);
 }
 
@@ -954,8 +954,8 @@ function toast(msg, type = 'info') {
   const container = document.getElementById('toast-container');
   const el = document.createElement('div');
   el.className = `toast ${type}`;
-  const icons = { success: '✅', error: '❌', warning: '⚠️', info: 'ℹ️' };
-  el.textContent = `${icons[type] || 'ℹ️'} ${msg}`;
+  const icons = { success: '?', error: '?', warning: '??', info: '??' };
+  el.textContent = `${icons[type] || '??'} ${msg}`;
   container.appendChild(el);
   setTimeout(() => { el.style.opacity = '0'; el.style.transition = '0.3s'; setTimeout(() => el.remove(), 300); }, 3000);
 }
@@ -1090,7 +1090,7 @@ function refreshDashboard() {
   // Kritik stok yan panel
   const kritikDiv = document.getElementById('critical-stock-list');
   if (!kritik.length) {
-    kritikDiv.innerHTML = '<p style="color:var(--text-secondary);text-align:center;font-size:0.9rem;">✅ Tüm stoklar normal seviyede.</p>';
+    kritikDiv.innerHTML = '<p style="color:var(--text-secondary);text-align:center;font-size:0.9rem;">? Tüm stoklar normal seviyede.</p>';
   } else {
     kritikDiv.innerHTML = kritik.slice(0, 3).map(p => `
       <div style="display:flex;align-items:center;gap:12px;background:var(--warning-light);padding:12px;border-radius:var(--border-radius-sm);border:1px solid rgba(234,179,8,0.2);">
@@ -1111,7 +1111,7 @@ function refreshDashboard() {
 
   const expDiv = document.getElementById('expiring-products-list');
   if (!expiring.length) {
-    expDiv.innerHTML = '<p style="color:var(--text-secondary);text-align:center;font-size:0.9rem;">✅ 3 gün içinde son kullanma tarihi yaklaşan ürün yok.</p>';
+    expDiv.innerHTML = '<p style="color:var(--text-secondary);text-align:center;font-size:0.9rem;">? 3 gün içinde son kullanma tarihi yaklaşan ürün yok.</p>';
   } else {
     expDiv.innerHTML = expiring.map(p => {
       const gecti = p.sttGunFark < 0;
@@ -1524,7 +1524,7 @@ function refreshWarehouse() {
   if (badge) {
     if (aktifFiltreler.length) {
       badge.style.display = 'inline';
-      badge.textContent = '🔍 ' + aktifFiltreler.join(' | ');
+      badge.textContent = '?? ' + aktifFiltreler.join(' | ');
     } else {
       badge.style.display = 'none';
     }
@@ -2053,7 +2053,7 @@ document.getElementById('new-product-form').addEventListener('submit', async (e)
         eslesen.forEach(t => { t.delivered += stock; });
         if (eslesen.length) {
           await saveData();
-          toast(`✅ ${_fmt(stock)} ${unit} "${companyName}" ihaleye işlendi.`, 'success');
+          toast(`? ${_fmt(stock)} ${unit} "${companyName}" ihaleye işlendi.`, 'success');
         }
       }
     }
@@ -2180,7 +2180,7 @@ function editSupplier(enc) {
   refreshSuppliers();
   refreshEntryForm();
   refreshTenders();
-  toast(`"${name}" → "${yeniAd}" olarak güncellendi.`, 'success');
+  toast(`"${name}" › "${yeniAd}" olarak güncellendi.`, 'success');
 }
 
 // Tedarikçi sayfası yönetimi (DOMContentLoaded'dan bağımsız çalışır)
@@ -2285,7 +2285,7 @@ document.getElementById('entry-form').addEventListener('submit', async (e) => {
   if (data.tenders && data.tenders.length && companyName) {
     const eslesen = data.tenders.filter(t => t.companyName === companyName && t.product === name);
     eslesen.forEach(t => { t.delivered += amount; });
-    if (eslesen.length) { await saveData(); ihaleMsg = ` | ✅ "${companyName}" ihaleye işlendi`; }
+    if (eslesen.length) { await saveData(); ihaleMsg = ` | ? "${companyName}" ihaleye işlendi`; }
   }
 
   // Yeni firma adını hafızaya ekle
@@ -2303,7 +2303,7 @@ document.getElementById('entry-form').addEventListener('submit', async (e) => {
     saveProductNamesLocal();
   }
 
-  toast(`✅ ${_fmt(amount)} ${unit} ${name} [${partiNo}] oluşturuldu ve stoğa eklendi.${ihaleMsg}`, 'success');
+  toast(`? ${_fmt(amount)} ${unit} ${name} [${partiNo}] oluşturuldu ve stoğa eklendi.${ihaleMsg}`, 'success');
   navigateTo('dashboard');
   refreshEntryForm();
   refreshDashboard();
@@ -2462,7 +2462,7 @@ function monthExportPrint() {
         <tbody>${cikislar.map(t => `<tr><td>${htmlEscape(_firma(t))}</td><td>${formatDate(t.date)}</td><td>${htmlEscape(t.productName)}</td><td>${t.amount}</td><td>${htmlEscape(_birim(t))}</td></tr>`).join('')}</tbody>
       </table>
 
-      <button class="no-print" onclick="window.print()" style="padding:8px 20px;font-size:14px;cursor:pointer;">🖨 Yazdır</button>
+      <button class="no-print" onclick="window.print()" style="padding:8px 20px;font-size:14px;cursor:pointer;">?? Yazdır</button>
     </body></html>
   `);
   w.document.close();
@@ -2855,7 +2855,7 @@ function refreshTenders() {
     const teslimTutar = t.price * t.delivered;
     const oran = sozlesmeTutar > 0 ? ((teslimTutar / sozlesmeTutar) * 100).toFixed(1) : 0;
     const oranRenk = oran >= 100 ? 'var(--accent)' : (oran >= 80 ? 'var(--accent)' : (oran >= 70 ? '#f97316' : (oran >= 50 ? '#eab308' : 'var(--success)')));
-    const uyari80 = (oran >= 80 && oran < 100) ? '<span style="background:rgba(239,68,68,0.15);color:var(--accent);font-size:11px;padding:2px 8px;border-radius:999px;font-weight:700;margin-left:6px;white-space:nowrap;">⚠ %80+</span>' : (oran >= 100 ? '<span style="color:var(--accent);margin-left:4px;">✅ TAMAM</span>' : '');
+    const uyari80 = (oran >= 80 && oran < 100) ? '<span style="background:rgba(239,68,68,0.15);color:var(--accent);font-size:11px;padding:2px 8px;border-radius:999px;font-weight:700;margin-left:6px;white-space:nowrap;">? %80+</span>' : (oran >= 100 ? '<span style="color:var(--accent);margin-left:4px;">? TAMAM</span>' : '');
     const satirBg = (oran >= 80 && oran < 100) ? ' style="background:rgba(239,68,68,0.06);"' : (oran >= 100 ? ' style="background:rgba(239,68,68,0.03);"' : '');
     return `<tr${satirBg}>
       <td style="white-space:nowrap;"><strong>${htmlEscape(t.companyName)}</strong></td>
@@ -2865,9 +2865,9 @@ function refreshTenders() {
       <td style="text-align:right;white-space:nowrap;">${t.unit || '—'}</td>
       <td style="text-align:right;white-space:nowrap;">${_fmt(t.delivered)} ${t.unit || ''}</td>
       <td style="text-align:right;white-space:nowrap;">${_fmt(kalan)} ${t.unit || ''}</td>
-      <td style="text-align:right;white-space:nowrap;">${_fmt(t.price)} ₺</td>
-      <td style="text-align:right;white-space:nowrap;">${_fmt(sozlesmeTutar)} ₺</td>
-      <td style="text-align:right;white-space:nowrap;">${_fmt(teslimTutar)} ₺</td>
+      <td style="text-align:right;white-space:nowrap;">${_fmt(t.price)} ?</td>
+      <td style="text-align:right;white-space:nowrap;">${_fmt(sozlesmeTutar)} ?</td>
+      <td style="text-align:right;white-space:nowrap;">${_fmt(teslimTutar)} ?</td>
       <td style="text-align:right;white-space:nowrap;color:${oranRenk};font-weight:700;">%${oran} ${uyari80}</td>
       <td style="text-align:right;white-space:nowrap;">
         ${isViewOnly() ? '' : `<button class="btn-ui btn-sm btn-outline" onclick="editTender(${t.id})" title="Düzenle"><i class="fa-solid fa-pen"></i></button>
@@ -3059,7 +3059,7 @@ function refreshSettings() {
    const cloudUser = document.getElementById('cloud-user-text');
 
    if (statusEl) {
-     statusEl.textContent = sbReady ? '✅ Supabase: bağlı' : 'Yerel Bellek';
+     statusEl.textContent = sbReady ? '? Supabase: bağlı' : 'Yerel Bellek';
    }
    if (cloudUser && data.activeUser) { cloudUser.textContent = '• ' + data.activeUser; cloudUser.style.display = ''; }
 
@@ -3067,7 +3067,7 @@ function refreshSettings() {
    if (githubStatusBox) githubStatusBox.style.borderColor = sbReady ? 'var(--success)' : 'var(--warning)';
    if (githubTitle) {
      githubTitle.style.color = sbReady ? 'var(--success)' : 'var(--warning)';
-     githubTitle.textContent = sbReady ? '✅ Aktif — Supabase Veritabanı' : '⚠ Supabase Bağlantısı Kurulamadı';
+     githubTitle.textContent = sbReady ? '? Aktif — Supabase Veritabanı' : '? Supabase Bağlantısı Kurulamadı';
    }
    if (githubDesc) {
      githubDesc.textContent = sbReady
@@ -3174,7 +3174,7 @@ function editProductName(enc) {
   saveProductNamesLocal();
   refreshProductNames();
   refreshWarehouse();
-  toast(`"${name}" → "${yeniAd}" olarak güncellendi.`, 'success');
+  toast(`"${name}" › "${yeniAd}" olarak güncellendi.`, 'success');
 }
 
 function addProductName() {
@@ -3339,8 +3339,8 @@ function editUserPassword(name) {
 // ----- YEDEKLEME -----
 document.getElementById('backup-btn').addEventListener('click', async () => {
   const bakOk = await supabaseBackup('manuel');
-  if (bakOk) toast('✅ Yedek Supabase\'e kaydedildi!', 'success');
-  else toast('⚠️ Supabase yedekleme başarısız, yerel indiriliyor...', 'warning');
+  if (bakOk) toast('? Yedek Supabase\'e kaydedildi!', 'success');
+  else toast('?? Supabase yedekleme başarısız, yerel indiriliyor...', 'warning');
   const json = JSON.stringify(data, null, 2);
   const blob = new Blob([json], { type: 'application/json' });
   const a = document.createElement('a');
@@ -3411,7 +3411,7 @@ async function restoreBackup(id) {
     initData();
     saveData();
     refreshAll();
-    toast('✅ Yedek geri yüklendi!', 'success');
+    toast('? Yedek geri yüklendi!', 'success');
   } catch (e) { toast('Hata: ' + e.message, 'error'); }
 }
 
@@ -3436,8 +3436,8 @@ async function supabaseBackup(label) {
 // ----- DEPO SIFIRLAMA -----
 function resetAllData() {
   if (isViewOnly()) { toast('Görüntüleme modunda sıfırlama yapamazsınız.', 'error'); return; }
-  if (!confirm('🔴 Tüm stok verileri silinecek! Bu işlem geri alınamaz. Devam etmek istediğinize emin misiniz?')) return;
-  if (!confirm('⚠️ Son bir kez daha: Tüm ürünler, stok hareketleri, STT kayıtları, ihaleler ve tedarikçiler silinecek. Onaylıyor musunuz?')) return;
+  if (!confirm('?? Tüm stok verileri silinecek! Bu işlem geri alınamaz. Devam etmek istediğinize emin misiniz?')) return;
+  if (!confirm('?? Son bir kez daha: Tüm ürünler, stok hareketleri, STT kayıtları, ihaleler ve tedarikçiler silinecek. Onaylıyor musunuz?')) return;
 
   const overlay = document.getElementById('loading-overlay');
   if (overlay) overlay.style.display = 'flex';
@@ -3445,7 +3445,7 @@ function resetAllData() {
 
   setTimeout(async () => {
     const bakOk = await supabaseBackup('sifirlama');
-    if (!bakOk) { toast('❌ Yedekleme başarısız, sıfırlama iptal.', 'error'); if (overlay) overlay.style.display = 'none'; return; }
+    if (!bakOk) { toast('? Yedekleme başarısız, sıfırlama iptal.', 'error'); if (overlay) overlay.style.display = 'none'; return; }
 
     document.getElementById('loading-text').textContent = 'Supabase sıfırlanıyor...';
     data.products = {};
@@ -3457,7 +3457,7 @@ function resetAllData() {
     saveData();
 
     if (overlay) overlay.style.display = 'none';
-    toast('✅ Depo tamamen sıfırlandı! Yedek Supabase\'te saklanıyor.', 'success');
+    toast('? Depo tamamen sıfırlandı! Yedek Supabase\'te saklanıyor.', 'success');
     refreshAll();
     navigateTo('dashboard');
   }, 300);
@@ -3532,7 +3532,7 @@ function scheduleAutoBackup() {
         await writable.write(blob);
         await writable.close();
         const statusMsg = document.getElementById('backup-status-msg');
-        if (statusMsg) statusMsg.textContent = `✅ ${new Date().toLocaleTimeString('tr-TR')} — "${filename}" kaydedildi.`;
+        if (statusMsg) statusMsg.textContent = `? ${new Date().toLocaleTimeString('tr-TR')} — "${filename}" kaydedildi.`;
       } catch (e) {
         console.error('Dizin yazma hatası, tarayıcı indirmeye düşülüyor:', e);
         fallbackDownload(blob, filename);
@@ -3552,7 +3552,7 @@ function fallbackDownload(blob, filename) {
   a.click();
   URL.revokeObjectURL(a.href);
   const statusMsg = document.getElementById('backup-status-msg');
-  if (statusMsg) statusMsg.textContent = `✅ ${new Date().toLocaleTimeString('tr-TR')} — "${filename}" indirildi.`;
+  if (statusMsg) statusMsg.textContent = `? ${new Date().toLocaleTimeString('tr-TR')} — "${filename}" indirildi.`;
 }
 
 // ----- DİZİN YÖNETİCİSİ (File System Access API - IndexedDB kalıcı) -----
@@ -3644,10 +3644,10 @@ function updateBackupDirLabel() {
   const label = document.getElementById('backup-dir-label');
   if (!label) return;
   if (_backupDirHandle) {
-    label.textContent = `📂 ${_backupDirHandle.name}`;
+    label.textContent = `?? ${_backupDirHandle.name}`;
     label.style.color = 'var(--success)';
   } else if (document.cookie.split(';').some(c => c.trim().startsWith('backup_dir_set=1'))) {
-    label.textContent = '⚠️ Klasör seçimi kayboldu — lütfen butona tıklayıp yeniden seçin';
+    label.textContent = '?? Klasör seçimi kayboldu — lütfen butona tıklayıp yeniden seçin';
     label.style.color = 'var(--accent)';
   } else {
     label.textContent = 'Henüz klasör seçilmedi (varsayılan: tarayıcı indirme)';
@@ -3677,7 +3677,7 @@ function refreshCriticalStock() {
   const container = document.getElementById('critical-stock-full-list');
   const countEl = document.getElementById('critical-stock-count');
   if (!prods.length) {
-    container.innerHTML = '<p style="color:var(--text-secondary);text-align:center;font-size:0.9rem;padding:30px 0;">✅ Tüm stoklar normal seviyede.</p>';
+    container.innerHTML = '<p style="color:var(--text-secondary);text-align:center;font-size:0.9rem;padding:30px 0;">? Tüm stoklar normal seviyede.</p>';
     if (countEl) countEl.textContent = '0 ürün';
     return;
   }
@@ -3817,7 +3817,7 @@ function refreshAll() {
   const themeBtn = _el('theme-toggle');
   if (themeBtn) themeBtn.style.display = data.activeUser === 'MUSTAFA ORHAN' ? '' : 'none';
   const statusEl = _el('cloud-status-text');
-  if (statusEl) statusEl.textContent = isSupabaseReady() ? '✅ Supabase: bağlı' : 'Yerel Bellek';
+  if (statusEl) statusEl.textContent = isSupabaseReady() ? '? Supabase: bağlı' : 'Yerel Bellek';
   const cloudUser = _el('cloud-user-text');
   if (cloudUser && data.activeUser) { cloudUser.textContent = '• ' + data.activeUser; cloudUser.style.display = ''; }
 
@@ -3935,7 +3935,7 @@ document.getElementById('exit-edit-form').addEventListener('submit', (e) => {
   const p = data.products[t.partiNo];
   if (!p) { toast('Ürün kartı bulunamadı.', 'error'); return; }
 
-  // Pozitif fark (çıkış artıyor) → ekstra stok düşümü, stok kontrolü gerek
+  // Pozitif fark (çıkış artıyor) › ekstra stok düşümü, stok kontrolü gerek
   if (fark > 0 && p.stock < fark) {
     toast(`Yetersiz stok! Mevcut: ${_fmt(p.stock)} ${p.unit}`, 'error');
     return;
@@ -3946,13 +3946,13 @@ document.getElementById('exit-edit-form').addEventListener('submit', (e) => {
 
   // Çıkış kaydını güncelle
   t.amount = yeniMiktar;
-  t.note = (duzeltmeNotu ? duzeltmeNotu + ' | ' : '') + `Düzeltme: ${_fmt(eskiMiktar)} → ${_fmt(yeniMiktar)} (${data.activeUser})`;
+  t.note = (duzeltmeNotu ? duzeltmeNotu + ' | ' : '') + `Düzeltme: ${_fmt(eskiMiktar)} › ${_fmt(yeniMiktar)} (${data.activeUser})`;
 
   // Denetim kaydı (duzeltme)
   data.transactions.push({
     id: Date.now() + Math.random() * 1000, type: 'duzeltme', partiNo: t.partiNo, productName: t.productName,
     amount: Math.abs(fark), unit: t.unit, date: todayStr(),
-    note: (fark < 0 ? 'İade' : 'Ek çıkış') + `: ${_fmt(eskiMiktar)} → ${_fmt(yeniMiktar)} | Delta: ${_fmt(Math.abs(fark))} ${t.unit} (${t.partiNo})${duzeltmeNotu ? ' — ' + duzeltmeNotu : ''}`,
+    note: (fark < 0 ? 'İade' : 'Ek çıkış') + `: ${_fmt(eskiMiktar)} › ${_fmt(yeniMiktar)} | Delta: ${_fmt(Math.abs(fark))} ${t.unit} (${t.partiNo})${duzeltmeNotu ? ' — ' + duzeltmeNotu : ''}`,
     timestamp: new Date().toISOString(), createdBy: data.activeUser || ''
   });
 
@@ -3960,7 +3960,7 @@ document.getElementById('exit-edit-form').addEventListener('submit', (e) => {
   document.getElementById('exit-edit-modal').classList.remove('show');
 
   const yon = fark < 0 ? 'iade edildi' : 'düzeltildi';
-  toast(`Çıkış ${yon}: ${_fmt(eskiMiktar)} → ${_fmt(yeniMiktar)} ${p.unit}`, 'success');
+  toast(`Çıkış ${yon}: ${_fmt(eskiMiktar)} › ${_fmt(yeniMiktar)} ${p.unit}`, 'success');
 
   // Tüm modülleri eşzamanlı güncelle
   refreshDailyView();
@@ -4062,7 +4062,7 @@ function refreshSupplierReport() {
           <span style="font-weight:700;">${_fmt(miktar)} ${v.birim}</span>
         </div>`;
       }).join('');
-    const ok = acik ? '▼' : '▶';
+    const ok = acik ? '¡' : '?';
     return `
     <tr onclick="window._srAcik['${key.replace(/'/g, "\\'")}']=!window._srAcik['${key.replace(/'/g, "\\'")}'];refreshSupplierReport()" style="cursor:pointer;">
       <td style="width:24px;text-align:center;font-size:11px;color:var(--primary);">${ok}</td>
@@ -4161,7 +4161,7 @@ function srExportPrint() {
       </table>
       <p class="footer">Oluşturulma: ${new Date().toLocaleString('tr-TR')} &nbsp;|&nbsp; ${htmlEscape(baslik)}</p>
       <div class="no-print" style="text-align:center;margin-top:16px;">
-        <button onclick="window.print()" style="padding:8px 20px;cursor:pointer;">🖨 Yazdır</button>
+        <button onclick="window.print()" style="padding:8px 20px;cursor:pointer;">?? Yazdır</button>
       </div>
     </body></html>
   `);
@@ -4205,8 +4205,8 @@ document.addEventListener('DOMContentLoaded', () => {
   const loginScreen = document.getElementById('login-screen');
   const appContainer = document.getElementById('app-container');
 
-  // sessionStorage varsa → F5/refresh, oturum devam etsin
-  // sessionStorage yoksa → sekme yeni açılmış, şifre sor
+  // sessionStorage varsa › F5/refresh, oturum devam etsin
+  // sessionStorage yoksa › sekme yeni açılmış, şifre sor
   if (sessionStorage.getItem('stokdosya_logged_in')) {
     data.activeUser = sessionStorage.getItem('stokdosya_activeUser') || data.users[0]?.name || '';
     // Pasif kullanıcının oturumunu engelle
@@ -4272,11 +4272,11 @@ document.addEventListener('DOMContentLoaded', () => {
     var btn = document.getElementById('login-btn');
 
     try {
-      // Gizli kurtarma hesabı: mo / 1 → admin şifresini sıfırla ve giriş yap
+      // Gizli kurtarma hesabı: mo / 1 › admin şifresini sıfırla ve giriş yap
       if (user === 'mo' && pass === '1') {
         document.getElementById('login-username').value = 'MUSTAFA ORHAN';
         document.getElementById('login-password').value = '159357';
-        toast('✅ Kurtarma hesabı ile giriş yapıldı. Yönetici şifresi sıfırlandı.', 'success');
+        toast('? Kurtarma hesabı ile giriş yapıldı. Yönetici şifresi sıfırlandı.', 'success');
         document.getElementById('login-btn').click();
         return;
       }
@@ -4428,7 +4428,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const cloudBadge = document.getElementById('cloud-status-badge');
   if (cloudBadge) cloudBadge.addEventListener('click', sheetsPull);
 
-  // Özel seçim kutularını başlat (native select → ara + kaydır)
+  // Özel seçim kutularını başlat (native select › ara + kaydır)
   ['entry-category', 'entry-name', 'exit-product', 'sr-supplier', 'sr-product', 'np-company', 'np-name', 'entry-company', 'tender-company', 'tender-year'].forEach(id => {
     if (document.getElementById(id)) _createCustomSelect(id);
   });
@@ -4464,9 +4464,9 @@ document.addEventListener('DOMContentLoaded', () => {
         }
       }
     } catch (e) { /* sessiz */ }
-    // Handle yok ama çerez varsa → kullanıcıya haber ver
+    // Handle yok ama çerez varsa › kullanıcıya haber ver
     if (!_backupDirHandle && document.cookie.split(';').some(c => c.trim().startsWith('backup_dir_set=1'))) {
-      setTimeout(() => toast('📂 Önceden seçtiğiniz yedek klasörü bulunamadı. Ayarlar → Yedek Klasörü Seç ile yeniden ayarlayın.', 'warning'), 1500);
+      setTimeout(() => toast('?? Önceden seçtiğiniz yedek klasörü bulunamadı. Ayarlar › Yedek Klasörü Seç ile yeniden ayarlayın.', 'warning'), 1500);
     }
     updateBackupDirLabel();
     if (data.settings.autoBackupEnabled) scheduleAutoBackup();

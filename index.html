@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+??<!DOCTYPE html>
 <html lang="tr">
 
 <head>
@@ -22,7 +22,7 @@
         style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; z-index:10001; justify-content:center; align-items:center;">
         <div class="loader-container" style="text-align:center;">
             <i class="fa-solid fa-spinner fa-spin" style="font-size: 3rem; color: var(--primary);"></i>
-            <p style="margin-top:1rem; font-weight:700; color:var(--primary); font-size:1.1rem;" id="loading-text">Veriler yÃ¼kleniyor...</p>
+            <p style="margin-top:1rem; font-weight:700; color:var(--primary); font-size:1.1rem;" id="loading-text">Veriler yükleniyor...</p>
         </div>
     </div>
 
@@ -31,13 +31,13 @@
         <div style="position:relative;background:var(--bg-secondary);border-radius:var(--border-radius-lg);padding:3rem;width:420px;max-width:92vw;box-shadow:0 25px 60px rgba(0,0,0,0.3);border:1px solid var(--border-color);text-align:center;">
             <i class="fa-solid fa-boxes-packing" style="font-size:3rem;color:var(--primary);margin-bottom:0.75rem;"></i>
             <h2 style="margin:0 0 0.25rem;font-size:1.6rem;">STOKDOSYA</h2>
-            <p style="color:var(--text-secondary);font-size:0.9rem;margin-bottom:1.75rem;">Stok YÃ¶netim Sistemi</p>
+            <p style="color:var(--text-secondary);font-size:0.9rem;margin-bottom:1.75rem;">Stok Yönetim Sistemi</p>
             <div style="display:flex;flex-direction:column;gap:14px;">
-                <input type="text" id="login-username" class="form-control" placeholder="KullanÄ±cÄ± AdÄ±" style="padding:14px 16px;font-size:16px;width:100%;" autocomplete="off">
-                <input type="password" id="login-password" class="form-control" placeholder="Åifre" style="padding:14px 16px;font-size:16px;width:100%;" autocomplete="off">
-                <button id="login-btn" class="btn-ui btn-primary" style="padding:14px;font-size:16px;font-weight:700;width:100%;text-transform:uppercase;justify-content:center;">GiriÅŸ Yap</button>
+                <input type="text" id="login-username" class="form-control" placeholder="Kullanıcı Adı" style="padding:14px 16px;font-size:16px;width:100%;" autocomplete="off">
+                <input type="password" id="login-password" class="form-control" placeholder="�?ifre" style="padding:14px 16px;font-size:16px;width:100%;" autocomplete="off">
+                <button id="login-btn" class="btn-ui btn-primary" style="padding:14px;font-size:16px;font-weight:700;width:100%;text-transform:uppercase;justify-content:center;">Giriş Yap</button>
                 <p id="login-error" style="color:var(--accent);font-size:0.85rem;margin:0;display:none;"></p>
-                <span style="font-size:0.75rem;color:var(--text-muted);margin-top:4px;">Åifrenizi mi unuttunuz? YardÄ±m iÃ§in yÃ¶neticinize baÅŸvurun.</span>
+                <span style="font-size:0.75rem;color:var(--text-muted);margin-top:4px;">�?ifrenizi mi unuttunuz? Yardım için yöneticinize başvurun.</span>
                 <span style="position:absolute;bottom:8px;right:12px;font-size:9px;color:var(--text-muted);opacity:0.4;font-weight:600;letter-spacing:1px;user-select:none;">FMG</span>
             </div>
         </div>
@@ -55,10 +55,10 @@
 
             <nav class="nav-menu">
                 <div class="nav-group">
-                    <h4>YÃ¶netim</h4>
+                    <h4>Yönetim</h4>
                     <a href="#dashboard" class="nav-item active" data-target="dashboard">
                         <i class="fa-solid fa-chart-pie"></i>
-                        <span>Genel BakÄ±ÅŸ</span>
+                        <span>Genel Bakış</span>
                     </a>
                     <a href="#warehouse" class="nav-item" data-target="warehouse">
                         <i class="fa-solid fa-boxes-stacked"></i>
@@ -66,7 +66,7 @@
                     </a>
                     <a href="#aggregated-stock" class="nav-item" data-target="aggregated-stock">
                         <i class="fa-solid fa-cubes"></i>
-                        <span>Depodaki ÃœrÃ¼n MiktarlarÄ±</span>
+                        <span>Depodaki Ürün Miktarları</span>
                     </a>
                 </div>
 
@@ -74,15 +74,15 @@
                     <h4>Operasyon</h4>
                     <a href="#entry" class="nav-item" data-target="entry">
                         <i class="fa-solid fa-arrow-right-to-bracket"></i>
-                        <span>Yeni ÃœrÃ¼n & Parti TanÄ±mÄ±</span>
+                        <span>Yeni Ürün & Parti Tanımı</span>
                     </a>
                     <a href="#exit" class="nav-item" data-target="exit">
                         <i class="fa-solid fa-dolly"></i>
-                        <span>ÃœrÃ¼n Ã‡Ä±kÄ±ÅŸ</span>
+                        <span>Ürün Çıkış</span>
                     </a>
                     <a href="#daily" class="nav-item" data-target="daily">
                         <i class="fa-solid fa-clipboard-list"></i>
-                        <span>GÃ¼nlÃ¼k Ä°ÅŸlemler</span>
+                        <span>Günlük İşlemler</span>
                     </a>
                 </div>
 
@@ -90,11 +90,11 @@
                     <h4>Raporlar</h4>
                     <a href="#years-view" class="nav-item" data-target="years-view">
                         <i class="fa-solid fa-calendar-check"></i>
-                        <span>YÄ±llÄ±k Raporlar</span>
+                        <span>Yıllık Raporlar</span>
                     </a>
                     <a href="#supplier-report-view" class="nav-item" data-target="supplier-report-view">
                         <i class="fa-solid fa-truck"></i>
-                        <span>AylÄ±k TedarikÃ§i Raporu</span>
+                        <span>Aylık Tedarikçi Raporu</span>
                     </a>
                     <select id="months-year-select" class="form-control" style="width:calc(100% - 12px);margin:4px 6px 8px;font-size:13px;"></select>
                     <div id="months-menu" style="display:flex; flex-direction:column; gap:0.25rem;"></div>
@@ -108,11 +108,11 @@
                     </a>
                     <a href="#tender-tracking" class="nav-item" data-target="tender-tracking">
                         <i class="fa-solid fa-file-signature"></i>
-                        <span>Ä°hale Takip</span>
+                        <span>İhale Takip</span>
                     </a>
                     <a href="#suppliers" class="nav-item" data-target="suppliers">
                         <i class="fa-solid fa-truck"></i>
-                        <span>TedarikÃ§i & ÃœrÃ¼n TanÄ±mla</span>
+                        <span>Tedarikçi & Ürün Tanımla</span>
                     </a>
                     <a href="#critical-stock-view" class="nav-item" data-target="critical-stock-view">
                         <i class="fa-solid fa-triangle-exclamation"></i>
@@ -126,9 +126,9 @@
                         </div>
                         <div class="user-details" style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1;">
                             <h5 id="display-username" style="margin: 0; font-weight: 700; font-size: 0.8rem; color: var(--text-primary); text-align: left;">MUSTAFA ORHAN</h5>
-                            <span id="display-role" style="font-size: 0.7rem; color: var(--text-secondary); display: block; text-align: left;">YÃ¶netici</span>
+                            <span id="display-role" style="font-size: 0.7rem; color: var(--text-secondary); display: block; text-align: left;">Yönetici</span>
                         </div>
-                        <button id="logout-btn" class="btn-ui btn-sm btn-outline" title="Ã‡Ä±kÄ±ÅŸ Yap" style="padding:6px 10px;font-size:13px;"><i class="fa-solid fa-right-from-bracket"></i></button>
+                        <button id="logout-btn" class="btn-ui btn-sm btn-outline" title="Çıkış Yap" style="padding:6px 10px;font-size:13px;"><i class="fa-solid fa-right-from-bracket"></i></button>
                     </div>
 
                 <div class="nav-group">
@@ -139,7 +139,7 @@
                     </a>
                     <a href="#user-guide-view" class="nav-item" data-target="user-guide-view">
                         <i class="fa-solid fa-book"></i>
-                        <span>KullanÄ±m KÄ±lavuzu</span>
+                        <span>Kullanım Kılavuzu</span>
                     </a>
                 </div>
             </nav>
@@ -150,10 +150,10 @@
         <main class="main-content">
             <header class="top-bar">
                 <div style="display:flex;align-items:center;gap:12px;">
-                    <button id="mobile-menu-btn" class="mobile-menu-btn" aria-label="MenÃ¼">
+                    <button id="mobile-menu-btn" class="mobile-menu-btn" aria-label="Menü">
                         <i class="fa-solid fa-bars"></i>
                     </button>
-                    <h2 id="page-title">Genel BakÄ±ÅŸ</h2>
+                    <h2 id="page-title">Genel Bakış</h2>
                 </div>
                 <div class="info-cards">
                     <div class="info-badge" id="cloud-status-badge" style="cursor:pointer;" title="Supabase durumu">
@@ -165,8 +165,8 @@
                         <i class="fa-regular fa-calendar"></i>
                         <span id="header-date">...</span>
                     </div>
-                    <button class="theme-btn" id="theme-toggle" title="Tema deÄŸiÅŸtir">ğŸŒ™</button>
-                    <button id="logout-btn-header" class="btn-ui btn-sm btn-outline" title="Ã‡Ä±kÄ±ÅŸ Yap" style="padding:6px 10px;font-size:13px;"><i class="fa-solid fa-right-from-bracket"></i></button>
+                    <button class="theme-btn" id="theme-toggle" title="Tema değiştir">g���</button>
+                    <button id="logout-btn-header" class="btn-ui btn-sm btn-outline" title="Çıkış Yap" style="padding:6px 10px;font-size:13px;"><i class="fa-solid fa-right-from-bracket"></i></button>
                 </div>
             </header>
 
@@ -176,65 +176,60 @@
                     <div class="stat-card stat-card-compact" style="border-left:3px solid #60a5fa;">
                         <div style="width:22px;height:22px;border-radius:var(--border-radius-sm);display:flex;align-items:center;justify-content:center;font-size:11px;flex-shrink:0;color:#60a5fa;"><i class="fa-solid fa-cube"></i></div>
                         <div class="stat-details">
-                            <h3>Toplam Ã‡eÅŸit</h3>
+                            <h3>Toplam Çeşit</h3>
                             <p id="total-varieties">0</p>
                         </div>
                     </div>
                     <div class="stat-card stat-card-compact" style="border-left:3px solid #3b82f6;">
                         <div style="width:22px;height:22px;border-radius:var(--border-radius-sm);display:flex;align-items:center;justify-content:center;font-size:11px;flex-shrink:0;color:#3b82f6;"><i class="fa-regular fa-clock"></i></div>
                         <div class="stat-details">
-                            <h3>STT YaklaÅŸan (â‰¤3 gÃ¼n)</h3>
+                            <h3>STT Yaklaşan (≤3 gün)</h3>
                             <p id="total-expiring">0</p>
                         </div>
                     </div>
                     <div class="stat-card stat-card-compact" style="border-left:3px solid #2563eb;">
                         <div id="critical-badge-container" style="width:22px;height:22px;border-radius:var(--border-radius-sm);display:flex;align-items:center;justify-content:center;font-size:11px;flex-shrink:0;color:#2563eb;"><i class="fa-solid fa-triangle-exclamation"></i></div>
                         <div class="stat-details">
-                            <h3>Kritik Limit AltÄ±</h3>
+                            <h3>Kritik Limit Altı</h3>
                             <p id="critical-count">0</p>
                         </div>
                     </div>
                     <div class="stat-card stat-card-compact" style="border-left:3px solid #1d4ed8;">
                         <div style="width:22px;height:22px;border-radius:var(--border-radius-sm);display:flex;align-items:center;justify-content:center;font-size:11px;flex-shrink:0;color:#1d4ed8;"><i class="fa-solid fa-right-left"></i></div>
                         <div class="stat-details">
-                            <h3>BugÃ¼nkÃ¼ Hareket</h3>
+                            <h3>Bugünkü Hareket</h3>
                             <p id="today-transactions">0</p>
                         </div>
                     </div>
                 </div>
-<span style="font-size:11px;font-weight:600;color:var(--text-primary);">KullanÄ±cÄ±lar</span>
-                        <span id="dashboard-active-count" style="font-size:10px;color:var(--text-secondary);margin-left:auto;"></span>
-                    </div>
-                    <div id="dashboard-user-list" style="display:flex;flex-wrap:wrap;gap:3px;"></div>
-                </div>
 
-                <!-- 3'lÃ¼ grafik paneli: Kategori DaÄŸÄ±lÄ±mÄ± + Ä°hale (dikey Ã§ubuk) + HÄ±zlÄ± Bilgiler -->
+                <!-- 3'lü grafik paneli: Kategori Dağılımı + İhale (dikey çubuk) + Hızlı Bilgiler -->
                 <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1.5rem; margin-bottom: 1.5rem;">
                     <div class="panel-container" style="margin-bottom:0;">
                         <div class="panel-header">
-                            <h3><i class="fa-solid fa-chart-simple"></i> Kategori DaÄŸÄ±lÄ±mÄ± (Ã‡eÅŸit)</h3>
+                            <h3><i class="fa-solid fa-chart-simple"></i> Kategori Dağılımı (Çeşit)</h3>
                         </div>
                         <div style="padding:0.5rem 0.75rem;">
                             <div style="max-width:300px;margin:0 auto;"><canvas id="category-chart-canvas" style="width:100%;"></canvas></div>
-                            <p id="category-chart-empty" style="color:var(--text-secondary);text-align:center;font-size:0.9rem;padding:40px 0;display:none;">HenÃ¼z Ã¼rÃ¼n yok.</p>
+                            <p id="category-chart-empty" style="color:var(--text-secondary);text-align:center;font-size:0.9rem;padding:40px 0;display:none;">Henüz ürün yok.</p>
                             <div id="category-chart-legend" style="display:flex;justify-content:center;gap:6px;flex-wrap:wrap;margin-top:0;"></div>
                         </div>
                     </div>
                     <div class="panel-container" id="tender-chart-panel" style="margin-bottom:0;">
                         <div class="panel-header">
-                            <h3><i class="fa-solid fa-chart-bar"></i> Ä°hale Ã‡ekilme YÃ¼zdeleri</h3>
+                            <h3><i class="fa-solid fa-chart-bar"></i> İhale Çekilme Yüzdeleri</h3>
                         </div>
                         <div style="padding:0.5rem 0.75rem;">
                             <canvas id="tender-chart-canvas" width="484" height="380" style="width:484px;height:380px;display:block;box-sizing:border-box;"></canvas>
-                            <div id="tender-chart-empty" style="color:var(--text-secondary);text-align:center;font-size:0.9rem;padding:40px 0;display:none;">HenÃ¼z ihale kaydÄ± bulunamadÄ±.</div>
+                            <div id="tender-chart-empty" style="color:var(--text-secondary);text-align:center;font-size:0.9rem;padding:40px 0;display:none;">Henüz ihale kaydı bulunamadı.</div>
                         </div>
                     </div>
                     <div class="panel-container" style="margin-bottom:0;">
                         <div class="panel-header">
-                            <h3><i class="fa-solid fa-circle-info"></i> HÄ±zlÄ± Bilgiler</h3>
+                            <h3><i class="fa-solid fa-circle-info"></i> Hızlı Bilgiler</h3>
                         </div>
                         <div style="padding:0.5rem 0.75rem; display:flex; flex-direction:column;" id="quick-info-list">
-                            <p style="color:var(--text-secondary); text-align:center; font-size:0.9rem;">YÃ¼kleniyor...</p>
+                            <p style="color:var(--text-secondary); text-align:center; font-size:0.9rem;">Yükleniyor...</p>
                         </div>
                     </div>
                 </div>
@@ -243,7 +238,7 @@
                 <div class="panel-container" style="margin-bottom:1.5rem;">
                     <div class="panel-header">
                         <h3>Son Hareketler</h3>
-                        <a href="#" onclick="navigateTo('daily'); return false;" style="font-size:0.85rem;color:var(--primary);font-weight:600;text-decoration:none;">TÃ¼mÃ¼nÃ¼ GÃ¶r â†’</a>
+                        <a href="#" onclick="navigateTo('daily'); return false;" style="font-size:0.85rem;color:var(--primary);font-weight:600;text-decoration:none;">Tümünü Gör →</a>
                     </div>
                     <div style="overflow-x:auto; max-height:380px; overflow-y:auto;">
                         <table class="minimal-table" style="min-width:650px;">
@@ -251,11 +246,11 @@
                                 <tr>
                                     <th>Parti No</th>
                                     <th>Tarih</th>
-                                    <th>TÃ¼r</th>
-                                    <th>ÃœrÃ¼n</th>
+                                    <th>Tür</th>
+                                    <th>Ürün</th>
                                     <th>Miktar</th>
                                     <th>Birim</th>
-                                    <th>AÃ§Ä±klama</th>
+                                    <th>Açıklama</th>
                                 </tr>
                             </thead>
                             <tbody id="recent-transactions-body"></tbody>
@@ -263,24 +258,24 @@
                     </div>
                 </div>
 
-                <!-- Tarihi YaklaÅŸan ÃœrÃ¼nler -->
+                <!-- Tarihi Yaklaşan Ürünler -->
                 <div class="panel-container" style="margin-bottom:1.5rem;">
                     <div class="panel-header">
-                        <h3><i class="fa-regular fa-clock"></i> Tarihi YaklaÅŸan / GeÃ§en ÃœrÃ¼nler (STT)</h3>
+                        <h3><i class="fa-regular fa-clock"></i> Tarihi Yaklaşan / Geçen Ürünler (STT)</h3>
                     </div>
                     <div style="padding: 0.75rem; display: flex; flex-direction: column; gap: 0.5rem;" id="expiring-products-list">
-                        <p style="color:var(--text-secondary); text-align:center; font-size:0.9rem;">âœ… STT girilmiÅŸ Ã¼rÃ¼n bulunmuyor.</p>
+                        <p style="color:var(--text-secondary); text-align:center; font-size:0.9rem;">✅ STT girilmiş ürün bulunmuyor.</p>
                     </div>
                 </div>
 
                 <!-- Kritik Stok -->
                 <div class="panel-container" style="margin-bottom:1.5rem;">
                     <div class="panel-header">
-                        <h3><i class="fa-solid fa-triangle-exclamation" style="color:var(--warning);"></i> Kritik Stok UyarÄ±sÄ±</h3>
-                        <a href="#" onclick="navigateTo('critical-stock-view'); return false;" style="font-size:0.85rem;color:var(--primary);font-weight:600;text-decoration:none;">TÃ¼mÃ¼nÃ¼ GÃ¶r â†’</a>
+                        <h3><i class="fa-solid fa-triangle-exclamation" style="color:var(--warning);"></i> Kritik Stok Uyarısı</h3>
+                        <a href="#" onclick="navigateTo('critical-stock-view'); return false;" style="font-size:0.85rem;color:var(--primary);font-weight:600;text-decoration:none;">Tümünü Gör →</a>
                     </div>
                     <div style="padding: 0.75rem; display: flex; flex-direction: column; gap: 0.5rem;" id="critical-stock-list">
-                        <p style="color:var(--text-secondary); text-align:center; font-size:0.85rem;">TÃ¼m stoklar normal seviyede.</p>
+                        <p style="color:var(--text-secondary); text-align:center; font-size:0.85rem;">Tüm stoklar normal seviyede.</p>
                     </div>
                 </div>
         </div>
@@ -292,32 +287,32 @@
                         <div>
                             <h3>Mevcut Stok Listesi</h3>
                             <div class="category-badges-container" id="category-filter-container">
-                                <span class="category-tag active" data-category="ALL">TÃ¼mÃ¼</span>
+                                <span class="category-tag active" data-category="ALL">Tümü</span>
                                 <span class="category-tag" data-category="Sebze">Sebze</span>
                                 <span class="category-tag" data-category="Meyve">Meyve</span>
                                 <span class="category-tag" data-category="Bakliyat">Bakliyat</span>
-                                <span class="category-tag" data-category="Temel GÄ±da">Temel GÄ±da</span>
+                                <span class="category-tag" data-category="Temel Gıda">Temel Gıda</span>
                                 <span class="category-tag" data-category="Temizlik">Temizlik</span>
-                                <span class="category-tag" data-category="SÃ¼t ÃœrÃ¼nleri">SÃ¼t ÃœrÃ¼nleri</span>
-                                <span class="category-tag" data-category="DiÄŸer">DiÄŸer</span>
+                                <span class="category-tag" data-category="Süt Ürünleri">Süt Ürünleri</span>
+                                <span class="category-tag" data-category="Diğer">Diğer</span>
                             </div>
                         </div>
                         <div style="display:flex; gap: 10px; align-items:center;">
-                            <input type="text" id="anbar-search" class="search-field" placeholder="ÃœrÃ¼n veya Parti No Ara...">
+                            <input type="text" id="anbar-search" class="search-field" placeholder="Ürün veya Parti No Ara...">
                             <div class="export-dropdown" style="position:relative;">
                                 <button id="export-btn" class="btn-ui btn-outline"><i class="fa-solid fa-download"></i> Liste Al</button>
                                 <div id="export-menu" class="export-menu" style="display:none;position:absolute;top:100%;right:0;z-index:100;background:var(--bg-primary);border:1px solid var(--border-color);border-radius:var(--border-radius-sm);box-shadow:0 4px 12px rgba(0,0,0,0.15);min-width:160px;overflow:hidden;">
                                     <button class="export-option" data-format="xlsx" style="display:flex;align-items:center;gap:8px;width:100%;padding:10px 14px;border:none;background:none;cursor:pointer;font-family:inherit;font-size:13px;color:var(--text-primary);"><i class="fa-regular fa-file-excel" style="color:#22c55e;font-size:16px;"></i> Excel (XLSX)</button>
                                     <button class="export-option" data-format="word" style="display:flex;align-items:center;gap:8px;width:100%;padding:10px 14px;border:none;background:none;cursor:pointer;font-family:inherit;font-size:13px;color:var(--text-primary);"><i class="fa-regular fa-file-word" style="color:#3b82f6;font-size:16px;"></i> Word (DOC)</button>
-                                    <button class="export-option" data-format="print" style="display:flex;align-items:center;gap:8px;width:100%;padding:10px 14px;border:none;background:none;cursor:pointer;font-family:inherit;font-size:13px;color:var(--text-primary);"><i class="fa-solid fa-print" style="color:#8b5cf6;font-size:16px;"></i> PDF / YazdÄ±r</button>
+                                    <button class="export-option" data-format="print" style="display:flex;align-items:center;gap:8px;width:100%;padding:10px 14px;border:none;background:none;cursor:pointer;font-family:inherit;font-size:13px;color:var(--text-primary);"><i class="fa-solid fa-print" style="color:#8b5cf6;font-size:16px;"></i> PDF / Yazdır</button>
                                 </div>
                             </div>
-                            <button id="add-product-btn" class="btn-ui btn-primary"><i class="fa-solid fa-plus"></i> Yeni ÃœrÃ¼n</button>
+                            <button id="add-product-btn" class="btn-ui btn-primary"><i class="fa-solid fa-plus"></i> Yeni Ürün</button>
                         </div>
                     </div>
                     <div style="display:flex; gap:8px; padding:0.5rem 1.25rem; border-bottom:1px solid var(--border-color); flex-wrap:wrap;">
-                        <button id="filter-zero-btn" class="btn-ui btn-sm btn-outline"><i class="fa-solid fa-eye-slash"></i> SÄ±fÄ±r StoklarÄ± Gizle</button>
-                        <button id="filter-critical-btn" class="btn-ui btn-sm btn-outline"><i class="fa-solid fa-triangle-exclamation"></i> Sadece Kritik AltÄ±</button>
+                        <button id="filter-zero-btn" class="btn-ui btn-sm btn-outline"><i class="fa-solid fa-eye-slash"></i> Sıfır Stokları Gizle</button>
+                        <button id="filter-critical-btn" class="btn-ui btn-sm btn-outline"><i class="fa-solid fa-triangle-exclamation"></i> Sadece Kritik Altı</button>
                         <span id="filter-active-badge" style="display:none;font-size:12px;align-self:center;color:var(--text-secondary);padding:2px 8px;border-radius:999px;background:var(--primary-light);"></span>
                     </div>
                     <table class="minimal-table">
@@ -325,13 +320,13 @@
                             <tr>
                                 <th style="width: 150px;">Parti No</th>
                                 <th>Kategori</th>
-                                <th>ÃœrÃ¼n AdÄ±</th>
-                                <th>Stok MiktarÄ±</th>
+                                <th>Ürün Adı</th>
+                                <th>Stok Miktarı</th>
                                 <th>Birim</th>
-                                <th>Ä°hale Kalan</th>
+                                <th>İhale Kalan</th>
                                 <th>Kritik Limit</th>
-                                <th>Son TÃ¼k. Tar.</th>
-                                <th style="width: 120px; text-align: right;">Ä°ÅŸlemler</th>
+                                <th>Son Tük. Tar.</th>
+                                <th style="width: 120px; text-align: right;">İşlemler</th>
                             </tr>
                         </thead>
                         <tbody id="anbar-body"></tbody>
@@ -339,13 +334,13 @@
                 </div>
             </div>
 
-            <!-- 2.5 DEPODAKÄ° ÃœRÃœN MÄ°KTARLARI -->
+            <!-- 2.5 DEPODAKİ ÜRÜN MİKTARLARI -->
             <div id="aggregated-stock" class="view-section">
                 <div class="panel-container">
                     <div class="panel-header">
-                        <h3><i class="fa-solid fa-cubes"></i> Depodaki ÃœrÃ¼n MiktarlarÄ±</h3>
+                        <h3><i class="fa-solid fa-cubes"></i> Depodaki Ürün Miktarları</h3>
                         <div style="display:flex;gap:8px;align-items:center;">
-                            <input type="text" id="agg-stock-search" class="search-field" placeholder="ÃœrÃ¼n ara..." style="width:200px;">
+                            <input type="text" id="agg-stock-search" class="search-field" placeholder="Ürün ara..." style="width:200px;">
                             <select id="agg-stock-category" class="form-control" style="width:150px;font-size:13px;"></select>
                             <span id="agg-stock-count" style="font-size:13px;color:var(--text-muted);"></span>
                         </div>
@@ -355,13 +350,13 @@
                         <thead>
                             <tr>
                                 <th>#</th>
-                                <th>ÃœrÃ¼n AdÄ±</th>
+                                <th>Ürün Adı</th>
                                 <th>Toplam Stok</th>
                                 <th>Birim</th>
-                                <th>Parti SayÄ±sÄ±</th>
+                                <th>Parti Sayısı</th>
                                 <th>Kategoriler</th>
                                 <th>En Erken STT</th>
-                                <th>En GeÃ§ STT</th>
+                                <th>En Geç STT</th>
                             </tr>
                         </thead>
                         <tbody id="agg-stock-body"></tbody>
@@ -369,21 +364,21 @@
                 </div>
             </div>
 
-            <!-- 3. ENTRY (GÄ°RÄ°Å) = YENÄ° ÃœRÃœN & PARTÄ° TANIMI -->
+            <!-- 3. ENTRY (GİRİ�?) = YENİ ÜRÜN & PARTİ TANIMI -->
             <div id="entry" class="view-section">
                 <div class="form-card">
                     <div style="display:flex; align-items:center; gap:0.75rem; margin-bottom: 1.5rem;">
                         <div class="icon-box st-green" style="width:40px; height:40px; font-size:1.1rem;"><i class="fa-solid fa-box-open"></i></div>
-                        <h3 style="margin: 0; font-size:1.3rem;">Yeni ÃœrÃ¼n & Parti TanÄ±mÄ±</h3>
+                        <h3 style="margin: 0; font-size:1.3rem;">Yeni Ürün & Parti Tanımı</h3>
                     </div>
                     <form id="entry-form">
                         <div class="form-group">
-                            <label>ÃœrÃ¼n AdÄ±</label>
+                            <label>Ürün Adı</label>
                             <div style="display:flex;gap:5px;">
                                 <select id="entry-name" class="form-control" required>
-                                    <option value="">ÃœrÃ¼n AdÄ± SeÃ§in veya Yeni Girin</option>
+                                    <option value="">Ürün Adı Seçin veya Yeni Girin</option>
                                 </select>
-                                <button type="button" id="entry-add-name-btn" class="btn-ui btn-outline" style="padding:0 12px;min-width:40px;" title="Yeni ÃœrÃ¼n AdÄ± Ekle"><i class="fa-solid fa-plus"></i></button>
+                                <button type="button" id="entry-add-name-btn" class="btn-ui btn-outline" style="padding:0 12px;min-width:40px;" title="Yeni Ürün Adı Ekle"><i class="fa-solid fa-plus"></i></button>
                             </div>
                         </div>
                         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
@@ -393,19 +388,19 @@
                                     <option>Sebze</option>
                                     <option>Meyve</option>
                                     <option>Bakliyat</option>
-                                    <option>Temel GÄ±da</option>
+                                    <option>Temel Gıda</option>
                                     <option>Temizlik</option>
-                                    <option>SÃ¼t ÃœrÃ¼nleri</option>
-                                    <option>DiÄŸer</option>
+                                    <option>Süt Ürünleri</option>
+                                    <option>Diğer</option>
                                 </select>
                             </div>
                             <div class="form-group">
-                                <label>TedarikÃ§i</label>
+                                <label>Tedarikçi</label>
                                 <div style="display:flex;gap:5px;">
                                     <select id="entry-company" class="form-control" required>
-                                        <option value="">TedarikÃ§i SeÃ§in</option>
+                                        <option value="">Tedarikçi Seçin</option>
                                     </select>
-                                    <button type="button" class="btn-ui btn-outline" style="padding:0 12px;min-width:40px;" title="TedarikÃ§i Ekle" onclick="navigateTo('suppliers')"><i class="fa-solid fa-plus"></i></button>
+                                    <button type="button" class="btn-ui btn-outline" style="padding:0 12px;min-width:40px;" title="Tedarikçi Ekle" onclick="navigateTo('suppliers')"><i class="fa-solid fa-plus"></i></button>
                                 </div>
                             </div>
                         </div>
@@ -421,7 +416,7 @@
                                     <option value="kg">Kilogram</option>
                                     <option value="adet">Adet</option>
                                     <option value="koli">Koli</option>
-                                    <option value="cuval">Ã‡uval</option>
+                                    <option value="cuval">Çuval</option>
                                     <option value="lt">Litre</option>
                                     <option value="ton">Ton</option>
                                     <option value="teneke">Teneke</option>
@@ -429,13 +424,13 @@
                                 </datalist>
                             </div>
                             <div class="form-group">
-                                <label>Son TÃ¼ketim Tarihi (STT)</label>
+                                <label>Son Tüketim Tarihi (STT)</label>
                                 <input type="date" id="entry-stt" class="form-control">
                             </div>
                         </div>
                         <div style="display: flex; gap: 1rem;">
                             <div class="form-group" style="flex:1;">
-                                <label>GiriÅŸ Tarihi</label>
+                                <label>Giriş Tarihi</label>
                                 <input type="date" id="entry-date" class="form-control" required>
                             </div>
                             <div class="form-group" style="flex:1;">
@@ -443,21 +438,21 @@
                                 <input type="text" id="entry-note" class="form-control" placeholder="Opsiyonel">
                             </div>
                         </div>
-                        <button type="submit" class="btn-ui btn-primary" style="width:100%"><i class="fa-solid fa-file-invoice"></i> ÃœrÃ¼nÃ¼ Kaydet ve StoÄŸa Ekle</button>
+                        <button type="submit" class="btn-ui btn-primary" style="width:100%"><i class="fa-solid fa-file-invoice"></i> Ürünü Kaydet ve Stoğa Ekle</button>
                     </form>
                 </div>
             </div>
 
-            <!-- 4. EXIT (Ã‡IKIÅ) -->
+            <!-- 4. EXIT (ÇIKI�?) -->
             <div id="exit" class="view-section">
                 <div class="form-card">
                     <div style="display:flex; align-items:center; gap:0.75rem; margin-bottom: 1.5rem;">
                         <div class="icon-box st-orange" style="width:40px; height:40px; font-size:1.1rem;"><i class="fa-solid fa-dolly"></i></div>
-                        <h3 style="margin: 0; font-size:1.3rem;">ÃœrÃ¼n Ã‡Ä±kÄ±ÅŸ Formu</h3>
+                        <h3 style="margin: 0; font-size:1.3rem;">Ürün Çıkış Formu</h3>
                     </div>
                     <form id="exit-form">
                         <div class="form-group">
-                            <label>ÃœrÃ¼n / Parti SeÃ§imi</label>
+                            <label>Ürün / Parti Seçimi</label>
                             <select id="exit-product" class="form-control" required></select>
                         </div>
                         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
@@ -466,93 +461,93 @@
                                 <input type="text" inputmode="decimal" id="exit-amount" class="form-control" required>
                             </div>
                             <div class="form-group">
-                                <label>Ã‡Ä±kÄ±ÅŸ Tarihi</label>
+                                <label>Çıkış Tarihi</label>
                                 <input type="date" id="exit-date" class="form-control" required>
                             </div>
                         </div>
                         <div class="form-group">
                             <label>Teslim Alan / Sevkiyat Notu</label>
-                            <input type="text" id="exit-note" class="form-control" placeholder="Ã–rn: X Market - ÅofÃ¶r Ahmet">
+                            <input type="text" id="exit-note" class="form-control" placeholder="Örn: X Market - �?oför Ahmet">
                         </div>
                         <button type="submit" class="btn-ui btn-primary"
-                            style="width:100%; background: linear-gradient(135deg, var(--accent), hsl(12, 88%, 65%)); box-shadow: 0 8px 24px -6px rgba(239, 68, 68, 0.35);"><i class="fa-solid fa-truck-dispatch"></i> Ã‡Ä±kÄ±ÅŸ Yap</button>
+                            style="width:100%; background: linear-gradient(135deg, var(--accent), hsl(12, 88%, 65%)); box-shadow: 0 8px 24px -6px rgba(239, 68, 68, 0.35);"><i class="fa-solid fa-truck-dispatch"></i> Çıkış Yap</button>
                     </form>
                 </div>
             </div>
 
-            <!-- 5. DAILY (GÃœNLÃœK Ä°ÅLEMLER) -->
+            <!-- 5. DAILY (GÜNLÜK İ�?LEMLER) -->
             <div id="daily" class="view-section">
                 <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:20px; flex-wrap:wrap; gap:12px;">
                     <div style="display:flex; align-items:center; gap:12px;">
                         <div class="icon-box st-blue" style="width:40px;height:40px;font-size:1.1rem;"><i class="fa-solid fa-clipboard-list"></i></div>
-                        <h3 style="margin:0;font-size:1.3rem;">GÃ¼nlÃ¼k Ä°ÅŸlemler</h3>
+                        <h3 style="margin:0;font-size:1.3rem;">Günlük İşlemler</h3>
                     </div>
                     <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
                         <input type="date" id="daily-date" class="form-control" style="width:150px;">
                         <select id="daily-year-select" class="form-control" style="width:110px;"></select>
                         <select id="daily-person-filter" class="form-control" style="width:130px;">
-                            <option value="">TÃ¼mÃ¼</option>
-                            <option value="giris">GiriÅŸ</option>
-                            <option value="cikis">Ã‡Ä±kÄ±ÅŸ</option>
+                            <option value="">Tümü</option>
+                            <option value="giris">Giriş</option>
+                            <option value="cikis">Çıkış</option>
                         </select>
-                        <button class="btn-ui btn-primary" onclick="pdfCikti()"><i class="fa-solid fa-file-pdf"></i> PDF Ã‡Ä±ktÄ±</button>
+                        <button class="btn-ui btn-primary" onclick="pdfCikti()"><i class="fa-solid fa-file-pdf"></i> PDF Çıktı</button>
                     </div>
                 </div>
 
                 <div class="stats-grid" style="grid-template-columns: repeat(3,1fr); margin-bottom:20px;">
                     <div class="stat-card">
                         <div class="icon-box st-green"><i class="fa-solid fa-circle-down"></i></div>
-                        <div class="stat-details"><h3>Toplam GiriÅŸ</h3><p id="daily-giris-adet">0</p></div>
+                        <div class="stat-details"><h3>Toplam Giriş</h3><p id="daily-giris-adet">0</p></div>
                     </div>
                     <div class="stat-card">
                         <div class="icon-box st-orange"><i class="fa-solid fa-circle-up"></i></div>
-                        <div class="stat-details"><h3>Toplam Ã‡Ä±kÄ±ÅŸ</h3><p id="daily-cikis-adet">0</p></div>
+                        <div class="stat-details"><h3>Toplam Çıkış</h3><p id="daily-cikis-adet">0</p></div>
                     </div>
                     <div class="stat-card">
                         <div class="icon-box st-purple"><i class="fa-solid fa-arrows-up-down"></i></div>
-                        <div class="stat-details"><h3>Toplam Ä°ÅŸlem</h3><p id="daily-toplam-adet">0</p></div>
+                        <div class="stat-details"><h3>Toplam İşlem</h3><p id="daily-toplam-adet">0</p></div>
                     </div>
                 </div>
 
                 <div class="panel-container" id="daily-pdf-container">
                     <div class="panel-header">
-                        <h3 id="daily-baslik">Giren ÃœrÃ¼nler</h3>
+                        <h3 id="daily-baslik">Giren Ürünler</h3>
                     </div>
                     <table class="minimal-table">
                         <thead>
-                            <tr><th>SÄ±ra</th><th>Ä°ÅŸlem</th><th>Parti No</th><th>ÃœrÃ¼n</th><th>Miktar</th><th>Birim</th><th>Ä°ÅŸlem Yapan</th><th>AÃ§Ä±klama</th><th style="width:50px;">&nbsp;</th></tr>
+                            <tr><th>Sıra</th><th>İşlem</th><th>Parti No</th><th>Ürün</th><th>Miktar</th><th>Birim</th><th>İşlem Yapan</th><th>Açıklama</th><th style="width:50px;">&nbsp;</th></tr>
                         </thead>
                         <tbody id="daily-body"></tbody>
                     </table>
                 </div>
             </div>
 
-            <!-- AylÄ±k TedarikÃ§i Raporu -->
+            <!-- Aylık Tedarikçi Raporu -->
             <div id="supplier-report-view" class="view-section">
                 <div class="panel-container">
                     <div class="panel-header">
-                        <h3><i class="fa-solid fa-truck"></i> AylÄ±k TedarikÃ§i Raporu</h3>
+                        <h3><i class="fa-solid fa-truck"></i> Aylık Tedarikçi Raporu</h3>
                         <div style="display:flex;gap:6px;flex-wrap:wrap;">
-                            <button class="btn-ui btn-sm btn-outline" id="sr-show-deleted" onclick="toggleSrDeleted()" title="Silinen Ã¼rÃ¼nleri gÃ¶ster"><i class="fa-solid fa-eye-slash"></i> <span>Silinen</span></button>
-                            <button class="btn-ui btn-sm btn-outline" onclick="srExportPrint()" title="PDF Ã‡Ä±ktÄ±"><i class="fa-solid fa-print"></i> Ã‡Ä±ktÄ±</button>
+                            <button class="btn-ui btn-sm btn-outline" id="sr-show-deleted" onclick="toggleSrDeleted()" title="Silinen ürünleri göster"><i class="fa-solid fa-eye-slash"></i> <span>Silinen</span></button>
+                            <button class="btn-ui btn-sm btn-outline" onclick="srExportPrint()" title="PDF Çıktı"><i class="fa-solid fa-print"></i> Çıktı</button>
                         </div>
                     </div>
                     <div style="padding: 1rem;">
                         <div style="display: flex; gap: 10px; margin-bottom: 1rem; flex-wrap: wrap; justify-content: flex-end;">
                             <input type="month" id="sr-month" class="form-control" style="width:180px;">
                             <select id="sr-supplier" class="form-control" style="width:220px;">
-                                <option value="">TÃ¼m TedarikÃ§iler</option>
+                                <option value="">Tüm Tedarikçiler</option>
                             </select>
                             <select id="sr-product" class="form-control" style="width:200px;">
-                                <option value="">TÃ¼m ÃœrÃ¼nler</option>
+                                <option value="">Tüm Ürünler</option>
                             </select>
                         </div>
                         <table class="minimal-table">
                             <thead>
-                                <tr><th style="width:24px"></th><th>#</th><th>Parti No</th><th>TedarikÃ§i</th><th>ÃœrÃ¼n AdÄ±</th><th>Miktar</th><th>Birim</th></tr>
+                                <tr><th style="width:24px"></th><th>#</th><th>Parti No</th><th>Tedarikçi</th><th>Ürün Adı</th><th>Miktar</th><th>Birim</th></tr>
                             </thead>
                             <tbody id="sr-body">
-                                <tr><td colspan="7" style="text-align:center;color:var(--text-muted);padding:30px;">Ay ve tedarikÃ§i seÃ§in.</td></tr>
+                                <tr><td colspan="7" style="text-align:center;color:var(--text-muted);padding:30px;">Ay ve tedarikçi seçin.</td></tr>
                             </tbody>
                         </table>
                     </div>
@@ -563,22 +558,22 @@
             <div id="month-view" class="view-section">
                 <div class="panel-container">
                     <div class="panel-header">
-                        <h3 id="month-title">AylÄ±k Rapor</h3>
+                        <h3 id="month-title">Aylık Rapor</h3>
                         <div style="display:flex; gap:8px;">
-                            <button class="btn-ui btn-sm btn-outline" onclick="monthExportPrint()"><i class="fa-solid fa-print"></i> Ã‡Ä±ktÄ± Al</button>
+                            <button class="btn-ui btn-sm btn-outline" onclick="monthExportPrint()"><i class="fa-solid fa-print"></i> Çıktı Al</button>
                         </div>
                     </div>
                     <div style="padding: 1.5rem;">
                         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;">
                             <div>
-                                <h4 style="color: var(--success); margin-bottom: 1rem; font-weight:700;"><i class="fa-solid fa-circle-down"></i> GiriÅŸler (Toplam: <span
+                                <h4 style="color: var(--success); margin-bottom: 1rem; font-weight:700;"><i class="fa-solid fa-circle-down"></i> Girişler (Toplam: <span
                                         id="month-in-total">0</span>)</h4>
                                 <table class="minimal-table">
                                     <thead>
                                         <tr>
                                             <th>Firma</th>
                                             <th>Tarih</th>
-                                            <th>ÃœrÃ¼n</th>
+                                            <th>Ürün</th>
                                             <th>STT</th>
                                             <th>Miktar</th>
                                             <th>Birim</th>
@@ -588,14 +583,14 @@
                                 </table>
                             </div>
                             <div>
-                                <h4 style="color: var(--accent); margin-bottom: 1rem; font-weight:700;"><i class="fa-solid fa-circle-up"></i> Ã‡Ä±kÄ±ÅŸlar (Toplam: <span
+                                <h4 style="color: var(--accent); margin-bottom: 1rem; font-weight:700;"><i class="fa-solid fa-circle-up"></i> Çıkışlar (Toplam: <span
                                         id="month-out-total">0</span>)</h4>
                                 <table class="minimal-table">
                                     <thead>
                                         <tr>
                                             <th>Firma</th>
                                             <th>Tarih</th>
-                                            <th>ÃœrÃ¼n</th>
+                                            <th>Ürün</th>
                                             <th>Miktar</th>
                                             <th>Birim</th>
                                         </tr>
@@ -612,49 +607,49 @@
             <div id="years-view" class="view-section">
                 <div class="panel-container">
                     <div class="panel-header">
-                        <h3><i class="fa-solid fa-calendar-check" style="color:var(--primary);"></i> YÄ±llÄ±k Analiz Raporu</h3>
+                        <h3><i class="fa-solid fa-calendar-check" style="color:var(--primary);"></i> Yıllık Analiz Raporu</h3>
                         <div style="display:flex; gap:8px; flex-wrap:wrap;">
                             <select id="year-select" class="form-control" style="width: 130px;"></select>
                             <div class="year-filter-group">
                                 <button class="year-filter-btn" id="year-filter-btn" type="button">
-                                    <span id="year-filter-label">TÃ¼m ÃœrÃ¼nler</span>
+                                    <span id="year-filter-label">Tüm Ürünler</span>
                                     <i class="fa-solid fa-chevron-down"></i>
                                 </button>
                                 <div class="year-filter-dropdown" id="year-filter-dropdown">
                                     <div class="year-filter-search">
                                         <i class="fa-solid fa-search"></i>
-                                        <input type="text" id="year-filter-search-input" placeholder="ÃœrÃ¼n ara..." autocomplete="off">
+                                        <input type="text" id="year-filter-search-input" placeholder="Ürün ara..." autocomplete="off">
                                     </div>
                                     <div class="year-filter-options" id="year-filter-options"></div>
                                 </div>
                             </div>
-                            <button class="btn-ui btn-sm btn-outline" onclick="yearExportPrint()" title="PDF Ã‡Ä±ktÄ±"><i class="fa-solid fa-print"></i> Ã‡Ä±ktÄ±</button>
+                            <button class="btn-ui btn-sm btn-outline" onclick="yearExportPrint()" title="PDF Çıktı"><i class="fa-solid fa-print"></i> Çıktı</button>
                         </div>
                     </div>
                     <div style="padding: 1.5rem;">
 
-                        <!-- ANA Ä°STATÄ°STÄ°K KARTLARI -->
+                        <!-- ANA İSTATİSTİK KARTLARI -->
                         <div class="year-stats-grid">
                             <div class="year-stat-card">
                                 <div class="year-stat-icon st-green"><i class="fa-solid fa-circle-down"></i></div>
                                 <div class="year-stat-body">
-                                    <span class="year-stat-label">Toplam GiriÅŸ</span>
+                                    <span class="year-stat-label">Toplam Giriş</span>
                                     <span class="year-stat-value" id="year-total-in">0</span>
-                                    <span class="year-stat-sub" id="year-total-in-unit">iÅŸlem</span>
+                                    <span class="year-stat-sub" id="year-total-in-unit">işlem</span>
                                 </div>
                             </div>
                             <div class="year-stat-card">
                                 <div class="year-stat-icon st-orange"><i class="fa-solid fa-circle-up"></i></div>
                                 <div class="year-stat-body">
-                                    <span class="year-stat-label">Toplam Ã‡Ä±kÄ±ÅŸ</span>
+                                    <span class="year-stat-label">Toplam Çıkış</span>
                                     <span class="year-stat-value" id="year-total-out">0</span>
-                                    <span class="year-stat-sub" id="year-total-out-unit">iÅŸlem</span>
+                                    <span class="year-stat-sub" id="year-total-out-unit">işlem</span>
                                 </div>
                             </div>
                             <div class="year-stat-card">
                                 <div class="year-stat-icon st-purple"><i class="fa-solid fa-arrows-up-down"></i></div>
                                 <div class="year-stat-body">
-                                    <span class="year-stat-label">Toplam Ä°ÅŸlem</span>
+                                    <span class="year-stat-label">Toplam İşlem</span>
                                     <span class="year-stat-value" id="year-total-trans">0</span>
                                     <span class="year-stat-sub" id="year-total-trans-unit">hareket</span>
                                 </div>
@@ -662,7 +657,7 @@
                             <div class="year-stat-card">
                                 <div class="year-stat-icon st-blue"><i class="fa-solid fa-weight-scale"></i></div>
                                 <div class="year-stat-body">
-                                    <span class="year-stat-label">Net Stok DeÄŸiÅŸimi</span>
+                                    <span class="year-stat-label">Net Stok Değişimi</span>
                                     <span class="year-stat-value" id="year-net-change">0</span>
                                     <span class="year-stat-sub" id="year-net-change-unit">birim</span>
                                 </div>
@@ -671,57 +666,57 @@
                                 <div class="year-stat-icon st-warning"><i class="fa-solid fa-chart-line"></i></div>
                                 <div class="year-stat-body">
                                     <span class="year-stat-label">En Hareketli Ay</span>
-                                    <span class="year-stat-value" id="year-busy-month">â€”</span>
+                                    <span class="year-stat-value" id="year-busy-month">—</span>
                                     <span class="year-stat-sub" id="year-busy-month-count"></span>
                                 </div>
                             </div>
                             <div class="year-stat-card">
                                 <div class="year-stat-icon" style="background:var(--purple-light);color:var(--purple);"><i class="fa-solid fa-arrow-trend-up"></i></div>
                                 <div class="year-stat-body">
-                                    <span class="year-stat-label">GeÃ§en YÄ±la GÃ¶re</span>
-                                    <span class="year-stat-value" id="year-vs-prev">â€”</span>
+                                    <span class="year-stat-label">Geçen Yıla Göre</span>
+                                    <span class="year-stat-value" id="year-vs-prev">—</span>
                                     <span class="year-stat-sub" id="year-vs-prev-unit"></span>
                                 </div>
                             </div>
                             <div class="year-stat-card">
                                 <div class="year-stat-icon" style="background:var(--orange-light);color:var(--orange);"><i class="fa-solid fa-calculator"></i></div>
                                 <div class="year-stat-body">
-                                    <span class="year-stat-label">Ortalama Ä°ÅŸlem</span>
+                                    <span class="year-stat-label">Ortalama İşlem</span>
                                     <span class="year-stat-value" id="year-avg-amount">0</span>
-                                    <span class="year-stat-sub" id="year-avg-amount-unit">birim/iÅŸlem</span>
+                                    <span class="year-stat-sub" id="year-avg-amount-unit">birim/işlem</span>
                                 </div>
                             </div>
                         </div>
 
-                        <!-- EN Ã‡OK Ä°ÅLEM GÃ–RENLER -->
+                        <!-- EN ÇOK İ�?LEM GÖRENLER -->
                         <div class="year-top-strip" id="year-top-strip">
-                            <div class="year-top-strip-header"><i class="fa-solid fa-trophy" style="color:var(--warning);"></i> En Ã‡ok Ä°ÅŸlem GÃ¶renler</div>
+                            <div class="year-top-strip-header"><i class="fa-solid fa-trophy" style="color:var(--warning);"></i> En Çok İşlem Görenler</div>
                             <div class="year-top-strip-body" id="year-top-list"></div>
                         </div>
 
-                        <!-- GRAFÄ°K -->
+                        <!-- GRAFİK -->
                         <div class="year-chart-wrapper">
                             <canvas id="year-chart"></canvas>
                             <div class="year-chart-empty" id="year-chart-empty">
                                 <i class="fa-solid fa-chart-simple"></i>
-                                <p>Bu yÄ±l iÃ§in veri bulunamadÄ±.</p>
+                                <p>Bu yıl için veri bulunamadı.</p>
                             </div>
                         </div>
 
-                        <!-- AYLIK Ã–ZET TABLOSU -->
+                        <!-- AYLIK ÖZET TABLOSU -->
                         <div class="year-monthly-summary" id="year-monthly-summary" style="display:none;">
                             <div class="year-insight-header">
-                                <i class="fa-solid fa-table"></i> AylÄ±k KarÅŸÄ±laÅŸtÄ±rma
+                                <i class="fa-solid fa-table"></i> Aylık Karşılaştırma
                             </div>
                             <div class="table-wrap" style="padding:12px 16px 16px;">
                                 <table class="minimal-table year-monthly-table">
                                     <thead>
                                         <tr>
                                             <th>Ay</th>
-                                            <th style="text-align:right">GiriÅŸ Miktar</th>
-                                            <th style="text-align:right">Ã‡Ä±kÄ±ÅŸ Miktar</th>
+                                            <th style="text-align:right">Giriş Miktar</th>
+                                            <th style="text-align:right">Çıkış Miktar</th>
                                             <th style="text-align:right">Net</th>
-                                            <th style="text-align:right">Ä°ÅŸlem Adet</th>
+                                            <th style="text-align:right">İşlem Adet</th>
                                         </tr>
                                     </thead>
                                     <tbody id="year-monthly-body"></tbody>
@@ -731,19 +726,19 @@
 
                         <!-- DETAY TABLOSU -->
                         <div class="year-table-header">
-                            <h4><i class="fa-solid fa-list"></i> DetaylÄ± YÄ±llÄ±k Hareket DÃ¶kÃ¼mÃ¼</h4>
-                            <span class="year-table-count" id="year-table-count">0 kayÄ±t</span>
+                            <h4><i class="fa-solid fa-list"></i> Detaylı Yıllık Hareket Dökümü</h4>
+                            <span class="year-table-count" id="year-table-count">0 kayıt</span>
                         </div>
                         <div class="table-wrap">
                             <table class="minimal-table">
                                 <thead>
                                     <tr>
                                         <th>Tarih</th>
-                                        <th>Ä°ÅŸlem TÃ¼rÃ¼</th>
-                                        <th>ÃœrÃ¼n</th>
+                                        <th>İşlem Türü</th>
+                                        <th>Ürün</th>
                                         <th style="text-align:right">Miktar</th>
                                         <th>Birim</th>
-                                        <th>AÃ§Ä±klama</th>
+                                        <th>Açıklama</th>
                                     </tr>
                                 </thead>
                                 <tbody id="year-report-body"></tbody>
@@ -764,7 +759,7 @@
                                 <div id="stt-export-menu" class="export-menu" style="display:none;position:absolute;top:100%;right:0;z-index:100;background:var(--bg-primary);border:1px solid var(--border-color);border-radius:var(--border-radius-sm);box-shadow:0 4px 12px rgba(0,0,0,0.15);min-width:160px;overflow:hidden;">
                                     <button class="stt-export-option" data-format="xlsx" style="display:flex;align-items:center;gap:8px;width:100%;padding:10px 14px;border:none;background:none;cursor:pointer;font-family:inherit;font-size:13px;color:var(--text-primary);"><i class="fa-regular fa-file-excel" style="color:#22c55e;font-size:16px;"></i> Excel (XLSX)</button>
                                     <button class="stt-export-option" data-format="word" style="display:flex;align-items:center;gap:8px;width:100%;padding:10px 14px;border:none;background:none;cursor:pointer;font-family:inherit;font-size:13px;color:var(--text-primary);"><i class="fa-regular fa-file-word" style="color:#3b82f6;font-size:16px;"></i> Word (DOC)</button>
-                                    <button class="stt-export-option" data-format="print" style="display:flex;align-items:center;gap:8px;width:100%;padding:10px 14px;border:none;background:none;cursor:pointer;font-family:inherit;font-size:13px;color:var(--text-primary);"><i class="fa-solid fa-print" style="color:#8b5cf6;font-size:16px;"></i> PDF / YazdÄ±r</button>
+                                    <button class="stt-export-option" data-format="print" style="display:flex;align-items:center;gap:8px;width:100%;padding:10px 14px;border:none;background:none;cursor:pointer;font-family:inherit;font-size:13px;color:var(--text-primary);"><i class="fa-solid fa-print" style="color:#8b5cf6;font-size:16px;"></i> PDF / Yazdır</button>
                                 </div>
                             </div>
                             <span id="stt-filter-badge" style="font-size:12px;color:var(--text-secondary);"></span>
@@ -772,19 +767,19 @@
                     </div>
                     <div style="padding: 1.5rem;">
                         <div style="display:flex; gap:8px; margin-bottom:1rem; flex-wrap:wrap;">
-                            <button class="btn-ui btn-sm btn-outline stt-filter-btn active" data-filter="all">TÃ¼mÃ¼</button>
-                            <button class="btn-ui btn-sm btn-outline stt-filter-btn" data-filter="expired">SÃ¼resi GeÃ§en</button>
-                            <button class="btn-ui btn-sm btn-outline stt-filter-btn" data-filter="approaching">YaklaÅŸan (â‰¤30 gÃ¼n)</button>
-                            <button class="btn-ui btn-sm btn-outline stt-filter-btn" data-filter="ok">SÃ¼re Var (&gt;30 gÃ¼n)</button>
+                            <button class="btn-ui btn-sm btn-outline stt-filter-btn active" data-filter="all">Tümü</button>
+                            <button class="btn-ui btn-sm btn-outline stt-filter-btn" data-filter="expired">Süresi Geçen</button>
+                            <button class="btn-ui btn-sm btn-outline stt-filter-btn" data-filter="approaching">Yaklaşan (≤30 gün)</button>
+                            <button class="btn-ui btn-sm btn-outline stt-filter-btn" data-filter="ok">Süre Var (&gt;30 gün)</button>
                             <button class="btn-ui btn-sm btn-outline stt-filter-btn" data-filter="bitti">Stokta Biten</button>
                         </div>
                         <table class="minimal-table">
                             <thead>
                                 <tr>
                                     <th>Parti No</th>
-                                    <th>ÃœrÃ¼n</th>
+                                    <th>Ürün</th>
                                     <th>STT</th>
-                                    <th>Kalan GÃ¼n</th>
+                                    <th>Kalan Gün</th>
                                     <th>Stok</th>
                                     <th>Not</th>
                                 </tr>
@@ -799,23 +794,23 @@
             <div id="tender-tracking" class="view-section">
                 <div class="panel-container" style="margin-bottom:1.5rem;">
                     <div class="panel-header">
-                        <h3><i class="fa-solid fa-chart-bar"></i> Ä°hale Ã‡ekilme YÃ¼zdeleri</h3>
+                        <h3><i class="fa-solid fa-chart-bar"></i> İhale Çekilme Yüzdeleri</h3>
                     </div>
                     <div style="padding:0.75rem;">
                         <canvas id="tender-page-chart-canvas" style="width:100%;height:180px;"></canvas>
-                        <div id="tender-page-chart-empty" style="color:var(--text-secondary);text-align:center;font-size:0.9rem;padding:40px 0;display:none;">HenÃ¼z ihale kaydÄ± bulunamadÄ±.</div>
+                        <div id="tender-page-chart-empty" style="color:var(--text-secondary);text-align:center;font-size:0.9rem;padding:40px 0;display:none;">Henüz ihale kaydı bulunamadı.</div>
                     </div>
                 </div>
                 <div class="panel-container">
                     <div class="panel-header">
-                        <h3><i class="fa-solid fa-file-signature"></i> Ä°hale Takip Listesi</h3>
+                        <h3><i class="fa-solid fa-file-signature"></i> İhale Takip Listesi</h3>
                         <div style="display:flex; gap:8px;align-items:center;flex-wrap:wrap;">
-                            <button id="add-tender-btn" class="btn-ui btn-primary"><i class="fa-solid fa-plus"></i> Yeni Ä°hale</button>
+                            <button id="add-tender-btn" class="btn-ui btn-primary"><i class="fa-solid fa-plus"></i> Yeni İhale</button>
                             <select id="tender-company-filter" class="form-control" style="width:auto;min-width:130px;font-size:13px;">
-                                <option value="">TÃ¼m Firmalar</option>
+                                <option value="">Tüm Firmalar</option>
                             </select>
                             <select id="tender-year-filter" class="form-control" style="width:auto;min-width:90px;font-size:13px;">
-                                <option value="">TÃ¼m YÄ±llar</option>
+                                <option value="">Tüm Yıllar</option>
                             </select>
                         </div>
                     </div>
@@ -823,18 +818,18 @@
                         <table class="minimal-table">
                             <thead>
                                 <tr>
-                                    <th>Firma AdÄ±</th>
-                                    <th>YÄ±l</th>
-                                    <th>ÃœrÃ¼n</th>
-                                    <th style="text-align:right">AnlaÅŸma MiktarÄ±</th>
+                                    <th>Firma Adı</th>
+                                    <th>Yıl</th>
+                                    <th>Ürün</th>
+                                    <th style="text-align:right">Anlaşma Miktarı</th>
                                     <th style="text-align:right">Birim</th>
-                                    <th style="text-align:right">Teslim AlÄ±nan</th>
+                                    <th style="text-align:right">Teslim Alınan</th>
                                     <th style="text-align:right">Kalan</th>
                                     <th style="text-align:right">Birim Fiyat</th>
-                                    <th style="text-align:right">SÃ¶zleÅŸme TutarÄ±</th>
-                                    <th style="text-align:right">Teslim TutarÄ±</th>
-                                    <th style="text-align:right">Teslim OranÄ±</th>
-                                    <th style="width:80px;text-align:right;">Ä°ÅŸlem</th>
+                                    <th style="text-align:right">Sözleşme Tutarı</th>
+                                    <th style="text-align:right">Teslim Tutarı</th>
+                                    <th style="text-align:right">Teslim Oranı</th>
+                                    <th style="width:80px;text-align:right;">İşlem</th>
                                 </tr>
                             </thead>
                             <tbody id="tender-body"></tbody>
@@ -843,44 +838,44 @@
                 </div>
             </div>
 
-            <!-- Ä°hale Ekleme Modal -->
+            <!-- İhale Ekleme Modal -->
             <div id="tender-modal" class="modal">
                 <div class="form-card" style="width:480px;max-width:95vw;">
                     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem;border-bottom:1px solid var(--border-color);padding-bottom:1rem;">
-                        <h3 style="font-size:1.2rem;font-weight:700;"><i class="fa-solid fa-file-signature" style="color:var(--primary);"></i> <span id="tender-modal-title">Yeni Ä°hale</span></h3>
+                        <h3 style="font-size:1.2rem;font-weight:700;"><i class="fa-solid fa-file-signature" style="color:var(--primary);"></i> <span id="tender-modal-title">Yeni İhale</span></h3>
                         <i class="fa-solid fa-times" onclick="document.getElementById('tender-modal').classList.remove('show')" style="cursor:pointer;font-size:1.2rem;color:var(--text-muted);"></i>
                     </div>
                     <form id="tender-form">
                         <input type="hidden" id="tender-edit-id">
                         <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.75rem;">
-                            <div class="form-group"><label>Firma AdÄ±</label><select id="tender-company" class="form-control" required><option value="">Firma SeÃ§in</option></select></div>
-                            <div class="form-group"><label>YÄ±l</label><select id="tender-year" class="form-control" required></select></div>
+                            <div class="form-group"><label>Firma Adı</label><select id="tender-company" class="form-control" required><option value="">Firma Seçin</option></select></div>
+                            <div class="form-group"><label>Yıl</label><select id="tender-year" class="form-control" required></select></div>
                         </div>
-                        <div class="form-group"><label>ÃœrÃ¼n AdÄ±</label>                            <input type="text" id="tender-product" class="form-control" required list="product-name-datalist"><datalist id="product-name-datalist"></datalist></div>
-                        <div class="form-group"><label>AnlaÅŸma MiktarÄ±</label><input type="text" inputmode="decimal" id="tender-quantity" class="form-control" required></div>
+                        <div class="form-group"><label>Ürün Adı</label>                            <input type="text" id="tender-product" class="form-control" required list="product-name-datalist"><datalist id="product-name-datalist"></datalist></div>
+                        <div class="form-group"><label>Anlaşma Miktarı</label><input type="text" inputmode="decimal" id="tender-quantity" class="form-control" required></div>
                         <div class="form-group"><label>Birim</label><input type="text" id="tender-unit" class="form-control" placeholder="kg, adet, paket..." required></div>
-                        <div class="form-group"><label>Teslim AlÄ±nan Miktar</label><input type="text" inputmode="decimal" id="tender-delivered" class="form-control" value="0"></div>
-                        <div class="form-group"><label>Birim Fiyat (â‚º)</label><input type="text" inputmode="decimal" id="tender-price" class="form-control" required></div>
-                        <button type="submit" class="btn-ui btn-primary" style="width:100%;padding:0.9rem;margin-top:0.5rem;"><i class="fa-solid fa-save"></i> <span id="tender-submit-text">Ä°hale Ekle</span></button>
+                        <div class="form-group"><label>Teslim Alınan Miktar</label><input type="text" inputmode="decimal" id="tender-delivered" class="form-control" value="0"></div>
+                        <div class="form-group"><label>Birim Fiyat (₺)</label><input type="text" inputmode="decimal" id="tender-price" class="form-control" required></div>
+                        <button type="submit" class="btn-ui btn-primary" style="width:100%;padding:0.9rem;margin-top:0.5rem;"><i class="fa-solid fa-save"></i> <span id="tender-submit-text">İhale Ekle</span></button>
                     </form>
                 </div>
             </div>
 
-            <!-- Supplier / TedarikÃ§i YÃ¶netimi -->
+            <!-- Supplier / Tedarikçi Yönetimi -->
             <div id="suppliers" class="view-section">
                 <div class="panel-container">
                     <div class="panel-header">
-                        <h3><i class="fa-solid fa-truck"></i> TedarikÃ§i Listesi <span id="supplier-count" style="font-size:0.8rem;font-weight:400;color:var(--text-muted);margin-left:6px;"></span></h3>
+                        <h3><i class="fa-solid fa-truck"></i> Tedarikçi Listesi <span id="supplier-count" style="font-size:0.8rem;font-weight:400;color:var(--text-muted);margin-left:6px;"></span></h3>
                         <div style="display:flex;gap:8px;flex-wrap:wrap;">
                             <div style="display:flex;gap:6px;">
-                                <input type="text" id="new-supplier-input" class="form-control" placeholder="Yeni tedarikÃ§i adÄ±..." style="min-width:180px;">
+                                <input type="text" id="new-supplier-input" class="form-control" placeholder="Yeni tedarikçi adı..." style="min-width:180px;">
                                 <button class="btn-ui btn-primary" id="add-supplier-btn"><i class="fa-solid fa-plus"></i> Ekle</button>
                             </div>
                         </div>
                     </div>
                     <div class="panel-body">
                         <p style="color:var(--text-muted);margin-bottom:12px;">
-                            <i class="fa-solid fa-info-circle"></i> TedarikÃ§iler, giriÅŸ formunda filtreleme ve yeni Ã¼rÃ¼n eklerken Ã¶neri olarak kullanÄ±lÄ±r.
+                            <i class="fa-solid fa-info-circle"></i> Tedarikçiler, giriş formunda filtreleme ve yeni ürün eklerken öneri olarak kullanılır.
                         </p>
                         <div id="supplier-list"></div>
                     </div>
@@ -888,16 +883,16 @@
 
                 <div class="panel-container" style="margin-top:1.5rem;">
                     <div class="panel-header">
-                        <h3><i class="fa-solid fa-list"></i> ÃœrÃ¼n Ä°sim Listesi <span id="product-name-count" style="font-size:0.8rem;font-weight:400;color:var(--text-muted);margin-left:6px;"></span></h3>
+                        <h3><i class="fa-solid fa-list"></i> Ürün İsim Listesi <span id="product-name-count" style="font-size:0.8rem;font-weight:400;color:var(--text-muted);margin-left:6px;"></span></h3>
                     </div>
                     <div style="padding: 1.5rem;">
                         <p style="font-size: 0.9rem; color: var(--text-secondary); margin-bottom: 1rem; line-height: 1.4;">
-                            Buraya tanÄ±mladÄ±ÄŸÄ±nÄ±z Ã¼rÃ¼n isimleri, yeni Ã¼rÃ¼n eklerken Ã¶neri olarak gÃ¶sterilir. BÃ¶ylece yanlÄ±ÅŸ veya farklÄ± yazÄ±mla aynÄ± Ã¼rÃ¼nÃ¼n tekrar eklenmesini engellersiniz.
+                            Buraya tanımladığınız ürün isimleri, yeni ürün eklerken öneri olarak gösterilir. Böylece yanlış veya farklı yazımla aynı ürünün tekrar eklenmesini engellersiniz.
                         </p>
                         <div style="display: flex; gap: 8px; margin-bottom: 1rem; flex-wrap: wrap;">
-                            <input type="text" id="new-product-name-input" class="form-control" placeholder="ÃœrÃ¼n adÄ± girin" style="max-width:350px;" list="product-name-datalist">
+                            <input type="text" id="new-product-name-input" class="form-control" placeholder="Ürün adı girin" style="max-width:350px;" list="product-name-datalist">
                             <button type="button" id="add-product-name-btn" class="btn-ui btn-primary"><i class="fa-solid fa-plus"></i> Ekle</button>
-                            <button type="button" id="upload-names-btn" class="btn-ui btn-secondary"><i class="fa-solid fa-upload"></i> Liste YÃ¼kle</button>
+                            <button type="button" id="upload-names-btn" class="btn-ui btn-secondary"><i class="fa-solid fa-upload"></i> Liste Yükle</button>
                             <input type="file" id="upload-names-input" accept=".txt,.csv" style="display:none;">
                         </div>
                         <div id="product-name-list" style="display:flex;flex-wrap:wrap;gap:6px;max-height:300px;overflow-y:auto;padding:4px;"></div>
@@ -911,19 +906,19 @@
                     <div class="panel-header">
                         <h3><i class="fa-solid fa-triangle-exclamation" style="color:var(--warning);"></i> Kritik Stok Listesi</h3>
                         <div style="display:flex;gap:8px;align-items:center;">
-                            <span style="font-size:13px;color:var(--text-secondary);font-weight:600;" id="critical-stock-count">0 Ã¼rÃ¼n</span>
+                            <span style="font-size:13px;color:var(--text-secondary);font-weight:600;" id="critical-stock-count">0 ürün</span>
                             <div class="export-dropdown" style="position:relative;">
                                 <button id="critical-export-btn" class="btn-ui btn-sm btn-outline"><i class="fa-solid fa-download"></i> Liste Al</button>
                                 <div id="critical-export-menu" class="export-menu" style="display:none;position:absolute;top:100%;right:0;z-index:100;background:var(--bg-primary);border:1px solid var(--border-color);border-radius:var(--border-radius-sm);box-shadow:0 4px 12px rgba(0,0,0,0.15);min-width:160px;overflow:hidden;">
                                     <button class="critical-export-option" data-format="xlsx" style="display:flex;align-items:center;gap:8px;width:100%;padding:10px 14px;border:none;background:none;cursor:pointer;font-family:inherit;font-size:13px;color:var(--text-primary);"><i class="fa-regular fa-file-excel" style="color:#22c55e;font-size:16px;"></i> Excel (XLSX)</button>
                                     <button class="critical-export-option" data-format="word" style="display:flex;align-items:center;gap:8px;width:100%;padding:10px 14px;border:none;background:none;cursor:pointer;font-family:inherit;font-size:13px;color:var(--text-primary);"><i class="fa-regular fa-file-word" style="color:#3b82f6;font-size:16px;"></i> Word (DOC)</button>
-                                    <button class="critical-export-option" data-format="print" style="display:flex;align-items:center;gap:8px;width:100%;padding:10px 14px;border:none;background:none;cursor:pointer;font-family:inherit;font-size:13px;color:var(--text-primary);"><i class="fa-solid fa-print" style="color:#8b5cf6;font-size:16px;"></i> PDF / YazdÄ±r</button>
+                                    <button class="critical-export-option" data-format="print" style="display:flex;align-items:center;gap:8px;width:100%;padding:10px 14px;border:none;background:none;cursor:pointer;font-family:inherit;font-size:13px;color:var(--text-primary);"><i class="fa-solid fa-print" style="color:#8b5cf6;font-size:16px;"></i> PDF / Yazdır</button>
                                 </div>
                             </div>
                         </div>
                     </div>
                     <div style="padding:1rem; display:flex; flex-direction:column; gap:0.5rem;" id="critical-stock-full-list">
-                        <p style="color:var(--text-secondary);text-align:center;font-size:0.9rem;padding:30px 0;">YÃ¼kleniyor...</p>
+                        <p style="color:var(--text-secondary);text-align:center;font-size:0.9rem;padding:30px 0;">Yükleniyor...</p>
                     </div>
                 </div>
             </div>
@@ -932,109 +927,109 @@
             <div id="user-guide-view" class="view-section">
                 <div class="panel-container">
                     <div class="panel-header">
-                        <h3><i class="fa-solid fa-book" style="color:var(--primary);"></i> KullanÄ±m KÄ±lavuzu</h3>
-                        <button class="btn-ui btn-primary" onclick="printUserGuide()"><i class="fa-solid fa-file-pdf"></i> PDF Ã‡Ä±ktÄ±</button>
+                        <h3><i class="fa-solid fa-book" style="color:var(--primary);"></i> Kullanım Kılavuzu</h3>
+                        <button class="btn-ui btn-primary" onclick="printUserGuide()"><i class="fa-solid fa-file-pdf"></i> PDF Çıktı</button>
                     </div>
                     <div id="user-guide-content" style="padding:2rem;max-width:800px;margin:0 auto;line-height:1.8;font-size:15px;color:var(--text-primary);">
 
-                        <h2 style="margin-bottom:0.25rem;">STOKDOSYA â€” Stok YÃ¶netim Sistemi</h2>
-                        <p style="color:var(--text-secondary);margin-bottom:2rem;font-size:0.9rem;">Versiyon 2.1 â€” KullanÄ±m KÄ±lavuzu</p>
+                        <h2 style="margin-bottom:0.25rem;">STOKDOSYA — Stok Yönetim Sistemi</h2>
+                        <p style="color:var(--text-secondary);margin-bottom:2rem;font-size:0.9rem;">Versiyon 2.1 — Kullanım Kılavuzu</p>
 
-                        <h3>1. Genel BakÄ±ÅŸ (Dashboard)</h3>
-                        <p>Uygulamaya giriÅŸ yaptÄ±ÄŸÄ±nÄ±zda ilk olarak <strong>Genel BakÄ±ÅŸ</strong> sayfasÄ± aÃ§Ä±lÄ±r. Bu sayfada ÅŸunlar bulunur:</p>
+                        <h3>1. Genel Bakış (Dashboard)</h3>
+                        <p>Uygulamaya giriş yaptığınızda ilk olarak <strong>Genel Bakış</strong> sayfası açılır. Bu sayfada şunlar bulunur:</p>
                         <ul>
-                            <li><strong>Ãœst kartlar:</strong> Toplam Ã‡eÅŸit, STT YaklaÅŸan (â‰¤3 gÃ¼n), Kritik Limit AltÄ±, BugÃ¼nkÃ¼ Hareket</li>
-                            <li><strong>Son Hareketler:</strong> En son 4 iÅŸlem listelenir.</li>
-                            <li><strong>Kategori DaÄŸÄ±lÄ±mÄ±:</strong> ÃœrÃ¼nlerin kategorilere gÃ¶re daÄŸÄ±lÄ±mÄ±nÄ± gÃ¶steren Ã§ubuk grafiÄŸi (staggered animasyonlu).</li>
-                            <li><strong>HÄ±zlÄ± Bilgiler:</strong> STT'li Ã¼rÃ¼n, tedarikÃ§i, toplam iÅŸlem ve bugÃ¼nkÃ¼ iÅŸlem sayÄ±larÄ±nÄ± gÃ¶steren halka grafiÄŸi.</li>
-                            <li><strong>Ä°hale Ã‡ekilme YÃ¼zdeleri:</strong> TedarikÃ§i bazÄ±nda ihale teslimat oranlarÄ±nÄ± gÃ¶steren yatay Ã§ubuk grafiÄŸi (iÃ§inde bulunulan yÄ±l).</li>
-                            <li><strong>Tarihi YaklaÅŸan / GeÃ§en ÃœrÃ¼nler (STT):</strong> 3 gÃ¼n iÃ§inde STT'si dolan veya geÃ§miÅŸ Ã¼rÃ¼nler listelenir.</li>
-                            <li><strong>Kritik Stok UyarÄ±sÄ±:</strong> Kritik limit altÄ±ndaki stoklar listelenir (en fazla 3).</li>
+                            <li><strong>Üst kartlar:</strong> Toplam Çeşit, STT Yaklaşan (≤3 gün), Kritik Limit Altı, Bugünkü Hareket</li>
+                            <li><strong>Son Hareketler:</strong> En son 4 işlem listelenir.</li>
+                            <li><strong>Kategori Dağılımı:</strong> Ürünlerin kategorilere göre dağılımını gösteren çubuk grafiği (staggered animasyonlu).</li>
+                            <li><strong>Hızlı Bilgiler:</strong> STT'li ürün, tedarikçi, toplam işlem ve bugünkü işlem sayılarını gösteren halka grafiği.</li>
+                            <li><strong>İhale Çekilme Yüzdeleri:</strong> Tedarikçi bazında ihale teslimat oranlarını gösteren yatay çubuk grafiği (içinde bulunulan yıl).</li>
+                            <li><strong>Tarihi Yaklaşan / Geçen Ürünler (STT):</strong> 3 gün içinde STT'si dolan veya geçmiş ürünler listelenir.</li>
+                            <li><strong>Kritik Stok Uyarısı:</strong> Kritik limit altındaki stoklar listelenir (en fazla 3).</li>
                         </ul>
 
                         <h3>2. Anbar Listesi</h3>
-                        <p>TÃ¼m Ã¼rÃ¼n kartlarÄ±nÄ±n listelendiÄŸi sayfadÄ±r. Burada:</p>
+                        <p>Tüm ürün kartlarının listelendiği sayfadır. Burada:</p>
                         <ul>
-                            <li>Kategori filtreleri (Sebze, Meyve, Bakliyat, vb.) ile Ã¼rÃ¼nleri filtreleyebilirsiniz.</li>
-                            <li>Arama Ã§ubuÄŸu ile Ã¼rÃ¼n adÄ± veya parti no ile arama yapabilirsiniz.</li>
-                            <li>"SÄ±fÄ±r StoklarÄ± Gizle" ve "Sadece Kritik AltÄ±" filtreleri bulunur.</li>
-                            <li>"Liste Al" butonu ile Excel, Word veya PDF Ã§Ä±ktÄ±sÄ± alabilirsiniz (Ä°hale Kalan sÃ¼tunu dahil).</li>
-                            <li>"Yeni ÃœrÃ¼n" butonu ile yeni Ã¼rÃ¼n kartÄ± ekleyebilirsiniz.</li>
-                            <li>Her Ã¼rÃ¼n iÃ§in dÃ¼zenleme ve silme iÅŸlemleri yapÄ±labilir.</li>
+                            <li>Kategori filtreleri (Sebze, Meyve, Bakliyat, vb.) ile ürünleri filtreleyebilirsiniz.</li>
+                            <li>Arama çubuğu ile ürün adı veya parti no ile arama yapabilirsiniz.</li>
+                            <li>"Sıfır Stokları Gizle" ve "Sadece Kritik Altı" filtreleri bulunur.</li>
+                            <li>"Liste Al" butonu ile Excel, Word veya PDF çıktısı alabilirsiniz (İhale Kalan sütunu dahil).</li>
+                            <li>"Yeni Ürün" butonu ile yeni ürün kartı ekleyebilirsiniz.</li>
+                            <li>Her ürün için düzenleme ve silme işlemleri yapılabilir.</li>
                         </ul>
 
-                        <h3>3. Mal Kabul (GiriÅŸ)</h3>
-                        <p>Depoya yeni Ã¼rÃ¼n giriÅŸi yapmak iÃ§in kullanÄ±lÄ±r.</p>
+                        <h3>3. Mal Kabul (Giriş)</h3>
+                        <p>Depoya yeni ürün girişi yapmak için kullanılır.</p>
                         <ul>
-                            <li>ÃœrÃ¼n seÃ§in (tÃ¼m aktif Ã¼rÃ¼nler listelenir, tedarikÃ§i filtresi yoktur).</li>
-                            <li>Miktar ve giriÅŸ tarihi bilgilerini girin.</li>
-                            <li>STT (Son TÃ¼ketim Tarihi) girilebilir, otomatik doldurulur.</li>
-                            <li>Ä°hale baÄŸlantÄ±sÄ± varsa, ilgili ihaleye otomatik iÅŸlenir.</li>
-                            <li><strong>Ã‡akÄ±ÅŸma Ã¶nleme:</strong> KayÄ±t Ã¶ncesi GitHub'dan en son veri Ã§ekilir, gÃ¼ncel stokla kontrol yapÄ±lÄ±r.</li>
+                            <li>Ürün seçin (tüm aktif ürünler listelenir, tedarikçi filtresi yoktur).</li>
+                            <li>Miktar ve giriş tarihi bilgilerini girin.</li>
+                            <li>STT (Son Tüketim Tarihi) girilebilir, otomatik doldurulur.</li>
+                            <li>İhale bağlantısı varsa, ilgili ihaleye otomatik işlenir.</li>
+                            <li><strong>Çakışma önleme:</strong> Kayıt öncesi GitHub'dan en son veri çekilir, güncel stokla kontrol yapılır.</li>
                         </ul>
 
-                        <h3>4. ÃœrÃ¼n Ã‡Ä±kÄ±ÅŸ</h3>
-                        <p>Depodan Ã¼rÃ¼n Ã§Ä±kÄ±ÅŸÄ± yapmak iÃ§in kullanÄ±lÄ±r.</p>
+                        <h3>4. Ürün Çıkış</h3>
+                        <p>Depodan ürün çıkışı yapmak için kullanılır.</p>
                         <ul>
-                            <li>ÃœrÃ¼n seÃ§in, miktar ve Ã§Ä±kÄ±ÅŸ tarihi girin.</li>
+                            <li>Ürün seçin, miktar ve çıkış tarihi girin.</li>
                             <li>Teslim alan / sevkiyat notu ekleyebilirsiniz.</li>
-                            <li>Stok yetersizse uyarÄ± verilir.</li>
-                            <li><strong>Ã‡akÄ±ÅŸma Ã¶nleme:</strong> KayÄ±t Ã¶ncesi GitHub'dan en son veri Ã§ekilir, stok kontrolÃ¼ gÃ¼ncel veriyle yapÄ±lÄ±r.</li>
-                            <li><strong>YÃ¶netici (MUSTAFA ORHAN):</strong> GÃ¼nlÃ¼k Ä°ÅŸlemler sayfasÄ±nda "DÃ¼zelt" butonu ile Ã§Ä±kÄ±ÅŸ miktarÄ±nÄ± dÃ¼zeltebilir, stok otomatik gÃ¼ncellenir. DÃ¼zeltme kaydÄ± "Son Hareketler"e eklenir.</li>
+                            <li>Stok yetersizse uyarı verilir.</li>
+                            <li><strong>Çakışma önleme:</strong> Kayıt öncesi GitHub'dan en son veri çekilir, stok kontrolü güncel veriyle yapılır.</li>
+                            <li><strong>Yönetici (MUSTAFA ORHAN):</strong> Günlük İşlemler sayfasında "Düzelt" butonu ile çıkış miktarını düzeltebilir, stok otomatik güncellenir. Düzeltme kaydı "Son Hareketler"e eklenir.</li>
                         </ul>
 
-                        <h3>5. GÃ¼nlÃ¼k Ä°ÅŸlemler</h3>
-                        <p>SeÃ§ilen tarihe ait tÃ¼m giriÅŸ/Ã§Ä±kÄ±ÅŸ iÅŸlemlerini gÃ¶sterir.</p>
+                        <h3>5. Günlük İşlemler</h3>
+                        <p>Seçilen tarihe ait tüm giriş/çıkış işlemlerini gösterir.</p>
                         <ul>
-                            <li>Tarih, yÄ±l ve iÅŸlem tÃ¼rÃ¼ne gÃ¶re filtreleme yapÄ±labilir.</li>
-                            <li>PDF Ã§Ä±ktÄ±sÄ± alÄ±nabilir.</li>
-                            <li>Her iÅŸlem satÄ±rÄ±nda iÅŸlem tÃ¼rÃ¼ (GÄ°RÄ°Å/Ã‡IKIÅ/DÃœZELTME) gÃ¶rÃ¼ntÃ¼lenir.</li>
+                            <li>Tarih, yıl ve işlem türüne göre filtreleme yapılabilir.</li>
+                            <li>PDF çıktısı alınabilir.</li>
+                            <li>Her işlem satırında işlem türü (GİRİ�?/ÇIKI�?/DÜZELTME) görüntülenir.</li>
                         </ul>
 
                         <h3>6. Raporlar</h3>
-                        <p><strong>YÄ±llÄ±k Raporlar:</strong> SeÃ§ilen yÄ±la ait giriÅŸ/Ã§Ä±kÄ±ÅŸ analizleri, grafikler, en hareketli ay ve geÃ§en yÄ±la gÃ¶re karÅŸÄ±laÅŸtÄ±rma sunar. ÃœrÃ¼n bazÄ±nda filtreleme yapÄ±labilir. YÄ±l aralÄ±ÄŸÄ±: 2016 â€” gÃ¼nÃ¼mÃ¼z + 5 yÄ±l.</p>
-                        <p><strong>AylÄ±k TedarikÃ§i Raporu:</strong> Takvim seÃ§ici ile ay seÃ§ilir, tedarikÃ§i ve Ã¼rÃ¼n bazÄ±nda giriÅŸ raporu. PDF Ã§Ä±ktÄ±sÄ± alÄ±nabilir.</p>
-                        <p><strong>AylÄ±k Rapor (MenÃ¼):</strong> Sol menÃ¼den ay seÃ§erek o aya ait giriÅŸ/Ã§Ä±kÄ±ÅŸ detaylarÄ± gÃ¶rÃ¼ntÃ¼lenir.</p>
+                        <p><strong>Yıllık Raporlar:</strong> Seçilen yıla ait giriş/çıkış analizleri, grafikler, en hareketli ay ve geçen yıla göre karşılaştırma sunar. Ürün bazında filtreleme yapılabilir. Yıl aralığı: 2016 — günümüz + 5 yıl.</p>
+                        <p><strong>Aylık Tedarikçi Raporu:</strong> Takvim seçici ile ay seçilir, tedarikçi ve ürün bazında giriş raporu. PDF çıktısı alınabilir.</p>
+                        <p><strong>Aylık Rapor (Menü):</strong> Sol menüden ay seçerek o aya ait giriş/çıkış detayları görüntülenir.</p>
 
                         <h3>7. Takip</h3>
-                        <p><strong>STT Takibi:</strong> TÃ¼m Ã¼rÃ¼nlerin son tÃ¼ketim tarihlerini takip eder. SÃ¼resi geÃ§en, yaklaÅŸan (â‰¤30 gÃ¼n) ve sÃ¼re var (>30 gÃ¼n) ÅŸeklinde filtreleme yapÄ±labilir.</p>
-                        <p><strong>Ä°hale Takip:</strong> TedarikÃ§ilerle yapÄ±lan ihale anlaÅŸmalarÄ±nÄ± ve teslimat oranlarÄ±nÄ± takip eder. Yeni ihale eklenebilir, dÃ¼zenlenebilir. Listenin Ã¼stÃ¼nde <strong>Ä°hale Ã‡ekilme YÃ¼zdeleri</strong> grafiÄŸi bulunur (yÄ±l filtresine gÃ¶re gÃ¼ncellenir). YÄ±l bilgisi manuel seÃ§ilir (2016'dan itibaren).</p>
-                        <p><strong>TedarikÃ§i & ÃœrÃ¼n TanÄ±mla:</strong> TedarikÃ§i listesi yÃ¶netimi (ekleme, dÃ¼zenleme, silme) ve Ã¼rÃ¼n isim listesi. TedarikÃ§i adÄ± dÃ¼zenlenebilir â€” tÃ¼m referanslar (Ã¼rÃ¼nler, ihaleler, hareketler) otomatik gÃ¼ncellenir.</p>
-                        <p><strong>Kritik Stok:</strong> Kritik limit altÄ±ndaki tÃ¼m Ã¼rÃ¼nlerin tam listesi. Excel, Word ve PDF Ã§Ä±ktÄ±sÄ± alÄ±nabilir (Ä°hale Kalan sÃ¼tunu dahil).</p>
+                        <p><strong>STT Takibi:</strong> Tüm ürünlerin son tüketim tarihlerini takip eder. Süresi geçen, yaklaşan (≤30 gün) ve süre var (>30 gün) şeklinde filtreleme yapılabilir.</p>
+                        <p><strong>İhale Takip:</strong> Tedarikçilerle yapılan ihale anlaşmalarını ve teslimat oranlarını takip eder. Yeni ihale eklenebilir, düzenlenebilir. Listenin üstünde <strong>İhale Çekilme Yüzdeleri</strong> grafiği bulunur (yıl filtresine göre güncellenir). Yıl bilgisi manuel seçilir (2016'dan itibaren).</p>
+                        <p><strong>Tedarikçi & Ürün Tanımla:</strong> Tedarikçi listesi yönetimi (ekleme, düzenleme, silme) ve ürün isim listesi. Tedarikçi adı düzenlenebilir — tüm referanslar (ürünler, ihaleler, hareketler) otomatik güncellenir.</p>
+                        <p><strong>Kritik Stok:</strong> Kritik limit altındaki tüm ürünlerin tam listesi. Excel, Word ve PDF çıktısı alınabilir (İhale Kalan sütunu dahil).</p>
 
-                        <h3>8. Parti (Batch) NumarasÄ±</h3>
-                        <p>Yeni Ã¼rÃ¼n oluÅŸtururken otomatik oluÅŸturulur. Format: <code>A + YY + ISO Hafta(2) + GÃ¼n(1) + 1 + SÄ±ra(2)</code>. SÄ±ra numarasÄ± sadece form gÃ¶nderildiÄŸinde artar, modal aÃ§Ä±ldÄ±ÄŸÄ±nda artmaz.</p>
-                        <p>ÃœrÃ¼n dÃ¼zeltme modalÄ±nda da kayÄ±t Ã¶ncesi GitHub'dan son veri Ã§ekilir, Ã§akÄ±ÅŸma Ã¶nlenir.</p>
+                        <h3>8. Parti (Batch) Numarası</h3>
+                        <p>Yeni ürün oluştururken otomatik oluşturulur. Format: <code>A + YY + ISO Hafta(2) + Gün(1) + 1 + Sıra(2)</code>. Sıra numarası sadece form gönderildiğinde artar, modal açıldığında artmaz.</p>
+                        <p>Ürün düzeltme modalında da kayıt öncesi GitHub'dan son veri çekilir, çakışma önlenir.</p>
 
                         <h3>9. Ayarlar & Bulut</h3>
                         <ul>
-                            <li><strong>Profil AyarlarÄ±:</strong> KullanÄ±cÄ± adÄ±, rol ve ÅŸifre deÄŸiÅŸtirme.</li>
-                            <li><strong>KullanÄ±cÄ± YÃ¶netimi:</strong> Yeni personel ekleme/pasif yapma (sadece yÃ¶netici).</li>
-                            <li><strong>Supabase BaÄŸlantÄ±sÄ±:</strong> Verileriniz Supabase bulut veritabanÄ±nda saklanÄ±r. TÃ¼m cihazlarÄ±nÄ±zdan eriÅŸebilirsiniz.</li>
-                            <li><strong>Otomatik Yedekleme:</strong> Belirlenen saatte otomatik JSON yedeÄŸi indirme.</li>
-                            <li><strong>Manuel Ä°ÅŸlemler:</strong> VeritabanÄ±nÄ± JSON olarak indirme, GitHub'a manuel eÅŸitleme, yedekten geri yÃ¼kleme.</li>
-                            <li><strong>Veri SÄ±fÄ±rlama:</strong> TÃ¼m verileri kalÄ±cÄ± olarak siler (sadece acil durumlarda kullanÄ±n).</li>
-                            <li><strong>ÃœrÃ¼n Ä°sim Listesi:</strong> TutarlÄ± Ã¼rÃ¼n adlandÄ±rmasÄ± iÃ§in Ã¶nceden tanÄ±mlanmÄ±ÅŸ isim listesi. Yeni Ã¼rÃ¼n eklerken "ÃœrÃ¼n AdÄ±" dropdown'undan seÃ§ilir.</li>
+                            <li><strong>Profil Ayarları:</strong> Kullanıcı adı, rol ve şifre değiştirme.</li>
+                            <li><strong>Kullanıcı Yönetimi:</strong> Yeni personel ekleme/pasif yapma (sadece yönetici).</li>
+                            <li><strong>Supabase Bağlantısı:</strong> Verileriniz Supabase bulut veritabanında saklanır. Tüm cihazlarınızdan erişebilirsiniz.</li>
+                            <li><strong>Otomatik Yedekleme:</strong> Belirlenen saatte otomatik JSON yedeği indirme.</li>
+                            <li><strong>Manuel İşlemler:</strong> Veritabanını JSON olarak indirme, GitHub'a manuel eşitleme, yedekten geri yükleme.</li>
+                            <li><strong>Veri Sıfırlama:</strong> Tüm verileri kalıcı olarak siler (sadece acil durumlarda kullanın).</li>
+                            <li><strong>Ürün İsim Listesi:</strong> Tutarlı ürün adlandırması için önceden tanımlanmış isim listesi. Yeni ürün eklerken "Ürün Adı" dropdown'undan seçilir.</li>
                         </ul>
 
-                        <h3>10. KullanÄ±cÄ± Rolleri</h3>
+                        <h3>10. Kullanıcı Rolleri</h3>
                         <ul>
-                            <li><strong>YÃ¶netici:</strong> TÃ¼m iÅŸlemleri yapabilir, kullanÄ±cÄ± yÃ¶netimi, tema deÄŸiÅŸtirme, Ã§Ä±kÄ±ÅŸ dÃ¼zeltme.</li>
-                            <li><strong>Depo KullanÄ±cÄ±sÄ±:</strong> GiriÅŸ/Ã§Ä±kÄ±ÅŸ, raporlar, Ã¼rÃ¼n yÃ¶netimi yapabilir.</li>
-                            <li><strong>Sadece GÃ¶rÃ¼ntÃ¼leme:</strong> TÃ¼m sayfalarÄ± gÃ¶rÃ¼ntÃ¼leyebilir, hiÃ§bir deÄŸiÅŸiklik yapamaz. GiriÅŸ/Ã§Ä±kÄ±ÅŸ formlarÄ± gizlenir, tÃ¼m butonlar devre dÄ±ÅŸÄ±dÄ±r.</li>
+                            <li><strong>Yönetici:</strong> Tüm işlemleri yapabilir, kullanıcı yönetimi, tema değiştirme, çıkış düzeltme.</li>
+                            <li><strong>Depo Kullanıcısı:</strong> Giriş/çıkış, raporlar, ürün yönetimi yapabilir.</li>
+                            <li><strong>Sadece Görüntüleme:</strong> Tüm sayfaları görüntüleyebilir, hiçbir değişiklik yapamaz. Giriş/çıkış formları gizlenir, tüm butonlar devre dışıdır.</li>
                         </ul>
 
-                        <h3>11. Ä°puÃ§larÄ±</h3>
+                        <h3>11. İpuçları</h3>
                         <ul>
-                            <li>SayfanÄ±n Ã¼st kÄ±smÄ±ndaki ğŸŒ™/â˜€ï¸ butonu ile koyu/aÃ§Ä±k tema arasÄ±nda geÃ§iÅŸ yapabilirsiniz (sadece yÃ¶netici).</li>
-                            <li>TÃ¼m listelerde "Liste Al" butonlarÄ± ile Excel, Word veya PDF Ã§Ä±ktÄ±sÄ± alabilirsiniz.</li>
-                            <li>ÃœrÃ¼n eklerken "ÃœrÃ¼n Ä°sim Listesi" kullanarak aynÄ± Ã¼rÃ¼nÃ¼n farklÄ± yazÄ±mlarla tekrar eklenmesini Ã¶nleyebilirsiniz.</li>
-                            <li>Stok giriÅŸi yaparken ihale baÄŸlantÄ±sÄ± varsa, miktar otomatik olarak ihaleye iÅŸlenir.</li>
-                            <li>TedarikÃ§i adÄ± yanlÄ±ÅŸ yazÄ±ldÄ±ysa TedarikÃ§iler sayfasÄ±ndan dÃ¼zeltebilirsiniz, tÃ¼m referanslar otomatik gÃ¼ncellenir.</li>
-                            <li>YÄ±l seÃ§ici 2016 yÄ±lÄ±na kadar geri gider.</li>
-                            <li>EÅŸ zamanlÄ± kullanÄ±mda son kaydedenin verisi geÃ§erli olur (Supabase son yazma kazanÄ±r).</li>
-                            <li>TÃ¼m sayfalarda XSS korumasÄ± aktiftir, veri giriÅŸlerinde HTML enjeksiyonu engellenir.</li>
-                            <li>Herhangi bir bÃ¶lÃ¼mde hata oluÅŸursa diÄŸer sayfalar etkilenmez â€” hata toleranslÄ± altyapÄ±.</li>
+                            <li>Sayfanın üst kısmındaki g���/☀️ butonu ile koyu/açık tema arasında geçiş yapabilirsiniz (sadece yönetici).</li>
+                            <li>Tüm listelerde "Liste Al" butonları ile Excel, Word veya PDF çıktısı alabilirsiniz.</li>
+                            <li>Ürün eklerken "Ürün İsim Listesi" kullanarak aynı ürünün farklı yazımlarla tekrar eklenmesini önleyebilirsiniz.</li>
+                            <li>Stok girişi yaparken ihale bağlantısı varsa, miktar otomatik olarak ihaleye işlenir.</li>
+                            <li>Tedarikçi adı yanlış yazıldıysa Tedarikçiler sayfasından düzeltebilirsiniz, tüm referanslar otomatik güncellenir.</li>
+                            <li>Yıl seçici 2016 yılına kadar geri gider.</li>
+                            <li>Eş zamanlı kullanımda son kaydedenin verisi geçerli olur (Supabase son yazma kazanır).</li>
+                            <li>Tüm sayfalarda XSS koruması aktiftir, veri girişlerinde HTML enjeksiyonu engellenir.</li>
+                            <li>Herhangi bir bölümde hata oluşursa diğer sayfalar etkilenmez — hata toleranslı altyapı.</li>
                         </ul>
 
                     </div>
@@ -1044,19 +1039,19 @@
             <!-- 8. SETTINGS VIEW -->
             <div id="settings-view" class="view-section">
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;">
-                    <!-- Profil & KullanÄ±cÄ± YÃ¶netimi -->
+                    <!-- Profil & Kullanıcı Yönetimi -->
                     <div class="panel-container">
                         <div class="panel-header">
-                            <h3><i class="fa-regular fa-id-card"></i> KullanÄ±cÄ± YÃ¶netimi</h3>
+                            <h3><i class="fa-regular fa-id-card"></i> Kullanıcı Yönetimi</h3>
                         </div>
                         <div style="padding: 1.5rem; display: flex; flex-direction: column; gap: 1.5rem;">
                             <form id="profile-form" style="border-bottom: 1px solid var(--border-color); padding-bottom: 1.5rem;">
-                                <h4 style="font-size:0.9rem; font-weight:700; margin-bottom:1rem; color:var(--primary);"><i class="fa-solid fa-user-gear"></i> Profil AyarlarÄ±</h4>
+                                <h4 style="font-size:0.9rem; font-weight:700; margin-bottom:1rem; color:var(--primary);"><i class="fa-solid fa-user-gear"></i> Profil Ayarları</h4>
                                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
                                     <div class="form-group" style="margin-bottom:0;">
-                                        <label>GÃ¶rÃ¼nen Ä°sim</label>
+                                        <label>Görünen İsim</label>
                                         <input type="text" id="settings-username" class="form-control" required readonly style="background:var(--secondary); cursor:not-allowed;">
-                                        <small style="color:var(--text-secondary); font-size:0.75rem;">GiriÅŸ yapan kullanÄ±cÄ± adÄ±.</small>
+                                        <small style="color:var(--text-secondary); font-size:0.75rem;">Giriş yapan kullanıcı adı.</small>
                                     </div>
                                     <div class="form-group" style="margin-bottom:0;">
                                         <label>Unvan / Rol</label>
@@ -1064,26 +1059,26 @@
                                     </div>
                                 </div>
                                 <div class="form-group" style="margin-bottom:1rem;">
-                                    <label>Yeni Åifre (boÅŸ bÄ±rakÄ±lÄ±rsa deÄŸiÅŸmez)</label>
+                                    <label>Yeni �?ifre (boş bırakılırsa değişmez)</label>
                                     <input type="password" id="settings-new-password" class="form-control" placeholder="En az 3 karakter" style="max-width:250px;">
                                 </div>
                                 <button type="submit" class="btn-ui btn-primary"><i class="fa-solid fa-floppy-disk"></i> Kaydet</button>
                             </form>
 
                             <div>
-                                <h4 style="font-size:0.9rem; font-weight:700; margin-bottom:0.75rem; color:var(--primary);"><i class="fa-solid fa-users-gear"></i> Sistem KullanÄ±cÄ± Listesi</h4>
-                                <p style="font-size:0.8rem; color:var(--text-secondary); margin-bottom:1rem;">Yeni personel hesaplarÄ± ekleyin. KullanÄ±cÄ± adÄ± ve ÅŸifre ile giriÅŸ yaparlar.</p>
+                                <h4 style="font-size:0.9rem; font-weight:700; margin-bottom:0.75rem; color:var(--primary);"><i class="fa-solid fa-users-gear"></i> Sistem Kullanıcı Listesi</h4>
+                                <p style="font-size:0.8rem; color:var(--text-secondary); margin-bottom:1rem;">Yeni personel hesapları ekleyin. Kullanıcı adı ve şifre ile giriş yaparlar.</p>
                                 <div id="add-user-section">
                                 <div style="display: flex; gap: 8px; margin-bottom: 0.5rem;flex-wrap:wrap;">
-                                    <input type="text" id="new-username-input" class="form-control" placeholder="KullanÄ±cÄ± adÄ±" style="flex:1.5;min-width:120px;">
-                                    <input type="password" id="new-userpassword-input" class="form-control" placeholder="Åifre" style="flex:1;min-width:100px;">
+                                    <input type="text" id="new-username-input" class="form-control" placeholder="Kullanıcı adı" style="flex:1.5;min-width:120px;">
+                                    <input type="password" id="new-userpassword-input" class="form-control" placeholder="�?ifre" style="flex:1;min-width:100px;">
                                     <select id="new-userrole-input" class="form-control" style="flex:1;min-width:100px;">
-                                        <option value="Depo KullanÄ±cÄ±sÄ±">Depo KullanÄ±cÄ±sÄ±</option>
-                                        <option value="Sadece GÃ¶rÃ¼ntÃ¼leme">Sadece GÃ¶rÃ¼ntÃ¼leme</option>
+                                        <option value="Depo Kullanıcısı">Depo Kullanıcısı</option>
+                                        <option value="Sadece Görüntüleme">Sadece Görüntüleme</option>
                                     </select>
                                     <button type="button" id="add-user-btn" class="btn-ui btn-primary" style="padding:0 1.25rem; white-space:nowrap;"><i class="fa-solid fa-user-plus"></i> Ekle</button>
                                 </div>
-                                <small style="color:var(--text-secondary);font-size:0.75rem;display:block;margin-bottom:1rem;">Sadece yÃ¶netici (MUSTAFA ORHAN) kullanÄ±cÄ± ekleyebilir/pasif yapabilir.</small>
+                                <small style="color:var(--text-secondary);font-size:0.75rem;display:block;margin-bottom:1rem;">Sadece yönetici (MUSTAFA ORHAN) kullanıcı ekleyebilir/pasif yapabilir.</small>
                                 </div>
                                 <ul id="users-list-ul" style="list-style: none; display: flex; flex-direction: column; gap: 0.5rem; max-height: 180px; overflow-y: auto; padding-right: 5px;"></ul>
 
@@ -1091,27 +1086,27 @@
                         </div>
                     </div>
 
-                     <!-- Supabase BaÄŸlantÄ±sÄ± -->
+                     <!-- Supabase Bağlantısı -->
                      <div class="panel-container">
                          <div class="panel-header">
-                             <h3><i class="fa-solid fa-database"></i> Supabase BaÄŸlantÄ±sÄ±</h3>
+                             <h3><i class="fa-solid fa-database"></i> Supabase Bağlantısı</h3>
                          </div>
                          <div style="padding: 1.5rem;">
                              <div style="display:flex; align-items:center; gap:12px; padding:12px; background:var(--bg-primary); border-radius:var(--border-radius-sm); border:1px solid var(--border-color); margin-bottom:12px;">
                                  <i class="fa-solid fa-cloud" style="font-size:20px; color:var(--primary);"></i>
                                  <div style="flex:1; overflow:hidden;">
-                                     <strong style="display:block;">Supabase Bulut VeritabanÄ±</strong>
+                                     <strong style="display:block;">Supabase Bulut Veritabanı</strong>
                                      <span id="github-url-display" style="font-size:13px; color:var(--text-secondary); word-break:break-all;">https://jarnxfhviniqfdeptifb.supabase.co</span>
                                  </div>
                              </div>
                              <div style="display:flex; gap:8px; flex-wrap:wrap;">
-                                 <button id="sheets-test-btn" class="btn-ui btn-primary"><i class="fa-solid fa-plug"></i> BaÄŸlantÄ±yÄ± Test Et</button>
-                                 <button id="sheets-sync-btn" class="btn-ui btn-outline"><i class="fa-solid fa-arrow-up"></i> Supabase'e GÃ¶nder</button>
-                                 <button id="sheets-pull-btn" class="btn-ui btn-outline"><i class="fa-solid fa-arrow-down"></i> Supabase'den Ã‡ek</button>
+                                 <button id="sheets-test-btn" class="btn-ui btn-primary"><i class="fa-solid fa-plug"></i> Bağlantıyı Test Et</button>
+                                 <button id="sheets-sync-btn" class="btn-ui btn-outline"><i class="fa-solid fa-arrow-up"></i> Supabase'e Gönder</button>
+                                 <button id="sheets-pull-btn" class="btn-ui btn-outline"><i class="fa-solid fa-arrow-down"></i> Supabase'den Çek</button>
                              </div>
                              <small style="display:block; margin-top:10px; font-weight:600; color: var(--text-secondary);">
                                  <i class="fa-solid fa-circle-info" style="color:var(--primary);"></i> 
-                                 TÃ¼m veriler Supabase bulut veritabanÄ±nda saklanÄ±r. BaÄŸlantÄ± bilgileri <code>app.js</code> iÃ§inde tanÄ±mlÄ±dÄ±r.
+                                 Tüm veriler Supabase bulut veritabanında saklanır. Bağlantı bilgileri <code>app.js</code> içinde tanımlıdır.
                              </small>
                          </div>
                      </div>
@@ -1124,44 +1119,44 @@
                         <div style="padding: 1.5rem;">
                             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;">
                                 <div>
-                                    <h4 style="margin-bottom: 0.5rem; font-weight:700;"><i class="fa-solid fa-clock"></i> Otomatik ZamanlÄ± Yedek</h4>
+                                    <h4 style="margin-bottom: 0.5rem; font-weight:700;"><i class="fa-solid fa-clock"></i> Otomatik Zamanlı Yedek</h4>
                                     <p style="font-size: 0.9rem; color: var(--text-secondary); margin-bottom: 1rem; line-height: 1.4;">
-                                        Uygulama tarayÄ±cÄ±nÄ±zda aÃ§Ä±k olduÄŸu sÃ¼rece, belirlediÄŸiniz saatte otomatik olarak tÃ¼m verilerinizin JSON yedeÄŸini bilgisayarÄ±nÄ±za indirir.
+                                        Uygulama tarayıcınızda açık olduğu sürece, belirlediğiniz saatte otomatik olarak tüm verilerinizin JSON yedeğini bilgisayarınıza indirir.
                                     </p>
                                     <div style="display: flex; gap: 15px; align-items: center;">
                                         <input type="time" id="auto-backup-time" class="form-control" style="width: 150px;">
                                         <div style="display: flex; align-items: center; gap: 8px;">
                                             <input type="checkbox" id="auto-backup-toggle" style="width: 20px; height: 20px; cursor:pointer;">
-                                            <label for="auto-backup-toggle" style="margin:0; font-weight: 700; cursor:pointer;">Otomatik Ä°ndir</label>
+                                            <label for="auto-backup-toggle" style="margin:0; font-weight: 700; cursor:pointer;">Otomatik İndir</label>
                                         </div>
                                     </div>
                                     <div style="display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-top:10px;">
-                                        <button id="pick-backup-dir" class="btn btn-secondary" style="display:flex;align-items:center;gap:5px;font-size:13px;"><i class="fa-solid fa-folder-open"></i> Yedek KlasÃ¶rÃ¼ SeÃ§</button>
-                                        <span id="backup-dir-label" style="font-size:12px;color:var(--text-muted);">HenÃ¼z klasÃ¶r seÃ§ilmedi (varsayÄ±lan: tarayÄ±cÄ± indirme)</span>
+                                        <button id="pick-backup-dir" class="btn btn-secondary" style="display:flex;align-items:center;gap:5px;font-size:13px;"><i class="fa-solid fa-folder-open"></i> Yedek Klasörü Seç</button>
+                                        <span id="backup-dir-label" style="font-size:12px;color:var(--text-muted);">Henüz klasör seçilmedi (varsayılan: tarayıcı indirme)</span>
                                     </div>
                                     <span id="backup-status-msg" style="display:block; margin-top: 10px; font-size: 0.85rem; font-weight:600; color: var(--success);"></span>
                                 </div>
 
                                 <div>
-                                    <h4 style="margin-bottom: 0.5rem; font-weight:700;"><i class="fa-solid fa-file-export"></i> Manuel Ä°ÅŸlemler</h4>
+                                    <h4 style="margin-bottom: 0.5rem; font-weight:700;"><i class="fa-solid fa-file-export"></i> Manuel İşlemler</h4>
                                     <p style="font-size: 0.9rem; color: var(--text-secondary); margin-bottom: 1.25rem;">
-                                        Verilerinizi istediÄŸiniz zaman bilgisayarÄ±nÄ±za yedek olarak kaydedebilir veya indirdiÄŸiniz bir yedeÄŸi sisteme yÃ¼kleyebilirsiniz.
+                                        Verilerinizi istediğiniz zaman bilgisayarınıza yedek olarak kaydedebilir veya indirdiğiniz bir yedeği sisteme yükleyebilirsiniz.
                                     </p>
 
                                     <div style="display:flex; flex-direction:column; gap:1.25rem;">
                                         <button type="button" id="backup-btn" class="btn-ui btn-outline" style="align-self: flex-start;">
-                                            <i class="fa-solid fa-download"></i> Veri TabanÄ±nÄ± JSON Olarak Ä°ndir
+                                            <i class="fa-solid fa-download"></i> Veri Tabanını JSON Olarak İndir
                                         </button>
 
                                          <button type="button" id="manual-sync-btn" class="btn-ui btn-primary" style="align-self: flex-start;">
-                                              <i class="fa-solid fa-cloud-upload-alt"></i> Verileri Supabase'e EÅŸitle
+                                              <i class="fa-solid fa-cloud-upload-alt"></i> Verileri Supabase'e Eşitle
                                           </button>
 
                                         <div style="border-top: 1px solid var(--border-color); padding-top: 1.25rem;">
-                                            <label style="display:block; font-size: 0.8rem; font-weight:700; margin-bottom:0.5rem; color: var(--text-secondary);">Yedekten Geri YÃ¼kle</label>
+                                            <label style="display:block; font-size: 0.8rem; font-weight:700; margin-bottom:0.5rem; color: var(--text-secondary);">Yedekten Geri Yükle</label>
                                             <div style="display: flex; gap: 10px;">
                                                 <input type="file" id="restore-file" accept=".json" class="form-control">
-                                                <button type="button" id="restore-btn" class="btn-ui btn-primary"><i class="fa-solid fa-upload"></i> YÃ¼kle</button>
+                                                <button type="button" id="restore-btn" class="btn-ui btn-primary"><i class="fa-solid fa-upload"></i> Yükle</button>
                                             </div>
                                             <button type="button" id="list-backups-btn" class="btn-ui btn-outline" style="margin-top:10px;width:100%;">
                                                 <i class="fa-solid fa-clock-rotate-left"></i> Supabase Yedeklerini Listele
@@ -1174,26 +1169,26 @@
                         </div>
                     </div>
 
-                    <!-- SÄ±fÄ±rla Butonu -->
+                    <!-- Sıfırla Butonu -->
                     <div class="panel-container" style="grid-column: span 2; border-color: var(--accent);">
                         <div class="panel-header" style="border-bottom-color: var(--accent);">
-                            <h3 style="color: var(--accent);"><i class="fa-solid fa-bomb"></i> Veri SÄ±fÄ±rlama</h3>
+                            <h3 style="color: var(--accent);"><i class="fa-solid fa-bomb"></i> Veri Sıfırlama</h3>
                         </div>
                         <div style="padding: 1.5rem;">
                             <p style="font-size: 0.9rem; color: var(--text-secondary); margin-bottom: 1rem; line-height: 1.4;">
-                                <strong style="color: var(--accent);">âš  UyarÄ±:</strong> TÃ¼m Ã¼rÃ¼n kartlarÄ±nÄ±, stok hareketlerini, STT kayÄ±tlarÄ±nÄ±, ihale ve tedarikÃ§i verilerini kalÄ±cÄ± olarak siler.
-                                KullanÄ±cÄ±lar ve ayarlar korunur. Bu iÅŸlem geri alÄ±namaz.
+                                <strong style="color: var(--accent);">⚠ Uyarı:</strong> Tüm ürün kartlarını, stok hareketlerini, STT kayıtlarını, ihale ve tedarikçi verilerini kalıcı olarak siler.
+                                Kullanıcılar ve ayarlar korunur. Bu işlem geri alınamaz.
                             </p>
                             <button type="button" id="reset-all-btn" class="btn-ui" style="background: var(--accent); color: #fff; border: none;">
-                                <i class="fa-solid fa-bomb"></i> Depoyu SÄ±fÄ±rla & BaÅŸtan BaÅŸla
+                                <i class="fa-solid fa-bomb"></i> Depoyu Sıfırla & Baştan Başla
                             </button>
                         </div>
                     </div>
 
-                    <!-- Aktif Kullanıcılar -->
+                    <!-- Aktif Kullan�c�lar -->
                     <div class="panel-container" style="grid-column: span 2;">
                         <div class="panel-header">
-                            <h3><i class="fa-regular fa-users"></i> Aktif Kullanıcılar</h3>
+                            <h3><i class="fa-regular fa-users"></i> Aktif Kullan�c�lar</h3>
                         </div>
                         <div style="padding:0.75rem 1rem;">
                             <div id="dashboard-active-user-box">
@@ -1208,11 +1203,11 @@
                 </div>
             </div>
 
-            <!-- Ã‡Ä±kÄ±ÅŸ DÃ¼zeltme Modal -->
+            <!-- Çıkış Düzeltme Modal -->
             <div id="exit-edit-modal" class="modal">
                 <div class="form-card" style="width:420px;max-width:95vw;">
                     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem;border-bottom:1px solid var(--border-color);padding-bottom:1rem;">
-                        <h3 style="font-size:1.2rem;font-weight:700;"><i class="fa-solid fa-pen" style="color:var(--primary);"></i> Ã‡Ä±kÄ±ÅŸ DÃ¼zelt</h3>
+                        <h3 style="font-size:1.2rem;font-weight:700;"><i class="fa-solid fa-pen" style="color:var(--primary);"></i> Çıkış Düzelt</h3>
                         <i class="fa-solid fa-times" onclick="document.getElementById('exit-edit-modal').classList.remove('show')" style="cursor:pointer;font-size:1.2rem;color:var(--text-muted);"></i>
                     </div>
                     <form id="exit-edit-form">
@@ -1226,10 +1221,10 @@
                             <input type="text" inputmode="decimal" id="exit-edit-amount" class="form-control" required>
                         </div>
                         <div class="form-group">
-                            <label>DÃ¼zeltme Notu</label>
-                            <input type="text" id="exit-edit-note" class="form-control" placeholder="Sehven fazla Ã§Ä±kÄ±ÅŸ yapÄ±ldÄ±...">
+                            <label>Düzeltme Notu</label>
+                            <input type="text" id="exit-edit-note" class="form-control" placeholder="Sehven fazla çıkış yapıldı...">
                         </div>
-                        <button type="submit" class="btn-ui btn-primary" style="width:100%;padding:0.9rem;"><i class="fa-solid fa-save"></i> DÃ¼zelt</button>
+                        <button type="submit" class="btn-ui btn-primary" style="width:100%;padding:0.9rem;"><i class="fa-solid fa-save"></i> Düzelt</button>
                     </form>
                 </div>
             </div>
@@ -1237,41 +1232,41 @@
         </main>
     </div>
 
-    <!-- Modal: Yeni ÃœrÃ¼n KartÄ± -->
+    <!-- Modal: Yeni Ürün Kartı -->
     <div id="new-product-modal" class="modal">
         <div class="form-card" style="width: 480px; max-width: 95vw;">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 1.5rem; border-bottom: 1px solid var(--border-color); padding-bottom: 1rem;">
-                <h3 style="font-size:1.2rem; font-weight:700; color:var(--text-primary);"><i class="fa-solid fa-box-open" style="color:var(--primary);"></i> Yeni ÃœrÃ¼n & Parti TanÄ±mÄ±</h3>
+                <h3 style="font-size:1.2rem; font-weight:700; color:var(--text-primary);"><i class="fa-solid fa-box-open" style="color:var(--primary);"></i> Yeni Ürün & Parti Tanımı</h3>
                 <i class="fa-solid fa-times" id="close-modal" style="cursor:pointer; font-size: 1.2rem; color:var(--text-muted); transition: var(--transition-smooth);"></i>
             </div>
             <form id="new-product-form">
                 <input type="hidden" id="np-is-edit" value="false">
 
                 <div class="form-group">
-                    <label style="color: var(--primary); font-weight: 800;">Parti No (Ã–zel Kod / SKU)</label>
-                    <input type="text" id="np-id" class="form-control" placeholder="Ã–rn: PRT-2026-001" required
+                    <label style="color: var(--primary); font-weight: 800;">Parti No (Özel Kod / SKU)</label>
+                    <input type="text" id="np-id" class="form-control" placeholder="Örn: PRT-2026-001" required
                         style="border-color: var(--primary); background: var(--primary-light); font-weight: 700; font-size:1.1rem; text-transform:uppercase;">
-                    <small style="color: var(--text-secondary); margin-top:0.25rem; display:block;">ÃœrÃ¼nÃ¼ takip etmek iÃ§in kullanÄ±lacak benzersiz koddur.</small>
+                    <small style="color: var(--text-secondary); margin-top:0.25rem; display:block;">Ürünü takip etmek için kullanılacak benzersiz koddur.</small>
                 </div>
                 <div class="form-group">
-                    <label>ÃœrÃ¼n AdÄ±</label>
+                    <label>Ürün Adı</label>
                     <div style="display:flex;gap:5px;">
                         <select id="np-name" class="form-control" required>
-                            <option value="">ÃœrÃ¼n AdÄ± SeÃ§in</option>
+                            <option value="">Ürün Adı Seçin</option>
                         </select>
-                        <button type="button" id="add-product-name-from-modal" class="btn-ui btn-outline" style="padding:0 12px;min-width:40px;" title="Yeni ÃœrÃ¼n Ä°smi Ekle"><i class="fa-solid fa-plus"></i></button>
+                        <button type="button" id="add-product-name-from-modal" class="btn-ui btn-outline" style="padding:0 12px;min-width:40px;" title="Yeni Ürün İsmi Ekle"><i class="fa-solid fa-plus"></i></button>
                     </div>
-                    <small style="color:var(--text-muted);display:block;margin-top:4px;"><i class="fa-solid fa-list"></i> <b>TedarikÃ§iler</b> sayfasÄ±ndaki ÃœrÃ¼n Ä°sim Listesi'ni kullanarak hatalÄ± giriÅŸleri Ã¶nleyin.</small>
+                    <small style="color:var(--text-muted);display:block;margin-top:4px;"><i class="fa-solid fa-list"></i> <b>Tedarikçiler</b> sayfasındaki Ürün İsim Listesi'ni kullanarak hatalı girişleri önleyin.</small>
                 </div>
                 <div class="form-group">
-                    <label>TedarikÃ§i <small style="color:var(--text-muted);">(ihale takibi iÃ§in)</small></label>
+                    <label>Tedarikçi <small style="color:var(--text-muted);">(ihale takibi için)</small></label>
                     <div style="display:flex;gap:5px;">
                         <select id="np-company" class="form-control" required>
-                            <option value="">TedarikÃ§i SeÃ§in</option>
+                            <option value="">Tedarikçi Seçin</option>
                         </select>
-                        <button type="button" class="btn-ui btn-outline" id="np-add-supplier" style="padding:0 12px;min-width:40px;" title="Yeni TedarikÃ§i Ekle"><i class="fa-solid fa-plus"></i></button>
+                        <button type="button" class="btn-ui btn-outline" id="np-add-supplier" style="padding:0 12px;min-width:40px;" title="Yeni Tedarikçi Ekle"><i class="fa-solid fa-plus"></i></button>
                     </div>
-                    <small style="color:var(--text-muted);display:block;margin-top:4px;"><i class="fa-solid fa-truck"></i> TedarikÃ§ileri <b>TedarikÃ§iler</b> sayfasÄ±ndan yÃ¶netebilirsiniz.</small>
+                    <small style="color:var(--text-muted);display:block;margin-top:4px;"><i class="fa-solid fa-truck"></i> Tedarikçileri <b>Tedarikçiler</b> sayfasından yönetebilirsiniz.</small>
                 </div>
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
                     <div class="form-group">
@@ -1280,10 +1275,10 @@
                             <option>Sebze</option>
                             <option>Meyve</option>
                             <option>Bakliyat</option>
-                            <option>Temel GÄ±da</option>
+                            <option>Temel Gıda</option>
                             <option>Temizlik</option>
-                            <option>SÃ¼t ÃœrÃ¼nleri</option>
-                            <option>DiÄŸer</option>
+                            <option>Süt Ürünleri</option>
+                            <option>Diğer</option>
                         </select>
                     </div>
                     <div class="form-group">
@@ -1293,7 +1288,7 @@
                             <option value="kg">Kilogram</option>
                             <option value="adet">Adet</option>
                             <option value="koli">Koli</option>
-                            <option value="cuval">Ã‡uval</option>
+                            <option value="cuval">Çuval</option>
                             <option value="lt">Litre</option>
                             <option value="ton">Ton</option>
                             <option value="teneke">Teneke</option>
@@ -1303,14 +1298,14 @@
                             <option value="tane">Tane</option>
                             <option value="metre">Metre</option>
                             <option value="bidon">Bidon</option>
-                            <option value="sise">ÅiÅŸe</option>
+                            <option value="sise">�?işe</option>
                             <option value="torba">Torba</option>
                         </datalist>
                     </div>
                 </div>
                 <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem;">
                     <div class="form-group">
-                        <label>BaÅŸlangÄ±Ã§ StoÄŸu</label>
+                        <label>Başlangıç Stoğu</label>
                         <input type="text" inputmode="decimal" id="np-stock" class="form-control" value="0">
                     </div>
                     <div class="form-group">
@@ -1318,12 +1313,12 @@
                         <input type="number" id="np-critical" class="form-control" value="50" min="0">
                     </div>
                     <div class="form-group">
-                        <label>Son TÃ¼ketim Tarihi (STT)</label>
+                        <label>Son Tüketim Tarihi (STT)</label>
                         <input type="date" id="np-stt" class="form-control">
                     </div>
                 </div>
                 <button type="submit" class="btn-ui btn-primary" style="width:100%; padding: 0.9rem; margin-top:0.5rem;" id="submit-product-btn">
-                    <i class="fa-solid fa-save"></i> KartÄ± OluÅŸtur
+                    <i class="fa-solid fa-save"></i> Kartı Oluştur
                 </button>
             </form>
         </div>
