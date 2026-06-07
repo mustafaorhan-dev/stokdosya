@@ -956,7 +956,7 @@ function toast(msg, type = 'info') {
   const el = document.createElement('div');
   el.className = `toast ${type}`;
   const icons = { success: '✅', error: '❌', warning: '⚠️', info: 'ℹ️' };
-  el.textContent = `${icons[type] || '??'} ${msg}`;
+  el.textContent = `${icons[type] || ''} ${msg}`;
   container.appendChild(el);
   setTimeout(() => { el.style.opacity = '0'; el.style.transition = '0.3s'; setTimeout(() => el.remove(), 300); }, 3000);
 }
@@ -4162,7 +4162,7 @@ function srExportPrint() {
       </table>
       <p class="footer">Oluşturulma: ${new Date().toLocaleString('tr-TR')} &nbsp;|&nbsp; ${htmlEscape(baslik)}</p>
       <div class="no-print" style="text-align:center;margin-top:16px;">
-        <button onclick="window.print()" style="padding:8px 20px;cursor:pointer;">?? Yazdır</button>
+        <button onclick="window.print()" style="padding:8px 20px;cursor:pointer;"><i class="fa-solid fa-print"></i> Yazdır</button>
       </div>
     </body></html>
   `);
@@ -4467,7 +4467,7 @@ document.addEventListener('DOMContentLoaded', () => {
     } catch (e) { /* sessiz */ }
     // Handle yok ama çerez varsa › kullanıcıya haber ver
     if (!_backupDirHandle && document.cookie.split(';').some(c => c.trim().startsWith('backup_dir_set=1'))) {
-      setTimeout(() => toast('?? Önceden seçtiğiniz yedek klasörü bulunamadı. Ayarlar › Yedek Klasörü Seç ile yeniden ayarlayın.', 'warning'), 1500);
+      setTimeout(() => toast('⚠️ Önceden seçtiğiniz yedek klasörü bulunamadı. Ayarlar › Yedek Klasörü Seç ile yeniden ayarlayın.', 'warning'), 1500);
     }
     updateBackupDirLabel();
     if (data.settings.autoBackupEnabled) scheduleAutoBackup();
