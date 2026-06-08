@@ -4182,13 +4182,7 @@ async function deleteTransaction(id) {
     try { await supabaseFetch('DELETE', 'transactions', { id: `eq.${id}` }); } catch (e) { console.error('Supabase silme hatası:', e); }
   }
   toast('İşlem silindi.', 'info');
-  refreshDailyView();
-  refreshMonthView();
-  refreshYearsView();
-  refreshDashboard();
-  refreshWarehouse();
-  refreshAggregatedStock();
-  refreshCriticalStock();
+  refreshAll();
   buildMonthMenu();
 }
 
