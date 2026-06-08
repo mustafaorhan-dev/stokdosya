@@ -4071,8 +4071,11 @@ function refreshDailyView() {
     const duzeltBtn = adminUser && t.type === 'cikis'
       ? `<button class="btn-ui btn-sm btn-outline" onclick="openExitEdit(${t.id})" style="padding:2px 8px;font-size:11px;" title="Düzelt"><i class="fa-solid fa-pen"></i></button>`
       : '';
+    const silBtn = adminUser
+      ? `<button class="btn-ui btn-sm btn-outline" onclick="deleteTransaction(${t.id})" style="padding:2px 8px;font-size:11px;color:var(--accent);margin-left:4px;" title="Sil"><i class="fa-solid fa-trash-can"></i></button>`
+      : '';
     const silindiNotu = silindi ? ' <span style="color:var(--accent);font-weight:700;">[SİLİNDİ]</span>' : '';
-    return `<tr><td>${i+1}</td><td>${tip}</td><td style="font-weight:600;">${htmlEscape(t.partiNo)}${silindiNotu}</td><td>${htmlEscape(t.productName)}</td><td>${_fmt(t.amount)}</td><td>${htmlEscape(birim)}</td><td style="font-weight:600;color:var(--primary);font-size:13px;">${htmlEscape(t.createdBy) || '-'}</td><td style="color:var(--text-secondary);">${htmlEscape(t.note) || '-'}</td><td>${duzeltBtn}</td></tr>`;
+    return `<tr><td>${i+1}</td><td>${tip}</td><td style="font-weight:600;">${htmlEscape(t.partiNo)}${silindiNotu}</td><td>${htmlEscape(t.productName)}</td><td>${_fmt(t.amount)}</td><td>${htmlEscape(birim)}</td><td style="font-weight:600;color:var(--primary);font-size:13px;">${htmlEscape(t.createdBy) || '-'}</td><td style="color:var(--text-secondary);">${htmlEscape(t.note) || '-'}</td><td>${duzeltBtn}${silBtn}</td></tr>`;
   }).join('');
   } catch(e) { console.error('refreshDailyView hatası:', e); toast('Günlük İşlemler hatası: ' + e.message, 'error'); }
 }
@@ -4149,6 +4152,37 @@ document.getElementById('exit-edit-form').addEventListener('submit', (e) => {
   refreshCriticalStock();
   buildMonthMenu();
 });
+
+// Transaction sil
+async function deleteTransaction(id) {
+  if (!isAdmin()) { toast('Bu işlem için yetkiniz yok.', 'error'); return; }
+  const t = data.transactions.find(x => x.id === id);
+  if (!t) { toast('İşlem bulunamadı.', 'error'); return; }
+  if (!confirm(`"${t.productName}" [${t.partiNo}] ${t.type === 'giris' ? 'giriş' : 'çıkış'} kaydını silmek istediğinize emin misiniz?`)) return;
+
+  // Stoğu geri al
+  const p = data.products[t.partiNo];
+  if (p) {
+    if (t.type === 'giris') p.stock = Math.max(0, (p.stock || 0) - t.amount);
+    else if (t.type === 'cikis') p.stock = (p.stock || 0) + t.amount;
+  }
+
+  // Diziden kaldır
+  data.transactions = data.transactions.filter(x => x.id !== id);
+
+  await saveData();
+
+  // Supabase'den de ID ile sil (saveData tümünü upsert eder ama eski ID kalsın istemeyiz)
+  if (isSupabaseReady()) {
+    try { await supabaseFetch('DELETE', 'transactions', { id: `eq.${id}` }); } catch (e) { console.error('Supabase silme hatası:', e); }
+  }
+  toast('İşlem silindi.', 'info');
+  refreshDailyView();
+  refreshDashboard();
+  refreshWarehouse();
+  refreshAggregatedStock();
+  buildMonthMenu();
+}
 
 // ----- GÜNLÜK MALİYET -----
 function refreshDailyCost() {
