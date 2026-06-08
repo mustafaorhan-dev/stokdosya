@@ -4892,6 +4892,10 @@ document.addEventListener('DOMContentLoaded', () => {
       initData();
       refreshAll();
     }
+    // Periyodik kontrol: 30 saniyede bir Supabase'den taze veri çek
+    setInterval(() => {
+      if (document.visibilityState === 'visible') autoPull();
+    }, 30000);
     document.addEventListener('visibilitychange', () => {
       if (document.visibilityState === 'visible') autoPull();
     });
