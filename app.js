@@ -1344,6 +1344,9 @@ function refreshDashboard() {
       indexAxis: 'y',
       responsive: true,
       maintainAspectRatio: false,
+      layout: {
+        padding: 0
+      },
       plugins: {
         legend: { display: false },
         tooltip: {
@@ -1447,6 +1450,9 @@ function refreshDashboard() {
         indexAxis: 'y',
         responsive: true,
         maintainAspectRatio: false,
+        layout: {
+          padding: 0
+        },
         plugins: {
           legend: { display: false },
           tooltip: {
