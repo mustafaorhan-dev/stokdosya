@@ -1045,47 +1045,18 @@ function refreshYearCompare() {
       const girisMeta = chart.getDatasetMeta(0);
       const cikisMeta = chart.getDatasetMeta(1);
       ctx.textBaseline = 'middle';
+      ctx.font = 'bold 12px Outfit, Arial, sans-serif';
+      ctx.fillStyle = '#fff';
+      ctx.textAlign = 'center';
       girisMeta.data.forEach((bar, idx) => {
         const val = girisData[idx];
         if (!val) return;
-        const endX = bar.x + bar.width;
-        const midY = bar.y;
-        if (bar.width > 40) {
-          ctx.save();
-          ctx.font = 'bold 11px Outfit, Arial, sans-serif';
-          ctx.fillStyle = '#fff';
-          ctx.textAlign = 'right';
-          ctx.fillText(_fmt(val), endX - 6, midY);
-          ctx.restore();
-        } else {
-          ctx.save();
-          ctx.font = 'bold 11px Outfit, Arial, sans-serif';
-          ctx.fillStyle = '#22c55e';
-          ctx.textAlign = 'left';
-          ctx.fillText(_fmt(val), endX + 4, midY);
-          ctx.restore();
-        }
+        ctx.fillText(_fmt(val), bar.x + bar.width / 2, bar.y);
       });
       cikisMeta.data.forEach((bar, idx) => {
         const val = cikisData[idx];
         if (!val) return;
-        const endX = bar.x + bar.width;
-        const midY = bar.y;
-        if (bar.width > 40) {
-          ctx.save();
-          ctx.font = 'bold 11px Outfit, Arial, sans-serif';
-          ctx.fillStyle = '#fff';
-          ctx.textAlign = 'right';
-          ctx.fillText(_fmt(val), endX - 6, midY);
-          ctx.restore();
-        } else {
-          ctx.save();
-          ctx.font = 'bold 11px Outfit, Arial, sans-serif';
-          ctx.fillStyle = '#ef4444';
-          ctx.textAlign = 'left';
-          ctx.fillText(_fmt(val), endX + 4, midY);
-          ctx.restore();
-        }
+        ctx.fillText(_fmt(val), bar.x + bar.width / 2, bar.y);
       });
     }
   };
