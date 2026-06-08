@@ -1525,6 +1525,7 @@ function refreshDashboard() {
 let _warehouseFilter = 'ALL';
 let _hideZeroStock = false;
 let _onlyCritical = false;
+let _showDeletedProducts = false;
 
 function sttDurum(stt) {
   if (!stt) return { text: '-', cls: '' };
@@ -1542,7 +1543,7 @@ function _el(id) { return document.getElementById(id); }
 function _safe(fn) { try { return fn(); } catch (e) { console.error('Hata:', e); } }
 
 function refreshWarehouse() {
-  const prods = Object.values(data.products).filter(p => p.active !== false);
+  const prods = Object.values(data.products).filter(p => _showDeletedProducts ? true : p.active !== false);
   const searchEl = _el('anbar-search');
   const search = (searchEl ? searchEl.value : '').toLowerCase();
 
@@ -1696,6 +1697,12 @@ document.addEventListener('DOMContentLoaded', () => {
     _onlyCritical = !_onlyCritical;
     document.getElementById('filter-critical-btn').classList.toggle('active', _onlyCritical);
     if (_onlyCritical) document.getElementById('filter-zero-btn').classList.remove('active');
+    refreshWarehouse();
+  });
+
+  document.getElementById('filter-deleted-btn').addEventListener('click', () => {
+    _showDeletedProducts = !_showDeletedProducts;
+    document.getElementById('filter-deleted-btn').classList.toggle('active', _showDeletedProducts);
     refreshWarehouse();
   });
 });
@@ -4727,9 +4734,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Arayüz hazırlığı — hata olsa bile veri yükleme çalışsın
   try {
-    ['sheetsTest', 'sheetsPull', 'sheetsTest', 'sheetsTest', 'sheetsPull'].forEach((fn, i) => {
-      const btn = document.getElementById(['sheets-test-btn', 'sheets-sync-btn', 'sheets-pull-btn', 'manual-sync-btn', 'cloud-status-badge'][i]);
-      if (btn && window[fn]) btn.addEventListener('click', window[fn]);
+    const btnMap = {
+      'sheets-test-btn': sheetsTest,
+      'sheets-sync-btn': async () => { await saveData(); toast('✅ Veriler Supabase\'e gönderildi!', 'success'); },
+      'sheets-pull-btn': sheetsPull,
+      'cloud-status-badge': sheetsPull
+    };
+    Object.entries(btnMap).forEach(([id, fn]) => {
+      const btn = document.getElementById(id);
+      if (btn && fn) btn.addEventListener('click', fn);
     });
   } catch(e) { console.warn('☁️ Buton bağlantı hatası:', e); }
 
