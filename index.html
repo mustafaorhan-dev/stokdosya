@@ -166,7 +166,7 @@
                 <div class="info-cards">
                     <div class="info-badge" id="cloud-status-badge" style="cursor:pointer;" title="Supabase durumu">
                         <i class="fa-solid fa-cloud"></i>
-                        <span id="cloud-status-text">Yerel Bellek</span>
+                        <span id="cloud-status-text">Bağlı Değil</span>
                         <span id="cloud-user-text" style="margin-left:6px;font-weight:600;font-size:0.75rem;color:var(--primary);display:none;"></span>
                     </div>
                     <div class="info-badge">
@@ -1203,11 +1203,12 @@
                                      <span id="github-url-display" style="font-size:13px; color:var(--text-secondary); word-break:break-all;">https://jarnxfhviniqfdeptifb.supabase.co</span>
                                  </div>
                              </div>
-                             <div style="display:flex; gap:8px; flex-wrap:wrap;">
-                                 <button id="sheets-test-btn" class="btn-ui btn-primary"><i class="fa-solid fa-plug"></i> Bağlantıyı Test Et</button>
-                                 <button id="sheets-sync-btn" class="btn-ui btn-outline"><i class="fa-solid fa-arrow-up"></i> Supabase'e Gönder</button>
-                                 <button id="sheets-pull-btn" class="btn-ui btn-outline"><i class="fa-solid fa-arrow-down"></i> Supabase'den Çek</button>
-                             </div>
+                              <div style="display:flex; gap:8px; flex-wrap:wrap;">
+                                  <button id="sheets-test-btn" class="btn-ui btn-primary"><i class="fa-solid fa-plug"></i> Bağlantıyı Test Et</button>
+                                  <button id="sheets-sync-btn" class="btn-ui btn-outline"><i class="fa-solid fa-arrow-up"></i> Supabase'e Gönder</button>
+                                  <button id="sheets-pull-btn" class="btn-ui btn-outline"><i class="fa-solid fa-arrow-down"></i> Supabase'den Çek</button>
+                                  <button id="cache-clear-btn" class="btn-ui btn-outline" style="border-color:var(--accent);color:var(--accent);"><i class="fa-solid fa-cloud-arrow-down"></i> Supabase'ten Yeniden Yükle</button>
+                              </div>
                              <small style="display:block; margin-top:10px; font-weight:600; color: var(--text-secondary);">
                                  <i class="fa-solid fa-circle-info" style="color:var(--primary);"></i> 
                                  Tüm veriler Supabase bulut veritabanında saklanır. Bağlantı bilgileri <code>app.js</code> içinde tanımlıdır.

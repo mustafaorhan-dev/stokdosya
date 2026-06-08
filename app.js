@@ -3,8 +3,6 @@
 // ¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦
 
 // ----- VERİ KATMANI -----
-const DATA_KEY = 'tazedepo_data';
-
 // Supabase Entegrasyonu
 // Bilgiler: Supabase Dashboard > Project Settings > API
 const SUPABASE_URL = 'https://jarnxfhviniqfdeptifb.supabase.co';
@@ -154,23 +152,6 @@ async function supabaseSave() {
   }
 }
 
-function _mergeTransactions(local, remote) {
-  if (!remote || !remote.length) return local;
-  const localMap = new Map(local.map(t => [t.id, t]));
-  const remoteMap = new Map(remote.map(t => [t.id, t]));
-  const merged = remote.map(t => {
-    const localTx = localMap.get(t.id);
-    if (localTx) {
-      if (t.personCount == null) t.personCount = localTx.personCount || 0;
-      if (t.unitPrice == null) t.unitPrice = localTx.unitPrice || 0;
-      if (t.totalCost == null) t.totalCost = localTx.totalCost || 0;
-      if (t.costPerPerson == null) t.costPerPerson = localTx.costPerPerson || 0;
-    }
-    return t;
-  });
-  local.forEach(t => { if (!remoteMap.has(t.id)) merged.push(t); });
-  return merged;
-}
 async function supabaseLoad() {
   if (!isSupabaseReady()) return null;
   try {
@@ -254,7 +235,6 @@ function sheetsLogin(username, password) {
   });
   if (user) {
     data.activeUser = user.name;
-    saveDataLocal();
     return Promise.resolve(user);
   }
   return Promise.resolve(null);
@@ -329,6 +309,36 @@ async function sheetsTest() {
   overlay.style.display = 'none';
 }
 
+async function clearCacheAndReload() {
+  if (!isSupabaseReady()) { toast('⚠️ Supabase bağlı değil.', 'warning'); return; }
+  if (!confirm('Tüm veriler Supabase\'ten yeniden yüklenecek. Devam etmek istiyor musunuz?')) return;
+  const overlay = document.getElementById('loading-overlay');
+  if (overlay) { overlay.style.display = 'flex'; document.getElementById('loading-text').textContent = 'Supabase\'ten yükleniyor...'; }
+  try {
+    data.products = {}; data.transactions = []; data.users = []; data.tenders = [];
+    data.companies = []; data.productNames = []; data.settings = {};
+    const remoteData = await supabaseLoad();
+    if (remoteData) {
+      data.products = remoteData.products || {};
+      data.transactions = remoteData.transactions || [];
+      data.users = remoteData.users || [];
+      data.tenders = remoteData.tenders || [];
+      data.companies = remoteData.companies || [];
+      data.productNames = remoteData.productNames || [];
+      data.settings = remoteData.settings || {};
+      initData();
+      toast('✅ Veriler Supabase\'ten yeniden yüklendi!', 'success');
+      refreshAll();
+    } else {
+      toast('⚠️ Supabase\'ten veri alınamadı. Sayfayı yenileyin.', 'warning');
+    }
+  } catch (e) {
+    toast('❌ Hata: ' + e.message, 'error');
+  } finally {
+    if (overlay) overlay.style.display = 'none';
+  }
+}
+
 async function sheetsPull() {
   if (!isSupabaseReady()) return null;
   const overlay = document.getElementById('loading-overlay');
@@ -339,7 +349,7 @@ async function sheetsPull() {
     const remoteData = await supabaseLoad();
     if (remoteData) {
       data.products = remoteData.products || {};
-      data.transactions = _mergeTransactions(data.transactions, remoteData.transactions || []);
+      data.transactions = remoteData.transactions || [];
       data.users = remoteData.users || [];
       if (remoteData.tenders && remoteData.tenders.length) data.tenders = remoteData.tenders;
       data.companies = remoteData.companies || [];
@@ -350,7 +360,6 @@ async function sheetsPull() {
       if (sheetsLocalFlags) data.settings._userActiveFlags = sheetsLocalFlags;
       if (sheetsLocalForce) data.settings._forceLogout = sheetsLocalForce;
       initData();
-      saveDataLocal();
       toast('✅ Veriler Supabase\'ten alındı!', 'success');
       return true;
     } else {
@@ -406,104 +415,41 @@ function initData() {
 }
 
 async function loadData() {
-  // 1. Önce localStorage'dan yükle (senkron) — login hemen çalışsın
-  try {
-    const raw = localStorage.getItem(DATA_KEY);
-    if (raw) {
-      const cached = JSON.parse(raw);
-      if (cached && typeof cached === 'object') {
-        data.products = cached.products || {};
-        data.transactions = cached.transactions || [];
-        data.users = cached.users || [];
-        data.activeUser = cached.activeUser || '';
-        data.tenders = cached.tenders || [];
-        data.companies = cached.companies || [];
-        data.productNames = cached.productNames || [];
-        if (cached.settings) data.settings = { ...data.settings, ...cached.settings };
-      }
-    }
-  } catch (e) { /* ignore */ }
-  initData();
-  saveDataLocal();
-  // Yedek localStorage'tan ürün isimlerini geri yükle (ana cache boşsa)
-  if (!data.productNames || !data.productNames.length) {
-    const backup = loadProductNamesLocal();
-    if (backup && backup.length) {
-      data.productNames = backup;
-      saveDataLocal();
-    }
-  }
-
-  // 2. Supabase varsa arka planda çek ve üzerine yaz
   if (isSupabaseReady()) {
-    try {
-      const remoteData = await supabaseLoad();
-      if (remoteData) {
-        if (remoteData.products) data.products = remoteData.products;
-        if (remoteData.transactions && remoteData.transactions.length) {
-          data.transactions = _mergeTransactions(data.transactions, remoteData.transactions);
-        }
-        if (remoteData.users) {
-          const userMap = new Map(data.users.map(u => [u.name, u]));
-          remoteData.users.forEach(su => {
-            if (userMap.has(su.name)) {
-              // Var olan kullanıcıyı güncelle (role, password, lastLogin) — active SUPABASE'de yok
-              const existing = userMap.get(su.name);
-              if (su.role) existing.role = su.role;
-              if (su.password) existing.password = su.password;
-              if (su.lastLogin) existing.lastLogin = su.lastLogin;
-            } else {
-              data.users.push(su);
-              userMap.set(su.name, su);
-            }
-          });
-        }
-        if (remoteData.activeUser) data.activeUser = remoteData.activeUser;
-        if (remoteData.tenders && remoteData.tenders.length) data.tenders = remoteData.tenders;
-        if (remoteData.companies && remoteData.companies.length) data.companies = remoteData.companies;
-        if (remoteData.productNames && remoteData.productNames.length) data.productNames = remoteData.productNames;
-        if (remoteData.settings) {
-          // Lokal _userActiveFlags ve _forceLogout korunsun (Supabase'te eski kalabilir)
-          const localFlags = data.settings._userActiveFlags;
-          const localForce = data.settings._forceLogout;
-          data.settings = { ...data.settings, ...remoteData.settings };
-          if (localFlags) data.settings._userActiveFlags = localFlags;
-          if (localForce) data.settings._forceLogout = localForce;
-        }
-        initData();
-        saveDataLocal();
+    const remoteData = await supabaseLoad();
+    if (remoteData) {
+      data.products = remoteData.products || {};
+      data.transactions = remoteData.transactions || [];
+      data.users = remoteData.users || [];
+      data.activeUser = remoteData.activeUser || '';
+      data.tenders = remoteData.tenders || [];
+      data.companies = remoteData.companies || [];
+      data.productNames = remoteData.productNames || [];
+      if (remoteData.settings) {
+        const localFlags = data.settings._userActiveFlags;
+        const localForce = data.settings._forceLogout;
+        data.settings = { ...data.settings, ...remoteData.settings };
+        if (localFlags) data.settings._userActiveFlags = localFlags;
+        if (localForce) data.settings._forceLogout = localForce;
       }
-    } catch (e) { /* Supabase başarısız, localStorage verisi kullanılır */ }
-  }
-}
-
-function saveDataLocal() {
-  localStorage.setItem(DATA_KEY, JSON.stringify(data));
-}
-
-function saveProductNamesLocal() {
-  localStorage.setItem(DATA_KEY + '_productNames', JSON.stringify(data.productNames || []));
-}
-
-function loadProductNamesLocal() {
-  try {
-    const raw = localStorage.getItem(DATA_KEY + '_productNames');
-    if (raw) {
-      const arr = JSON.parse(raw);
-      if (Array.isArray(arr) && arr.length) return arr;
+      initData();
+      return;
     }
-  } catch (e) {}
-  return null;
+  }
+  initData();
 }
 
 async function saveData() {
-  saveDataLocal();
   if (isSupabaseReady() && !_syncLock) {
     const ok = await supabaseSave();
-    if (!ok) { toast('⚠️ Supabase\'e kaydedilemedi. Veriler localStorage\'da duruyor.', 'warning'); return false; }
+    if (!ok) {
+      toast('⚠️ Supabase\'e kaydedilemedi. Veri kaybolabilir!', 'warning');
+      return false;
+    }
     return true;
   }
-  return !isSupabaseReady();
+  toast('⚠️ Supabase bağlı değil, kayıt yapılamadı.', 'warning');
+  return false;
 }
 
 // ----- TEMA -----
@@ -2145,7 +2091,6 @@ if (modalAddNameBtn) {
       data.productNames.push(name);
       data.productNames.sort((a, b) => a.localeCompare(b));
       saveData();
-      saveProductNamesLocal();
       refreshProductNames();
       // Seçili yap
       const ns = document.getElementById('np-name');
@@ -2262,12 +2207,10 @@ document.getElementById('new-product-form').addEventListener('submit', async (e)
     await saveData();
   }
 
-  // Yeni ürün adını isim listesine ekle (varsa)
   if (name && !data.productNames.includes(name)) {
     data.productNames.push(name);
     data.productNames.sort((a, b) => a.localeCompare(b));
     await saveData();
-    saveProductNamesLocal();
   }
 
   document.getElementById('new-product-modal').classList.remove('show');
@@ -2494,7 +2437,6 @@ document.getElementById('entry-form').addEventListener('submit', async (e) => {
     data.productNames.push(name);
     data.productNames.sort((a, b) => a.localeCompare(b));
     await saveData();
-    saveProductNamesLocal();
   }
 
     toast(`✅ ${_fmt(amount)} ${unit} ${name} [${partiNo}] oluşturuldu ve stoğa eklendi.${ihaleMsg}`, 'success');
@@ -3321,7 +3263,7 @@ function refreshSettings() {
    const cloudUser = document.getElementById('cloud-user-text');
 
    if (statusEl) {
-     statusEl.textContent = sbReady ? 'Sunucuya Bağlı' : 'Yerel Bellek';
+     statusEl.textContent = sbReady ? 'Sunucuya Bağlı' : 'Bağlı Değil';
    }
    if (cloudUser && data.activeUser) { cloudUser.textContent = '• ' + data.activeUser; cloudUser.style.display = ''; }
 
@@ -3364,15 +3306,6 @@ function refreshSettings() {
 function refreshProductNames() {
   const container = document.getElementById('product-name-list');
   if (!container) return;
-
-  // Separate localStorage'tan geri yüklemeyi dene
-  if (!data.productNames || !data.productNames.length) {
-    const backup = loadProductNamesLocal();
-    if (backup && backup.length) {
-      data.productNames = backup;
-      saveDataLocal();
-    }
-  }
 
   const countEl = document.getElementById('product-name-count');
   if (countEl) countEl.textContent = `(${(data.productNames || []).length})`;
@@ -3433,7 +3366,6 @@ function editProductName(enc) {
     if (t.product === name) t.product = yeniAd;
   });
   saveData();
-  saveProductNamesLocal();
   refreshProductNames();
   refreshWarehouse();
   toast(`"${name}" › "${yeniAd}" olarak güncellendi.`, 'success');
@@ -3449,7 +3381,6 @@ function addProductName() {
   data.productNames.sort((a, b) => a.localeCompare(b));
   input.value = '';
   saveData();
-  saveProductNamesLocal();
   refreshProductNames();
   toast('Ürün ismi eklendi.', 'success');
 }
@@ -3460,7 +3391,6 @@ function deleteProductName(enc) {
   if (!confirm(`"${name}" ürün ismini listeden kaldırmak istediğinize emin misiniz?`)) return;
   data.productNames = data.productNames.filter(n => n !== name);
   saveData();
-  saveProductNamesLocal();
   refreshProductNames();
   toast(`"${name}" listeden kaldırıldı.`, 'success');
 }
@@ -3532,7 +3462,6 @@ document.getElementById('upload-names-input').addEventListener('change', (e) => 
     if (!added) { toast('Tüm isimler zaten listede.', 'info'); } else {
       data.productNames.sort((a, b) => a.localeCompare(b));
       saveData();
-      saveProductNamesLocal();
       refreshProductNames();
       toast(`${added} yeni ürün ismi eklendi.`, 'success');
     }
@@ -4712,26 +4641,8 @@ document.addEventListener('DOMContentLoaded', () => {
     if (appContainer) appContainer.style.display = 'none';
   }
 
-  // Çapraz-sekme eşitleme — diğer sekmede yapılan değişiklik anında gelsin
+  // Çapraz-sekme giriş durumu eşitleme (sadece login/logout)
   window.addEventListener('storage', (e) => {
-    if (e.key === DATA_KEY && e.newValue) {
-      try {
-        const fresh = JSON.parse(e.newValue);
-        if (fresh && typeof fresh === 'object') {
-          data.products = fresh.products || {};
-          data.transactions = fresh.transactions || [];
-          data.tenders = fresh.tenders || [];
-          data.companies = fresh.companies || [];
-          data.users = fresh.users || [];
-          data.productNames = fresh.productNames || [];
-          data.activeUser = fresh.activeUser || data.activeUser;
-          initData();
-          refreshAll();
-          const aktif = document.querySelector('.view-section.active');
-          if (aktif) navigateTo(aktif.id);
-        }
-      } catch (err) { /* sessiz */ }
-    }
     if (e.key === 'stokdosya_logged_in') {
       if (e.newValue) {
         if (loginScreen) loginScreen.style.display = 'none';
@@ -4869,7 +4780,6 @@ document.addEventListener('DOMContentLoaded', () => {
       data.productNames.push(trimmed);
       data.productNames.sort((a, b) => a.localeCompare(b));
       saveData();
-      saveProductNamesLocal();
       const ns = document.getElementById('entry-name');
       if (ns) {
         ns.innerHTML = '<option value="">Ürün Adı Seçin</option>' +
@@ -4902,6 +4812,7 @@ document.addEventListener('DOMContentLoaded', () => {
       'sheets-test-btn': sheetsTest,
       'sheets-sync-btn': async () => { await saveData(); toast('✅ Veriler Supabase\'e gönderildi!', 'success'); },
       'sheets-pull-btn': sheetsPull,
+      'cache-clear-btn': clearCacheAndReload,
       'cloud-status-badge': sheetsPull
     };
     Object.entries(btnMap).forEach(([id, fn]) => {
@@ -4968,9 +4879,9 @@ document.addEventListener('DOMContentLoaded', () => {
       const remoteData = await supabaseLoad();
       if (!remoteData) return;
       data.products = remoteData.products || {};
-      data.transactions = _mergeTransactions(data.transactions, remoteData.transactions || []);
+      data.transactions = remoteData.transactions || [];
       data.users = remoteData.users || [];
-      if (remoteData.tenders && remoteData.tenders.length) data.tenders = remoteData.tenders;
+      data.tenders = remoteData.tenders || [];
       data.companies = remoteData.companies || [];
       data.productNames = remoteData.productNames || [];
       const autoLocalFlags = data.settings._userActiveFlags;
@@ -4979,7 +4890,6 @@ document.addEventListener('DOMContentLoaded', () => {
       if (autoLocalFlags) data.settings._userActiveFlags = autoLocalFlags;
       if (autoLocalForce) data.settings._forceLogout = autoLocalForce;
       initData();
-      saveDataLocal();
       refreshAll();
     }
     document.addEventListener('visibilitychange', () => {
