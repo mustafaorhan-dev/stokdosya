@@ -2503,15 +2503,20 @@ function refreshMonthView() {
     return stt ? formatDate(stt) : '—';
   }
 
+  const adminUser = isAdmin();
+  const silBtnHtml = (id, label) => adminUser
+    ? `<button class="btn-ui btn-sm btn-outline" onclick="deleteTransaction(${id})" style="padding:2px 6px;font-size:10px;color:var(--accent);" title="Sil"><i class="fa-solid fa-trash-can"></i></button>`
+    : '';
+
   const inBody = document.getElementById('month-in-list');
   inBody.innerHTML = girisler.length
-    ? girisler.map(t => `<tr><td><strong>${htmlEscape(_firma(t))}</strong></td><td>${formatDate(t.date)}</td><td>${htmlEscape(t.productName)}</td><td>${_stt(t)}</td><td>${t.amount}</td><td>${htmlEscape(_birim(t))}</td></tr>`).join('')
-    : '<tr><td colspan="6" style="text-align:center;color:var(--text-muted);padding:20px;">Bu ayda giriş yok.</td></tr>';
+    ? girisler.map(t => `<tr><td><strong>${htmlEscape(_firma(t))}</strong></td><td>${formatDate(t.date)}</td><td>${htmlEscape(t.productName)}</td><td>${_stt(t)}</td><td>${t.amount}</td><td>${htmlEscape(_birim(t))}</td><td style="text-align:center;">${silBtnHtml(t.id, 'giris')}</td></tr>`).join('')
+    : '<tr><td colspan="7" style="text-align:center;color:var(--text-muted);padding:20px;">Bu ayda giriş yok.</td></tr>';
 
   const outBody = document.getElementById('month-out-list');
   outBody.innerHTML = cikislar.length
-    ? cikislar.map(t => `<tr><td><strong>${htmlEscape(_firma(t))}</strong></td><td>${formatDate(t.date)}</td><td>${htmlEscape(t.productName)}</td><td>${t.amount}</td><td>${htmlEscape(_birim(t))}</td></tr>`).join('')
-    : '<tr><td colspan="5" style="text-align:center;color:var(--text-muted);padding:20px;">Bu ayda çıkış yok.</td></tr>';
+    ? cikislar.map(t => `<tr><td><strong>${htmlEscape(_firma(t))}</strong></td><td>${formatDate(t.date)}</td><td>${htmlEscape(t.productName)}</td><td>${t.amount}</td><td>${htmlEscape(_birim(t))}</td><td style="text-align:center;">${silBtnHtml(t.id, 'cikis')}</td></tr>`).join('')
+    : '<tr><td colspan="6" style="text-align:center;color:var(--text-muted);padding:20px;">Bu ayda çıkış yok.</td></tr>';
 
   window._monthGirisler = girisler;
   window._monthCikislar = cikislar;
