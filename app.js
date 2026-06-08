@@ -1045,18 +1045,33 @@ function refreshYearCompare() {
       const girisMeta = chart.getDatasetMeta(0);
       const cikisMeta = chart.getDatasetMeta(1);
       ctx.textBaseline = 'middle';
-      ctx.font = 'bold 12px Outfit, Arial, sans-serif';
-      ctx.fillStyle = '#fff';
-      ctx.textAlign = 'center';
       girisMeta.data.forEach((bar, idx) => {
         const val = girisData[idx];
         if (!val) return;
-        ctx.fillText(_fmt(val), bar.x + bar.width / 2, bar.y);
+        const endX = bar.x + bar.width - 4;
+        ctx.save();
+        ctx.font = 'bold 12px Outfit, Arial, sans-serif';
+        ctx.textAlign = 'right';
+        ctx.textBaseline = 'middle';
+        ctx.shadowColor = 'rgba(0,0,0,0.5)';
+        ctx.shadowBlur = 3;
+        ctx.fillStyle = '#fff';
+        ctx.fillText(_fmt(val), endX, bar.y);
+        ctx.restore();
       });
       cikisMeta.data.forEach((bar, idx) => {
         const val = cikisData[idx];
         if (!val) return;
-        ctx.fillText(_fmt(val), bar.x + bar.width / 2, bar.y);
+        const endX = bar.x + bar.width - 4;
+        ctx.save();
+        ctx.font = 'bold 12px Outfit, Arial, sans-serif';
+        ctx.textAlign = 'right';
+        ctx.textBaseline = 'middle';
+        ctx.shadowColor = 'rgba(0,0,0,0.5)';
+        ctx.shadowBlur = 3;
+        ctx.fillStyle = '#fff';
+        ctx.fillText(_fmt(val), endX, bar.y);
+        ctx.restore();
       });
     }
   };
