@@ -3621,6 +3621,21 @@ async function supabaseBackup(label) {
   } catch (e) { console.error('Yedekleme hatası:', e); return false; }
 }
 
+// ----- SUPABASE SETTINGS TEMİZLİĞİ -----
+async function _cleanupSupabaseSettings() {
+  if (!isSupabaseReady()) return;
+  const silinecekKeys = ['_migrated', '_productNames', '_deletedUsers', 'apiUrl', 'github', 'Anahtar'];
+  // Numerik anahtarlar (eski migrasyon)
+  for (let i = 0; i <= 15; i++) silinecekKeys.push(String(i));
+  // _forceLogout'u boş yap (silme, değerini sıfırla)
+  await supabaseFetch('POST', 'settings', null, [{ key: '_forceLogout', value: '' }]).catch(() => {});
+  try {
+    await Promise.all(silinecekKeys.map(k =>
+      supabaseFetch('DELETE', 'settings', { key: `eq.${k}` }).catch(() => {})
+    ));
+  } catch(e) { /* sessiz */ }
+}
+
 // ----- DEPO SIFIRLAMA -----
 function resetAllData() {
   if (isViewOnly()) { toast('Görüntüleme modunda sıfırlama yapamazsınız.', 'error'); return; }
@@ -4758,6 +4773,8 @@ document.addEventListener('DOMContentLoaded', () => {
   if (loadingEl) loadingEl.style.display = 'flex';
   loadData().then(async () => {
     if (loadingEl) loadingEl.style.display = 'none';
+    // Settings temizliği: eski/kopya anahtarları Supabase'den sil
+    _cleanupSupabaseSettings();
     if (!data.settings._migrated) {
       data.settings._migrated = true;
       saveData();
