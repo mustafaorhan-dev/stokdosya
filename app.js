@@ -1307,7 +1307,7 @@ function refreshDashboard() {
   const isDark = getTheme() === 'dark';
   const qiLabels = ["STT'li Ürün", 'Tedarikçi', 'Toplam İşlem', 'Bugünkü İşlem', 'Ürün Listesi'];
   const qiData = [sttOlan, tedarikciSayisi, toplamIslem, bugunHareketAdet, (data.productNames || []).length];
-  const qiColors = ['#8b5cf6', '#a78bfa', '#6d28d9', '#c084fc', '#7c3aed'];
+  const qiColors = ['#3b82f6', '#2563eb', '#a78bfa', '#94a3b8', '#10b981'];
 
   const qiLabelPlugin = {
     id: 'qiLabel',
@@ -1404,8 +1404,8 @@ function refreshDashboard() {
 
     const isDark = getTheme() === 'dark';
     const labelColor = isDark ? '#e2e8f0' : '#334155';
-    const amberScale = ['#f59e0b', '#f97316', '#d97706', '#fbbf24', '#ea580c', '#fcd34d', '#c2410c', '#fde68a'];
-    const barColors = ihaleVeri.map((_, i) => amberScale[i % amberScale.length]);
+    const blueScale = ['#3b82f6', '#60a5fa', '#2563eb', '#93c5fd', '#1d4ed8', '#7dd3fc', '#1e40af', '#bae6fd'];
+    const barColors = ihaleVeri.map((_, i) => blueScale[i % blueScale.length]);
 
     const barLabelPlugin = {
       id: 'barLabel',
@@ -1417,11 +1417,11 @@ function refreshDashboard() {
             const val = ds.data[idx];
             if (!val) return;
             ctx.save();
-            ctx.textAlign = 'right';
+            ctx.textAlign = 'left';
             ctx.textBaseline = 'middle';
             ctx.font = 'bold 11px Outfit, Arial, sans-serif';
             ctx.fillStyle = isDark ? '#fff' : '#0f172a';
-            ctx.fillText('%' + val, bar.x - 6, bar.y);
+            ctx.fillText('%' + val, bar.x + 4, bar.y);
             ctx.restore();
           });
         });
@@ -1435,11 +1435,11 @@ function refreshDashboard() {
         datasets: [{
           label: 'Çekilme %',
           data: ihaleVeri.map(v => v.pct),
-          backgroundColor: barColors.map(c => isDark ? c + 'CC' : c),
+          backgroundColor: barColors,
           borderColor: barColors,
           borderWidth: 0,
           borderRadius: 6,
-          barPercentage: 0.65,
+          barPercentage: 0.6,
           categoryPercentage: 0.8
         }]
       },
@@ -1455,8 +1455,6 @@ function refreshDashboard() {
             bodyColor: isDark ? '#cbd5e1' : '#334155',
             borderColor: isDark ? 'rgba(148,163,184,0.2)' : 'rgba(0,0,0,0.1)',
             borderWidth: 1,
-            padding: 8,
-            cornerRadius: 6,
             callbacks: {
               label: ctx => ctx.parsed.x + '% teslimat'
             }
@@ -1464,21 +1462,15 @@ function refreshDashboard() {
         },
         scales: {
           x: {
-            reverse: true,
             beginAtZero: true,
             max: 100,
-            grid: { color: isDark ? 'rgba(148,163,184,0.1)' : 'rgba(0,0,0,0.05)' },
-            ticks: { display: false }
+            grid: { color: isDark ? 'rgba(148,163,184,0.15)' : 'rgba(0,0,0,0.08)' },
+            ticks: { callback: v => v + '%', color: labelColor, font: { size: 9 } }
           },
           y: {
-            position: 'right',
             grid: { display: false },
-            ticks: { color: labelColor, font: { size: 11, weight: '600' } }
+            ticks: { color: labelColor, font: { size: 10, weight: 'bold' } }
           }
-        },
-        animation: {
-          duration: 600,
-          easing: 'easeOutQuart'
         }
       },
       plugins: [barLabelPlugin]
