@@ -981,6 +981,118 @@ function renderYearChart(yil) {
   });
 }
 
+// ----- YILLIK KARSILASTIRMA GRAFIGI -----
+let _yearCompareChart = null;
+
+function refreshYearCompare() {
+  const select = document.getElementById('yc-product');
+  const canvas = document.getElementById('year-compare-canvas');
+  const empty = document.getElementById('year-compare-empty');
+  if (!canvas) return;
+
+  // Ürün listesini doldur
+  const urunler = [...new Set(data.transactions.map(t => t.productName).filter(Boolean))].sort();
+  const secili = select.value;
+  const currentHTML = select.innerHTML;
+  const yeniHTML = '<option value="">Tüm Ürünler</option>' +
+    urunler.map(u => `<option value="${htmlEscape(u).replace(/"/g, '&quot;')}"${u === secili ? ' selected' : ''}>${htmlEscape(u)}</option>`).join('');
+  if (yeniHTML !== currentHTML) select.innerHTML = yeniHTML;
+
+  // Yıllara göre toplam net miktar
+  const yilNet = {};
+  data.transactions.forEach(t => {
+    if (!t.date || !t.amount) return;
+    if (secili && t.productName !== secili) return;
+    const yil = new Date(t.date).getFullYear();
+    if (!yilNet[yil]) yilNet[yil] = 0;
+    yilNet[yil] += t.type === 'giris' ? t.amount : -t.amount;
+  });
+
+  const yillar = Object.keys(yilNet).map(Number).sort((a, b) => a - b);
+  const degerler = yillar.map(y => yilNet[y]);
+  const toplam = degerler.reduce((s, v) => s + Math.abs(v), 0);
+
+  if (!toplam) {
+    canvas.style.display = 'none';
+    if (empty) empty.style.display = 'block';
+    if (_yearCompareChart) { _yearCompareChart.destroy(); _yearCompareChart = null; }
+    return;
+  }
+  canvas.style.display = 'block';
+  if (empty) empty.style.display = 'none';
+
+  if (_yearCompareChart) _yearCompareChart.destroy();
+
+  const isDark = getTheme() === 'dark';
+  const labelColor = isDark ? '#e2e8f0' : '#334155';
+
+  const colors = yillar.map(y => yilNet[y] >= 0 ? '#22c55e' : '#ef4444');
+
+  _yearCompareChart = new Chart(canvas, {
+    type: 'bar',
+    data: {
+      labels: yillar,
+      datasets: [{
+        data: degerler,
+        backgroundColor: colors.map(c => c + 'CC'),
+        borderColor: colors,
+        borderWidth: 2,
+        borderRadius: 6,
+        barPercentage: 0.7,
+        categoryPercentage: 0.8
+      }]
+    },
+    options: {
+      indexAxis: 'y',
+      responsive: true,
+      maintainAspectRatio: false,
+      layout: { padding: 0 },
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          backgroundColor: isDark ? '#1e293b' : '#fff',
+          titleColor: isDark ? '#e2e8f0' : '#0f172a',
+          bodyColor: isDark ? '#cbd5e1' : '#334155',
+          borderColor: isDark ? 'rgba(148,163,184,0.2)' : 'rgba(0,0,0,0.1)',
+          borderWidth: 1,
+          padding: 10,
+          cornerRadius: 8,
+          callbacks: {
+            label: ctx => {
+              const net = ctx.parsed.x;
+              return ` Net: ${_fmt(Math.abs(net))} ${net >= 0 ? '(Giriş fazla)' : '(Çıkış fazla)'}`;
+            }
+          }
+        }
+      },
+      scales: {
+        x: {
+          beginAtZero: true,
+          grid: { color: isDark ? 'rgba(148,163,184,0.1)' : 'rgba(0,0,0,0.05)' },
+          ticks: { color: labelColor, font: { size: 11 } }
+        },
+        y: {
+          position: 'left',
+          reverse: false,
+          grid: { display: false },
+          ticks: { color: labelColor, font: { size: 13, weight: '700' } }
+        }
+      },
+      animation: {
+        duration: 600,
+        easing: 'easeOutQuart'
+      }
+    },
+    plugins: []
+  });
+}
+
+// Ürün değişince grafiği yenile
+document.addEventListener('DOMContentLoaded', () => {
+  const sel = document.getElementById('yc-product');
+  if (sel) sel.addEventListener('change', refreshYearCompare);
+});
+
 // ----- TOAST -----
 function toast(msg, type = 'info') {
   const container = document.getElementById('toast-container');
@@ -1011,7 +1123,7 @@ function navigateTo(target) {
   const titles = {
     'dashboard': 'Genel Bakış', 'warehouse': 'Anbar Listesi', 'aggregated-stock': 'Depodaki Ürün Miktarları', 'entry': 'Yeni Ürün & Parti Tanımı',
     'exit': 'Ürün Çıkış', 'daily': 'Günlük İşlemler', 'month-view': 'Aylık Rapor',
-    'years-view': 'Yıllık Raporlar', 'stt-tracking': 'STT Takibi', 'tender-tracking': 'İhale Takip', 'suppliers': 'Tedarikçiler',     'supplier-report-view': 'Aylık Tedarikçi Raporu', 'critical-stock-view': 'Kritik Stok Listesi', 'user-guide-view': 'Kullanım Kılavuzu', 'settings-view': 'Ayarlar & Bulut', 'daily-cost': 'Günlük Maliyet'
+    'years-view': 'Yıllık Raporlar', 'year-compare': 'Yıllık Karşılaştırma', 'stt-tracking': 'STT Takibi', 'tender-tracking': 'İhale Takip', 'suppliers': 'Tedarikçiler',     'supplier-report-view': 'Aylık Tedarikçi Raporu', 'critical-stock-view': 'Kritik Stok Listesi', 'user-guide-view': 'Kullanım Kılavuzu', 'settings-view': 'Ayarlar & Bulut', 'daily-cost': 'Günlük Maliyet'
   };
   document.getElementById('page-title').textContent = titles[target] || 'STOKDEPO';
 
@@ -1021,6 +1133,7 @@ function navigateTo(target) {
   if (target === 'aggregated-stock') _safe(refreshAggregatedStock);
   if (target === 'month-view') _safe(refreshMonthView);
   if (target === 'years-view') _safe(refreshYearsView);
+  if (target === 'year-compare') _safe(refreshYearCompare);
   if (target === 'stt-tracking') _safe(refreshSttTracking);
   if (target === 'tender-tracking') _safe(refreshTenders);
   if (target === 'suppliers') { _safe(refreshSuppliers); _safe(refreshProductNames); }
@@ -4518,7 +4631,7 @@ document.addEventListener('DOMContentLoaded', () => {
       if (nameEl && data.activeUser) nameEl.textContent = data.activeUser;
       if (roleEl) roleEl.textContent = data.users.find(function(u) { return u.name === data.activeUser; })?.role || '';
       var hashTarget = location.hash ? location.hash.slice(1) : 'dashboard';
-      var validViews = ['dashboard','warehouse','aggregated-stock','entry','exit','daily','daily-cost','month-view','years-view','stt-tracking','tender-tracking','suppliers','supplier-report-view','critical-stock-view','user-guide-view','settings-view'];
+      var validViews = ['dashboard','warehouse','aggregated-stock','entry','exit','daily','daily-cost','month-view','years-view','year-compare','stt-tracking','tender-tracking','suppliers','supplier-report-view','critical-stock-view','user-guide-view','settings-view'];
       setTimeout(function() { navigateTo(validViews.includes(hashTarget) ? hashTarget : 'dashboard'); }, 0);
       setTimeout(startHeartbeat, 1000);
     }
@@ -4615,7 +4728,7 @@ document.addEventListener('DOMContentLoaded', () => {
         startHeartbeat();
         // URL'de hash varsa o sayfaya git, yoksa dashboard
         var hashTarget = location.hash ? location.hash.slice(1) : 'dashboard';
-        var validViews = ['dashboard','warehouse','aggregated-stock','entry','exit','daily','daily-cost','month-view','years-view','stt-tracking','tender-tracking','suppliers','supplier-report-view','critical-stock-view','user-guide-view','settings-view'];
+        var validViews = ['dashboard','warehouse','aggregated-stock','entry','exit','daily','daily-cost','month-view','years-view','year-compare','stt-tracking','tender-tracking','suppliers','supplier-report-view','critical-stock-view','user-guide-view','settings-view'];
         navigateTo(validViews.includes(hashTarget) ? hashTarget : 'dashboard');
         return;
       }
@@ -4876,7 +4989,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // Hash değişince sayfayı güncelle (tarayıcı geri/ileri butonları)
   window.addEventListener('hashchange', () => {
     var hashTarget = location.hash ? location.hash.slice(1) : 'dashboard';
-    var validViews = ['dashboard','warehouse','aggregated-stock','entry','exit','daily','daily-cost','month-view','years-view','stt-tracking','tender-tracking','suppliers','supplier-report-view','critical-stock-view','user-guide-view','settings-view'];
+    var validViews = ['dashboard','warehouse','aggregated-stock','entry','exit','daily','daily-cost','month-view','years-view','year-compare','stt-tracking','tender-tracking','suppliers','supplier-report-view','critical-stock-view','user-guide-view','settings-view'];
     if (validViews.includes(hashTarget)) navigateTo(hashTarget);
   });
 });

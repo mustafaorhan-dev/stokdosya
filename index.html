@@ -100,6 +100,10 @@
                         <i class="fa-solid fa-truck"></i>
                         <span>Aylık Tedarikçi Raporu</span>
                     </a>
+                    <a href="#year-compare" class="nav-item" data-target="year-compare">
+                        <i class="fa-solid fa-chart-line"></i>
+                        <span>Yıllık Karşılaştırma</span>
+                    </a>
                     <select id="months-year-select" class="form-control" style="width:calc(100% - 12px);margin:4px 6px 8px;font-size:13px;"></select>
                     <div id="months-menu" style="display:flex; flex-direction:column; gap:0.25rem;"></div>
                 </div>
@@ -819,6 +823,29 @@
                                 </thead>
                                 <tbody id="year-report-body"></tbody>
                             </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- YILLIK KARSILASTIRMA -->
+            <div id="year-compare" class="view-section">
+                <div class="panel-container">
+                    <div class="panel-header">
+                        <h3><i class="fa-solid fa-chart-line" style="color:var(--primary);"></i> Yıllık Karşılaştırma</h3>
+                        <div style="display:flex;gap:8px;align-items:center;">
+                            <select id="yc-product" class="form-control" style="width:200px;font-size:13px;">
+                                <option value="">Tüm Ürünler</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div style="padding:1rem;">
+                        <div class="year-compare-chart-wrap">
+                            <canvas id="year-compare-canvas"></canvas>
+                            <div id="year-compare-empty" style="color:var(--text-secondary);text-align:center;font-size:0.9rem;padding:60px 0;display:none;">
+                                <i class="fa-solid fa-chart-simple" style="font-size:2rem;display:block;margin-bottom:8px;"></i>
+                                Henüz veri bulunamadı.
+                            </div>
                         </div>
                     </div>
                 </div>
