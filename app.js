@@ -3006,9 +3006,8 @@ function refreshTenderChart() {
   if (window._tenderPageChart) window._tenderPageChart.destroy();
   const isDark = getTheme() === 'dark';
   const labelColor = isDark ? '#e2e8f0' : '#334155';
-  const gridColor = isDark ? 'rgba(148,163,184,0.15)' : 'rgba(0,0,0,0.08)';
-  const distinctColors = ['#22c55e', '#f97316', '#8b5cf6', '#3b82f6', '#14b8a6', '#f472b6', '#eab308', '#a1a1aa'];
-  const barColors = ihaleVeri.map((_, i) => distinctColors[i % distinctColors.length]);
+  const blueScale = ['#3b82f6', '#60a5fa', '#2563eb', '#93c5fd', '#1d4ed8', '#7dd3fc', '#1e40af', '#bae6fd'];
+  const barColors = ihaleVeri.map((_, i) => blueScale[i % blueScale.length]);
   const barLabelPlugin = {
     id: 'barLabel',
     afterDatasetsDraw(chart) {
@@ -3019,12 +3018,11 @@ function refreshTenderChart() {
           const val = ds.data[idx];
           if (!val) return;
           ctx.save();
-          ctx.textAlign = 'center';
+          ctx.textAlign = 'left';
           ctx.textBaseline = 'middle';
-          ctx.font = 'bold 17px Outfit, Arial, sans-serif';
+          ctx.font = 'bold 11px Outfit, Arial, sans-serif';
           ctx.fillStyle = isDark ? '#fff' : '#0f172a';
-          const rightEdge = bar.base + bar.width;
-          ctx.fillText('%' + val, rightEdge - 16, bar.y);
+          ctx.fillText('%' + val, bar.x + 4, bar.y);
           ctx.restore();
         });
       });
@@ -3037,18 +3035,19 @@ function refreshTenderChart() {
       datasets: [{
         label: 'Çekilme %',
         data: ihaleVeri.map(v => v.pct),
-        backgroundColor: barColors.map(c => c),
-        borderColor: barColors.map(c => c),
+        backgroundColor: barColors,
+        borderColor: barColors,
         borderWidth: 0,
-        borderRadius: 4,
-        barPercentage: 0.7,
-        categoryPercentage: 0.85
+        borderRadius: 6,
+        barPercentage: 0.9,
+        categoryPercentage: 0.95
       }]
     },
     options: {
       indexAxis: 'y',
       responsive: true,
       maintainAspectRatio: false,
+      layout: { padding: 0 },
       plugins: {
         legend: { display: false },
         tooltip: {
@@ -3066,12 +3065,12 @@ function refreshTenderChart() {
         x: {
           beginAtZero: true,
           max: 100,
-          grid: { color: gridColor },
-          ticks: { callback: v => v + '%', color: labelColor, font: { size: 11 } }
+          grid: { color: isDark ? 'rgba(148,163,184,0.15)' : 'rgba(0,0,0,0.08)' },
+          ticks: { callback: v => v + '%', color: labelColor, font: { size: 9 } }
         },
         y: {
           grid: { display: false },
-          ticks: { color: labelColor, font: { size: 12, weight: 'bold' } }
+          ticks: { color: labelColor, font: { size: 10, weight: 'bold' } }
         }
       }
     },
