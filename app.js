@@ -1314,14 +1314,14 @@ function refreshDashboard() {
     afterDatasetsDraw(chart) {
       const ctx = chart.ctx;
       const meta = chart.getDatasetMeta(0);
-      ctx.font = 'bold 13px Outfit, Arial, sans-serif';
+      ctx.font = 'bold 12px Outfit, Arial, sans-serif';
       ctx.textBaseline = 'middle';
       meta.data.forEach((bar, idx) => {
         const val = qiData[idx];
         if (!val) return;
         ctx.fillStyle = isDark ? '#f1f5f9' : '#0f172a';
-        ctx.textAlign = 'left';
-        ctx.fillText(val, bar.x + 6, bar.y);
+        ctx.textAlign = 'right';
+        ctx.fillText(val, bar.x - 6, bar.y);
       });
     }
   };
@@ -1361,11 +1361,13 @@ function refreshDashboard() {
       },
       scales: {
         x: {
+          reverse: true,
           beginAtZero: true,
           grid: { color: isDark ? 'rgba(148,163,184,0.1)' : 'rgba(0,0,0,0.05)' },
-          ticks: { color: isDark ? '#94a3b8' : '#64748b', font: { size: 10 } }
+          ticks: { display: false }
         },
         y: {
+          position: 'right',
           grid: { display: false },
           ticks: { color: isDark ? '#e2e8f0' : '#334155', font: { size: 11, weight: '600' } }
         }
