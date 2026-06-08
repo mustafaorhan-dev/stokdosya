@@ -345,13 +345,17 @@ input[type="file"].form-control { padding: 8px; }
 .panel-container canvas {
   max-width: 100%;
 }
-#category-chart-canvas,
-#quick-info-canvas {
+#category-chart-canvas {
   max-width: 220px;
   width: 100%;
   margin: 0 auto;
   display: block;
   aspect-ratio: 1/1;
+}
+#quick-info-canvas {
+  width: 100%;
+  height: clamp(180px, 26vh, 260px);
+  display: block;
 }
 #tender-chart-canvas {
   width: 100%;

@@ -1295,95 +1295,55 @@ function refreshDashboard() {
     });
   }
 
-  // Hızlı Bilgiler (doughnut chart)
+  // Hızlı Bilgiler (horizontal bar)
   const sttOlan = prods.filter(p => p.stt).length;
   const tedarikciSayisi = data.companies.length;
   const toplamIslem = data.transactions.length;
   const bugunHareketAdet = bugunHareket.length;
   const qiContainer = document.getElementById('quick-info-list');
-  qiContainer.innerHTML = `
-    <div style="display:flex;flex-direction:column;">
-      <div style="max-width:220px;margin:0 auto;"><canvas id="quick-info-canvas" style="width:100%;"></canvas></div>
-      <div style="display:flex;justify-content:center;gap:14px;flex-wrap:wrap;" id="qi-legend"></div>
-    </div>
-  `;
+  qiContainer.innerHTML = `<canvas id="quick-info-canvas"></canvas>`;
   if (window._qiChart) window._qiChart.destroy();
 
   const isDark = getTheme() === 'dark';
-  const labelColor = isDark ? '#e2e8f0' : '#334155';
   const qiLabels = ["STT'li Ürün", 'Tedarikçi', 'Toplam İşlem', 'Bugünkü İşlem', 'Ürün Listesi'];
   const qiData = [sttOlan, tedarikciSayisi, toplamIslem, bugunHareketAdet, (data.productNames || []).length];
   const qiColors = ['#3b82f6', '#2563eb', '#a78bfa', '#94a3b8', '#10b981'];
 
-  // Legend
-  document.getElementById('qi-legend').innerHTML = qiLabels.map((l, i) => `
-    <div style="display:flex;align-items:center;gap:6px;">
-      <div style="width:10px;height:10px;border-radius:50%;background:${qiColors[i]};flex-shrink:0;"></div>
-      <span style="font-size:12px;font-weight:600;color:${isDark ? '#94a3b8' : '#64748b'};">${l}</span>
-      <span style="font-size:11px;font-weight:700;color:${labelColor};">${qiData[i]}</span>
-    </div>
-  `).join('');
-
-
-  // Dilim içi etiketler
-  const qiTotal = qiData.reduce((s, v) => s + v, 0);
   const qiLabelPlugin = {
     id: 'qiLabel',
     afterDatasetsDraw(chart) {
       const ctx = chart.ctx;
       const meta = chart.getDatasetMeta(0);
-
-      meta.data.forEach((arc, idx) => {
+      ctx.font = 'bold 13px Outfit, Arial, sans-serif';
+      ctx.textBaseline = 'middle';
+      meta.data.forEach((bar, idx) => {
         const val = qiData[idx];
         if (!val) return;
-        const angle = (arc.startAngle + arc.endAngle) / 2;
-        const radius = (arc.outerRadius + arc.innerRadius) / 2;
-        ctx.save();
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
-        ctx.font = 'bold 15px Outfit, Arial, sans-serif';
-        ctx.fillStyle = '#fff';
-        ctx.shadowColor = 'rgba(0,0,0,0.4)';
-        ctx.shadowBlur = 3;
-        ctx.fillText(val, arc.x + Math.cos(angle) * radius, arc.y + Math.sin(angle) * radius);
-        ctx.restore();
+        ctx.fillStyle = isDark ? '#f1f5f9' : '#0f172a';
+        ctx.textAlign = 'left';
+        ctx.fillText(val, bar.x + 6, bar.y);
       });
-
-      // Merkez toplam
-      const cx = chart.chartArea.left + (chart.chartArea.right - chart.chartArea.left) / 2;
-      const cy = chart.chartArea.top + (chart.chartArea.bottom - chart.chartArea.top) / 2;
-      ctx.save();
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-      ctx.font = 'bold 26px Outfit, Arial, sans-serif';
-      ctx.fillStyle = isDark ? '#f1f5f9' : '#0f172a';
-      ctx.fillText(qiTotal, cx, cy - 10);
-      ctx.font = '600 11px Outfit, Arial, sans-serif';
-      ctx.fillStyle = isDark ? '#94a3b8' : '#64748b';
-      ctx.fillText('Toplam', cx, cy + 16);
-      ctx.restore();
     }
   };
 
   window._qiChart = new Chart(document.getElementById('quick-info-canvas'), {
-    type: 'doughnut',
+    type: 'bar',
     data: {
       labels: qiLabels,
       datasets: [{
         data: qiData,
-        backgroundColor: qiColors,
-        borderColor: isDark ? '#1e293b' : '#fff',
-        borderWidth: 2,
-        hoverOffset: 8,
-        borderRadius: 0,
-        spacing: 0
+        backgroundColor: qiColors.map(c => isDark ? c + 'CC' : c),
+        borderColor: qiColors,
+        borderWidth: 0,
+        borderRadius: 6,
+        barPercentage: 0.65,
+        categoryPercentage: 0.8
       }]
     },
     options: {
+      indexAxis: 'y',
       responsive: true,
-      maintainAspectRatio: true,
-      aspectRatio: 1.0,
-      cutout: '65%',
+      maintainAspectRatio: false,
       plugins: {
         legend: { display: false },
         tooltip: {
@@ -1392,23 +1352,27 @@ function refreshDashboard() {
           bodyColor: isDark ? '#cbd5e1' : '#334155',
           borderColor: isDark ? 'rgba(148,163,184,0.2)' : 'rgba(0,0,0,0.1)',
           borderWidth: 1,
-          padding: 10,
-          cornerRadius: 8,
+          padding: 8,
+          cornerRadius: 6,
           callbacks: {
-            label: ctx => {
-              const total = qiData.reduce((s, v) => s + v, 0);
-              const pct = total > 0 ? ((ctx.parsed / total) * 100).toFixed(1) : '0';
-              return ` ${ctx.label}: ${ctx.parsed} (%${pct})`;
-            }
+            label: ctx => ` ${ctx.parsed.x} adet`
           }
         }
       },
-      animation: {
-        duration: 800,
-        easing: 'easeOutQuart',
-        delay(ctx) {
-          return ctx.dataIndex * 100;
+      scales: {
+        x: {
+          beginAtZero: true,
+          grid: { color: isDark ? 'rgba(148,163,184,0.1)' : 'rgba(0,0,0,0.05)' },
+          ticks: { color: isDark ? '#94a3b8' : '#64748b', font: { size: 10 } }
+        },
+        y: {
+          grid: { display: false },
+          ticks: { color: isDark ? '#e2e8f0' : '#334155', font: { size: 11, weight: '600' } }
         }
+      },
+      animation: {
+        duration: 600,
+        easing: 'easeOutQuart'
       }
     },
     plugins: [qiLabelPlugin]
