@@ -1028,6 +1028,24 @@ function refreshYearCompare() {
 
   const colors = yillar.map(y => yilNet[y] >= 0 ? '#22c55e' : '#ef4444');
 
+  const ycLabelPlugin = {
+    id: 'ycLabel',
+    afterDatasetsDraw(chart) {
+      const ctx = chart.ctx;
+      const meta = chart.getDatasetMeta(0);
+      ctx.font = 'bold 12px Outfit, Arial, sans-serif';
+      ctx.textBaseline = 'middle';
+      meta.data.forEach((bar, idx) => {
+        const val = degerler[idx];
+        if (!val) return;
+        const endX = bar.x + bar.width;
+        ctx.fillStyle = isDark ? '#f1f5f9' : '#0f172a';
+        ctx.textAlign = val >= 0 ? 'left' : 'right';
+        ctx.fillText(_fmt(Math.abs(val)), endX + (val >= 0 ? 6 : -6), bar.y);
+      });
+    }
+  };
+
   _yearCompareChart = new Chart(canvas, {
     type: 'bar',
     data: {
@@ -1067,7 +1085,6 @@ function refreshYearCompare() {
       },
       scales: {
         x: {
-          beginAtZero: true,
           grid: { color: isDark ? 'rgba(148,163,184,0.1)' : 'rgba(0,0,0,0.05)' },
           ticks: { color: labelColor, font: { size: 11 } }
         },
@@ -1083,7 +1100,7 @@ function refreshYearCompare() {
         easing: 'easeOutQuart'
       }
     },
-    plugins: []
+    plugins: [ycLabelPlugin]
   });
 }
 
