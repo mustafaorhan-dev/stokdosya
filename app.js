@@ -1336,8 +1336,8 @@ function refreshDashboard() {
         borderColor: qiColors,
         borderWidth: 0,
         borderRadius: 6,
-        barPercentage: 0.65,
-        categoryPercentage: 0.8
+        barPercentage: 0.9,
+        categoryPercentage: 0.95
       }]
     },
     options: {
@@ -1442,8 +1442,8 @@ function refreshDashboard() {
           borderColor: barColors,
           borderWidth: 0,
           borderRadius: 6,
-          barPercentage: 0.6,
-          categoryPercentage: 0.8
+          barPercentage: 0.9,
+          categoryPercentage: 0.95
         }]
       },
       options: {
