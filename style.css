@@ -118,6 +118,7 @@ body {
   margin-left: auto; background: var(--bg-card); padding: 1px 8px;
   border-radius: 999px; font-size: clamp(9px, 0.7vw, 11px); color: var(--text-muted);
 }
+.sidebar-overlay { display: none; }
 /* ----- MAIN ----- */
 .main-content {
   flex: 1; margin-left: var(--sidebar-w); padding: 0;
