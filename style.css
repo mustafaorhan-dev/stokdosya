@@ -99,7 +99,7 @@ body {
 .nav-group { margin-bottom: clamp(4px, 0.5vh, 8px); }
 .nav-group h4 {
   font-size: clamp(9px, 0.75vw, 11px); text-transform: uppercase; letter-spacing: 1.5px;
-  color: var(--text-secondary); padding: clamp(6px, 0.6vh, 10px) clamp(8px, 1vw, 12px) clamp(3px, 0.3vh, 5px); font-weight: 800;
+  color: var(--primary); padding: clamp(6px, 0.6vh, 10px) clamp(8px, 1vw, 12px) clamp(3px, 0.3vh, 5px); font-weight: 800;
   border-bottom: 1px solid var(--border-color); margin: 0 clamp(8px, 1vw, 12px) clamp(4px, 0.4vh, 6px);
 }
 .nav-item {
