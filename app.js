@@ -3025,7 +3025,7 @@ function openTenderModal(editId) {
 }
 function editTender(id) { openTenderModal(id); }
 
-function deleteTender(id) {
+async function deleteTender(id) {
   if (isViewOnly()) { toast('Görüntüleme modunda ihale silemezsiniz.', 'error'); return; }
   if (!confirm('Bu ihaleyi silmek istediğinize emin misiniz?')) return;
   const silinen = data.tenders.find(t => t.id === id);
@@ -3040,7 +3040,11 @@ function deleteTender(id) {
     });
   }
   data.tenders = data.tenders.filter(t => t.id !== id);
-  saveData();
+  await saveData();
+  // Supabase'den de sil
+  if (isSupabaseReady()) {
+    try { await supabaseFetch('DELETE', 'tenders', { id: `eq.${id}` }); } catch (e) { console.error('Supabase ihale silme hatası:', e); }
+  }
   refreshTenders();
   toast('İhale silindi.', 'success');
 }
