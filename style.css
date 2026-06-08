@@ -355,7 +355,8 @@ input[type="file"].form-control { padding: 8px; }
 #quick-info-canvas,
 #tender-chart-canvas {
   width: 100%;
-  height: clamp(100px, 16vh, 160px);
+  flex: 1;
+  min-height: 0;
   display: block;
 }
 #tender-page-chart-canvas {
