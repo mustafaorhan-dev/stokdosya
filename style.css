@@ -352,14 +352,12 @@ input[type="file"].form-control { padding: 8px; }
   display: block;
   aspect-ratio: 1/1;
 }
-#quick-info-canvas {
-  width: 100%;
-  height: clamp(180px, 26vh, 260px);
-  display: block;
-}
+#quick-info-canvas,
 #tender-chart-canvas {
+  max-width: 280px;
   width: 100%;
-  height: clamp(150px, 22vh, 280px);
+  height: clamp(160px, 24vh, 240px);
+  display: block;
 }
 #tender-page-chart-canvas {
   height: clamp(120px, 20vh, 180px) !important;
