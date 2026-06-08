@@ -1204,6 +1204,7 @@ function refreshDashboard() {
     const catLabels = catOrder;
     const catData = catOrder.map(c => catCount[c] || 0);
     const catBgColors = catOrder.map(c => catColors[c]);
+    const catBgTransparent = catBgColors.map(c => c + 'CC');
 
     // Legend
     document.getElementById('category-chart-legend').innerHTML = catLabels.map((l, i) => `
@@ -1214,65 +1215,48 @@ function refreshDashboard() {
       </div>
     `).join('');
 
-    // Dilim içi etiket
+    // Dilim etiketi
     const catLabelPlugin = {
       id: 'catLabel',
       afterDatasetsDraw(chart) {
         const ctx = chart.ctx;
         const meta = chart.getDatasetMeta(0);
-
-        // Dilim içi değerler
         meta.data.forEach((arc, idx) => {
           const val = catData[idx];
           if (!val) return;
           const angle = (arc.startAngle + arc.endAngle) / 2;
-          const radius = (arc.outerRadius + arc.innerRadius) / 2;
+          const radius = arc.outerRadius * 0.55;
+          const tx = arc.x + Math.cos(angle) * radius;
+          const ty = arc.y + Math.sin(angle) * radius;
           ctx.save();
           ctx.textAlign = 'center';
           ctx.textBaseline = 'middle';
-          ctx.font = 'bold 16px Outfit, Arial, sans-serif';
+          ctx.font = 'bold 15px Outfit, Arial, sans-serif';
           ctx.fillStyle = '#fff';
-          ctx.shadowColor = 'rgba(0,0,0,0.5)';
-          ctx.shadowBlur = 4;
-          ctx.fillText(val, arc.x + Math.cos(angle) * radius, arc.y + Math.sin(angle) * radius);
+          ctx.shadowColor = 'rgba(0,0,0,0.6)';
+          ctx.shadowBlur = 5;
+          ctx.fillText(val, tx, ty);
           ctx.restore();
         });
-
-        // Merkez toplam
-        const cx = chart.chartArea.left + (chart.chartArea.right - chart.chartArea.left) / 2;
-        const cy = chart.chartArea.top + (chart.chartArea.bottom - chart.chartArea.top) / 2;
-        ctx.save();
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
-        ctx.font = 'bold 26px Outfit, Arial, sans-serif';
-        ctx.fillStyle = isDark ? '#f1f5f9' : '#0f172a';
-        ctx.fillText(catTotal, cx, cy - 10);
-        ctx.font = '600 11px Outfit, Arial, sans-serif';
-        ctx.fillStyle = isDark ? '#94a3b8' : '#64748b';
-        ctx.fillText('Toplam', cx, cy + 16);
-        ctx.restore();
       }
     };
 
     window._catChart = new Chart(catCanvas, {
-      type: 'doughnut',
+      type: 'polarArea',
       data: {
         labels: catLabels,
         datasets: [{
           data: catData,
-          backgroundColor: catBgColors,
+          backgroundColor: catBgTransparent,
           borderColor: isDark ? '#1e293b' : '#fff',
           borderWidth: 2,
-          hoverOffset: 8,
-          borderRadius: 0,
-          spacing: 0
+          hoverBorderWidth: 4
         }]
       },
       options: {
         responsive: true,
         maintainAspectRatio: true,
         aspectRatio: 1.0,
-      cutout: '65%',
         plugins: {
           legend: { display: false },
           tooltip: {
@@ -1285,10 +1269,18 @@ function refreshDashboard() {
             cornerRadius: 8,
             callbacks: {
               label: ctx => {
-                const pct = catTotal > 0 ? ((ctx.parsed / catTotal) * 100).toFixed(1) : '0';
-                return ` ${ctx.label}: ${ctx.parsed} çeşit (%${pct})`;
+                const pct = catTotal > 0 ? ((ctx.parsed.r / catTotal) * 100).toFixed(1) : '0';
+                return ` ${ctx.label}: ${ctx.parsed.r} çeşit (%${pct})`;
               }
             }
+          }
+        },
+        scales: {
+          r: {
+            grid: {
+              color: isDark ? 'rgba(148,163,184,0.12)' : 'rgba(0,0,0,0.05)'
+            },
+            ticks: { display: false }
           }
         },
         animation: {
