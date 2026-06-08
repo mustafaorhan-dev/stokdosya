@@ -990,7 +990,6 @@ function refreshYearCompare() {
   const empty = document.getElementById('year-compare-empty');
   if (!canvas) return;
 
-  // Ürün listesini doldur
   const urunler = [...new Set(data.transactions.map(t => t.productName).filter(Boolean))].sort();
   const secili = select.value;
   const currentHTML = select.innerHTML;
@@ -998,19 +997,19 @@ function refreshYearCompare() {
     urunler.map(u => `<option value="${htmlEscape(u).replace(/"/g, '&quot;')}"${u === secili ? ' selected' : ''}>${htmlEscape(u)}</option>`).join('');
   if (yeniHTML !== currentHTML) select.innerHTML = yeniHTML;
 
-  // Yıllara göre toplam net miktar
-  const yilNet = {};
+  const yilGiris = {}, yilCikis = {};
   data.transactions.forEach(t => {
     if (!t.date || !t.amount) return;
     if (secili && t.productName !== secili) return;
     const yil = new Date(t.date).getFullYear();
-    if (!yilNet[yil]) yilNet[yil] = 0;
-    yilNet[yil] += t.type === 'giris' ? t.amount : -t.amount;
+    if (t.type === 'giris') { if (!yilGiris[yil]) yilGiris[yil] = 0; yilGiris[yil] += t.amount; }
+    else if (t.type === 'cikis') { if (!yilCikis[yil]) yilCikis[yil] = 0; yilCikis[yil] += t.amount; }
   });
 
-  const yillar = Object.keys(yilNet).map(Number).sort((a, b) => a - b);
-  const degerler = yillar.map(y => yilNet[y]);
-  const toplam = degerler.reduce((s, v) => s + Math.abs(v), 0);
+  const tumYillar = [...new Set([...Object.keys(yilGiris), ...Object.keys(yilCikis)].map(Number))].sort((a, b) => a - b);
+  const girisData = tumYillar.map(y => yilGiris[y] || 0);
+  const cikisData = tumYillar.map(y => yilCikis[y] || 0);
+  const toplam = girisData.reduce((s, v) => s + v, 0) + cikisData.reduce((s, v) => s + v, 0);
 
   if (!toplam) {
     canvas.style.display = 'none';
@@ -1026,22 +1025,27 @@ function refreshYearCompare() {
   const isDark = getTheme() === 'dark';
   const labelColor = isDark ? '#e2e8f0' : '#334155';
 
-  const colors = yillar.map(y => yilNet[y] >= 0 ? '#22c55e' : '#ef4444');
-
   const ycLabelPlugin = {
     id: 'ycLabel',
     afterDatasetsDraw(chart) {
       const ctx = chart.ctx;
-      const meta = chart.getDatasetMeta(0);
-      ctx.font = 'bold 12px Outfit, Arial, sans-serif';
+      const girisMeta = chart.getDatasetMeta(0);
+      const cikisMeta = chart.getDatasetMeta(1);
+      ctx.font = 'bold 11px Outfit, Arial, sans-serif';
       ctx.textBaseline = 'middle';
-      meta.data.forEach((bar, idx) => {
-        const val = degerler[idx];
+      girisMeta.data.forEach((bar, idx) => {
+        const val = girisData[idx];
         if (!val) return;
         const endX = bar.x + bar.width;
-        ctx.fillStyle = isDark ? '#f1f5f9' : '#0f172a';
-        ctx.textAlign = val >= 0 ? 'left' : 'right';
-        ctx.fillText(_fmt(Math.abs(val)), endX + (val >= 0 ? 6 : -6), bar.y);
+        ctx.fillStyle = '#22c55e';
+        ctx.fillText(_fmt(val), endX + 4, bar.y);
+      });
+      cikisMeta.data.forEach((bar, idx) => {
+        const val = cikisData[idx];
+        if (!val) return;
+        const endX = bar.x + bar.width;
+        ctx.fillStyle = '#ef4444';
+        ctx.fillText(_fmt(val), endX + 4, bar.y);
       });
     }
   };
@@ -1049,16 +1053,29 @@ function refreshYearCompare() {
   _yearCompareChart = new Chart(canvas, {
     type: 'bar',
     data: {
-      labels: yillar,
-      datasets: [{
-        data: degerler,
-        backgroundColor: colors.map(c => c + 'CC'),
-        borderColor: colors,
-        borderWidth: 2,
-        borderRadius: 6,
-        barPercentage: 0.7,
-        categoryPercentage: 0.8
-      }]
+      labels: tumYillar,
+      datasets: [
+        {
+          label: 'Giriş',
+          data: girisData,
+          backgroundColor: isDark ? 'rgba(34,197,94,0.7)' : 'rgba(34,197,94,0.85)',
+          borderColor: '#22c55e',
+          borderWidth: 2,
+          borderRadius: 4,
+          barPercentage: 0.65,
+          categoryPercentage: 0.7
+        },
+        {
+          label: 'Çıkış',
+          data: cikisData,
+          backgroundColor: isDark ? 'rgba(239,68,68,0.7)' : 'rgba(239,68,68,0.85)',
+          borderColor: '#ef4444',
+          borderWidth: 2,
+          borderRadius: 4,
+          barPercentage: 0.65,
+          categoryPercentage: 0.7
+        }
+      ]
     },
     options: {
       indexAxis: 'y',
@@ -1066,7 +1083,17 @@ function refreshYearCompare() {
       maintainAspectRatio: false,
       layout: { padding: 0 },
       plugins: {
-        legend: { display: false },
+        legend: {
+          display: true,
+          position: 'top',
+          align: 'center',
+          labels: {
+            color: labelColor,
+            font: { size: 12, weight: '600' },
+            usePointStyle: true,
+            padding: 16
+          }
+        },
         tooltip: {
           backgroundColor: isDark ? '#1e293b' : '#fff',
           titleColor: isDark ? '#e2e8f0' : '#0f172a',
@@ -1076,21 +1103,18 @@ function refreshYearCompare() {
           padding: 10,
           cornerRadius: 8,
           callbacks: {
-            label: ctx => {
-              const net = ctx.parsed.x;
-              return ` Net: ${_fmt(Math.abs(net))} ${net >= 0 ? '(Giriş fazla)' : '(Çıkış fazla)'}`;
-            }
+            label: ctx => ` ${ctx.dataset.label}: ${_fmt(ctx.raw)}`
           }
         }
       },
       scales: {
         x: {
+          beginAtZero: true,
           grid: { color: isDark ? 'rgba(148,163,184,0.1)' : 'rgba(0,0,0,0.05)' },
           ticks: { color: labelColor, font: { size: 11 } }
         },
         y: {
           position: 'left',
-          reverse: false,
           grid: { display: false },
           ticks: { color: labelColor, font: { size: 13, weight: '700' } }
         }
