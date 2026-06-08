@@ -4183,9 +4183,12 @@ async function deleteTransaction(id) {
   }
   toast('İşlem silindi.', 'info');
   refreshDailyView();
+  refreshMonthView();
+  refreshYearsView();
   refreshDashboard();
   refreshWarehouse();
   refreshAggregatedStock();
+  refreshCriticalStock();
   buildMonthMenu();
 }
 
