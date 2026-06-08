@@ -997,6 +997,19 @@ function refreshYearCompare() {
     urunler.map(u => `<option value="${htmlEscape(u).replace(/"/g, '&quot;')}"${u === secili ? ' selected' : ''}>${htmlEscape(u)}</option>`).join('');
   if (yeniHTML !== currentHTML) select.innerHTML = yeniHTML;
 
+  // Birim bul
+  let birim = '';
+  if (secili) {
+    for (const p of Object.values(data.products)) {
+      if (p.name === secili && p.unit) { birim = p.unit; break; }
+    }
+    if (!birim) {
+      for (const t of data.transactions) {
+        if (t.productName === secili && t.unit) { birim = t.unit; break; }
+      }
+    }
+  }
+
   const yilGiris = {}, yilCikis = {};
   data.transactions.forEach(t => {
     if (!t.date || !t.amount) return;
@@ -1031,21 +1044,48 @@ function refreshYearCompare() {
       const ctx = chart.ctx;
       const girisMeta = chart.getDatasetMeta(0);
       const cikisMeta = chart.getDatasetMeta(1);
-      ctx.font = 'bold 11px Outfit, Arial, sans-serif';
       ctx.textBaseline = 'middle';
       girisMeta.data.forEach((bar, idx) => {
         const val = girisData[idx];
         if (!val) return;
         const endX = bar.x + bar.width;
-        ctx.fillStyle = '#22c55e';
-        ctx.fillText(_fmt(val), endX + 4, bar.y);
+        const midY = bar.y;
+        if (bar.width > 40) {
+          ctx.save();
+          ctx.font = 'bold 11px Outfit, Arial, sans-serif';
+          ctx.fillStyle = '#fff';
+          ctx.textAlign = 'right';
+          ctx.fillText(_fmt(val), endX - 6, midY);
+          ctx.restore();
+        } else {
+          ctx.save();
+          ctx.font = 'bold 11px Outfit, Arial, sans-serif';
+          ctx.fillStyle = '#22c55e';
+          ctx.textAlign = 'left';
+          ctx.fillText(_fmt(val), endX + 4, midY);
+          ctx.restore();
+        }
       });
       cikisMeta.data.forEach((bar, idx) => {
         const val = cikisData[idx];
         if (!val) return;
         const endX = bar.x + bar.width;
-        ctx.fillStyle = '#ef4444';
-        ctx.fillText(_fmt(val), endX + 4, bar.y);
+        const midY = bar.y;
+        if (bar.width > 40) {
+          ctx.save();
+          ctx.font = 'bold 11px Outfit, Arial, sans-serif';
+          ctx.fillStyle = '#fff';
+          ctx.textAlign = 'right';
+          ctx.fillText(_fmt(val), endX - 6, midY);
+          ctx.restore();
+        } else {
+          ctx.save();
+          ctx.font = 'bold 11px Outfit, Arial, sans-serif';
+          ctx.fillStyle = '#ef4444';
+          ctx.textAlign = 'left';
+          ctx.fillText(_fmt(val), endX + 4, midY);
+          ctx.restore();
+        }
       });
     }
   };
@@ -1058,22 +1098,22 @@ function refreshYearCompare() {
         {
           label: 'Giriş',
           data: girisData,
-          backgroundColor: isDark ? 'rgba(34,197,94,0.7)' : 'rgba(34,197,94,0.85)',
-          borderColor: '#22c55e',
-          borderWidth: 2,
-          borderRadius: 4,
-          barPercentage: 0.65,
-          categoryPercentage: 0.7
+          backgroundColor: isDark ? 'rgba(34,197,94,0.8)' : '#22c55e',
+          borderColor: isDark ? '#22c55e' : '#16a34a',
+          borderWidth: 1,
+          borderRadius: 3,
+          barPercentage: 1,
+          categoryPercentage: 0.65
         },
         {
           label: 'Çıkış',
           data: cikisData,
-          backgroundColor: isDark ? 'rgba(239,68,68,0.7)' : 'rgba(239,68,68,0.85)',
-          borderColor: '#ef4444',
-          borderWidth: 2,
-          borderRadius: 4,
-          barPercentage: 0.65,
-          categoryPercentage: 0.7
+          backgroundColor: isDark ? 'rgba(239,68,68,0.8)' : '#ef4444',
+          borderColor: isDark ? '#ef4444' : '#dc2626',
+          borderWidth: 1,
+          borderRadius: 3,
+          barPercentage: 1,
+          categoryPercentage: 0.65
         }
       ]
     },
@@ -1081,7 +1121,7 @@ function refreshYearCompare() {
       indexAxis: 'y',
       responsive: true,
       maintainAspectRatio: false,
-      layout: { padding: 0 },
+      layout: { padding: { top: 6, bottom: 6 } },
       plugins: {
         legend: {
           display: true,
@@ -1091,7 +1131,7 @@ function refreshYearCompare() {
             color: labelColor,
             font: { size: 12, weight: '600' },
             usePointStyle: true,
-            padding: 16
+            padding: 14
           }
         },
         tooltip: {
@@ -1103,7 +1143,7 @@ function refreshYearCompare() {
           padding: 10,
           cornerRadius: 8,
           callbacks: {
-            label: ctx => ` ${ctx.dataset.label}: ${_fmt(ctx.raw)}`
+            label: ctx => ` ${ctx.dataset.label}: ${_fmt(ctx.raw)} ${birim}`
           }
         }
       },
@@ -1111,7 +1151,13 @@ function refreshYearCompare() {
         x: {
           beginAtZero: true,
           grid: { color: isDark ? 'rgba(148,163,184,0.1)' : 'rgba(0,0,0,0.05)' },
-          ticks: { color: labelColor, font: { size: 11 } }
+          ticks: { color: labelColor, font: { size: 11 } },
+          title: {
+            display: !!birim,
+            text: birim,
+            color: isDark ? '#94a3b8' : '#64748b',
+            font: { size: 11, weight: '600' }
+          }
         },
         y: {
           position: 'left',
