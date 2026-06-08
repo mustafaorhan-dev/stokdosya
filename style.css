@@ -346,7 +346,7 @@ input[type="file"].form-control { padding: 8px; }
 }
 #category-chart-canvas,
 #quick-info-canvas {
-  max-width: 300px;
+  max-width: 220px;
   width: 100%;
   margin: 0 auto;
   display: block;
@@ -354,7 +354,7 @@ input[type="file"].form-control { padding: 8px; }
 }
 #tender-chart-canvas {
   width: 100%;
-  height: clamp(200px, 30vh, 380px);
+  height: clamp(150px, 22vh, 280px);
 }
 #tender-page-chart-canvas {
   height: clamp(120px, 20vh, 180px) !important;

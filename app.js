@@ -1166,12 +1166,12 @@ function refreshDashboard() {
 
   // Kategori Dağılımı (normalize edilmiş)
   const catMap = [
-    { names: ['Sebze','Sebzeler','Sebze Grubu','Yeşillik'], key: 'Sebze', color: '#2dd4bf' },
-    { names: ['Meyve','Meyveler','Meyve Grubu'], key: 'Meyve', color: '#14b8a6' },
-    { names: ['Bakliyat','Baklagil','Baklagiller','Kuru Baklagil'], key: 'Bakliyat', color: '#0d9488' },
-    { names: ['Temel Gıda','Temel Gida','Gıda','Kuru Gıda'], key: 'Temel Gıda', color: '#0f766e' },
-    { names: ['Temizlik','Temizlik Malzemesi','Temizlik Ürünü','Hijyen'], key: 'Temizlik', color: '#115e59' },
-    { names: ['Süt Ürünleri','Sut Urunleri','Süt','Sut','Peynir','Yoğurt'], key: 'Süt Ürünleri', color: '#134e4a' }
+    { names: ['Sebze','Sebzeler','Sebze Grubu','Yeşillik'], key: 'Sebze', color: '#22c55e' },
+    { names: ['Meyve','Meyveler','Meyve Grubu'], key: 'Meyve', color: '#f97316' },
+    { names: ['Bakliyat','Baklagil','Baklagiller','Kuru Baklagil'], key: 'Bakliyat', color: '#8b5cf6' },
+    { names: ['Temel Gıda','Temel Gida','Gıda','Kuru Gıda'], key: 'Temel Gıda', color: '#3b82f6' },
+    { names: ['Temizlik','Temizlik Malzemesi','Temizlik Ürünü','Hijyen'], key: 'Temizlik', color: '#14b8a6' },
+    { names: ['Süt Ürünleri','Sut Urunleri','Süt','Sut','Peynir','Yoğurt'], key: 'Süt Ürünleri', color: '#f472b6' }
   ];
   const catLookup = {};
   catMap.forEach(g => { g.names.forEach(n => { catLookup[n.toLowerCase()] = g.key; }); });
@@ -1303,7 +1303,7 @@ function refreshDashboard() {
   const qiContainer = document.getElementById('quick-info-list');
   qiContainer.innerHTML = `
     <div style="display:flex;flex-direction:column;">
-      <div style="max-width:300px;margin:0 auto;"><canvas id="quick-info-canvas" style="width:100%;"></canvas></div>
+      <div style="max-width:220px;margin:0 auto;"><canvas id="quick-info-canvas" style="width:100%;"></canvas></div>
       <div style="display:flex;justify-content:center;gap:14px;flex-wrap:wrap;" id="qi-legend"></div>
     </div>
   `;
