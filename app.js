@@ -124,14 +124,12 @@ async function supabaseSave() {
     }
 
     // Companies, product names + units → settings'e JSON olarak kaydedilir (DELETE gerekmez)
+    const listData = { companies: data.companies || [], productNames: data.productNames || [], productUnits: data.productUnits || {} };
     const settingRows = Object.entries(data.settings || {})
       .filter(([k]) => k !== '_appListData')
       .map(([k, v]) => ({ key: k, value: v }));
-    settingRows.push({ key: '_appListData', value: JSON.stringify({
-      companies: data.companies || [],
-      productNames: data.productNames || [],
-      productUnits: data.productUnits || {}
-    }) });
+    settingRows.push({ key: '_appListData', value: JSON.stringify(listData) });
+    console.log('📦 _appListData kaydediliyor, ürün sayısı:', listData.productNames.length);
     if (settingRows.length > 0) {
       try { await supabaseFetch('POST', 'settings', null, settingRows); } catch(e) { toast('❌ Ayarlar Supabase\'e kaydedilemedi', 'error'); }
     }
@@ -203,11 +201,14 @@ async function supabaseLoad() {
     let appListData = null;
     (settings || []).forEach(s => {
       if (s.key === '_appListData') {
-        try { appListData = JSON.parse(s.value); } catch(e) {}
+        try { appListData = JSON.parse(s.value); console.log('📦 _appListData yüklendi, ürün sayısı:', (appListData.productNames||[]).length); } catch(e) { console.warn('⚠️ _appListData parse hatası'); }
       } else {
         settingObj[s.key] = s.value;
       }
     });
+
+    const useAppData = appListData && appListData.productNames;
+    console.log('📦 Kullanılan kaynak:', useAppData ? '_appListData' : 'product_names tablosu (fallback)');
 
     return {
       products: prodMap, transactions: txList, users: userList, tenders: tenderList,
