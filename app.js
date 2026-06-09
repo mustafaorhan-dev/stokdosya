@@ -2466,12 +2466,12 @@ function refreshSuppliers() {
     '</tbody></table>';
 }
 
-function deleteSupplier(enc) {
+async function deleteSupplier(enc) {
   const name = decodeURIComponent(enc);
   if (isViewOnly()) { toast('Görüntüleme modunda tedarikçi silemezsiniz.', 'error'); return; }
   if (!confirm(`"${name}" tedarikçisini silmek istediğinize emin misiniz?`)) return;
   data.companies = (data.companies || []).filter(c => c !== name);
-  saveData();
+  await saveData();
   refreshSuppliers();
   refreshEntryForm();
   toast(`"${name}" silindi.`, 'success');
@@ -3633,13 +3633,13 @@ function addProductName() {
   toast('Ürün ismi eklendi.', 'success');
 }
 
-function deleteProductName(enc) {
+async function deleteProductName(enc) {
   const name = decodeURIComponent(enc);
   if (isViewOnly()) { toast('Görüntüleme modunda ürün ismi silemezsiniz.', 'error'); return; }
   if (!confirm(`"${name}" ürün ismini listeden kaldırmak istediğinize emin misiniz?`)) return;
   data.productNames = data.productNames.filter(n => n !== name);
   if (data.productUnits) delete data.productUnits[name];
-  saveData();
+  await saveData();
   refreshProductNames();
   toast(`"${name}" listeden kaldırıldı.`, 'success');
 }
@@ -3963,7 +3963,7 @@ async function supabaseBackup(label) {
 // ----- SUPABASE SETTINGS TEMİZLİĞİ -----
 async function _cleanupSupabaseSettings() {
   if (!isSupabaseReady()) return;
-  const silinecekKeys = ['_migrated', '_productNames', '_productUnits', '_companies', '_deletedUsers', 'apiUrl', 'github', 'Anahtar'];
+  const silinecekKeys = ['_migrated', '_deletedUsers', 'apiUrl', 'github', 'Anahtar'];
   // Numerik anahtarlar (eski migrasyon)
   for (let i = 0; i <= 15; i++) silinecekKeys.push(String(i));
   // _forceLogout'u boş yap (silme, değerini sıfırla)
