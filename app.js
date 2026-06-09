@@ -123,23 +123,11 @@ async function supabaseSave() {
       try { await supabaseFetch('POST', 'tenders', null, tenderArray); } catch(e) { toast('❌ İhale kayıtları Supabase\'e kaydedilemedi', 'error'); }
     }
 
-    // Companies upsert
-    const compRows = (data.companies || []).map(c => ({ name: c }));
-    if (compRows.length > 0) {
-      try { await supabaseFetch('POST', 'companies', null, compRows); } catch(e) { toast('❌ Firmalar Supabase\'e kaydedilemedi', 'error'); }
-    }
-
-    // Product names upsert
-    const nameRows = (data.productNames || []).map(n => ({
-      name: n,
-      unit: (data.productUnits || {})[n] || null
-    }));
-    if (nameRows.length > 0) {
-      try { await supabaseFetch('POST', 'product_names', null, nameRows); } catch(e) { toast('❌ Ürün isimleri Supabase\'e kaydedilemedi', 'error'); }
-    }
-
-    // Settings upsert
+    // Companies → settings'e JSON olarak kaydet (DELETE yetkisi gerekmez)
     const settingRows = Object.entries(data.settings || {}).map(([k, v]) => ({ key: k, value: v }));
+    settingRows.push({ key: '_companies', value: JSON.stringify(data.companies || []) });
+    settingRows.push({ key: '_productNames', value: JSON.stringify(data.productNames || []) });
+    settingRows.push({ key: '_productUnits', value: JSON.stringify(data.productUnits || {}) });
     if (settingRows.length > 0) {
       try { await supabaseFetch('POST', 'settings', null, settingRows); } catch(e) { toast('❌ Ayarlar Supabase\'e kaydedilemedi', 'error'); }
     }
@@ -209,9 +197,21 @@ async function supabaseLoad() {
     });
 
     const settingObj = {};
-    (settings || []).forEach(s => { settingObj[s.key] = s.value; });
+    let settingCompanies, settingNames, settingUnits;
+    (settings || []).forEach(s => {
+      settingObj[s.key] = s.value;
+      if (s.key === '_companies') { try { settingCompanies = JSON.parse(s.value); } catch(e) {} }
+      if (s.key === '_productNames') { try { settingNames = JSON.parse(s.value); } catch(e) {} }
+      if (s.key === '_productUnits') { try { settingUnits = JSON.parse(s.value); } catch(e) {} }
+    });
 
-    return { products: prodMap, transactions: txList, users: userList, tenders: tenderList, companies: compList, productNames: nameList, productUnits: unitsMap, settings: settingObj, activeUser: data.activeUser || '' };
+    return {
+      products: prodMap, transactions: txList, users: userList, tenders: tenderList,
+      companies: settingCompanies || compList,
+      productNames: settingNames || nameList,
+      productUnits: settingUnits || unitsMap,
+      settings: settingObj, activeUser: data.activeUser || ''
+    };
   } catch (e) {
     console.error('Supabase yükleme hatası:', e);
     return null;
@@ -3619,10 +3619,6 @@ function deleteProductName(enc) {
   if (!confirm(`"${name}" ürün ismini listeden kaldırmak istediğinize emin misiniz?`)) return;
   data.productNames = data.productNames.filter(n => n !== name);
   if (data.productUnits) delete data.productUnits[name];
-  // Supabase'den de sil
-  if (isSupabaseReady()) {
-    supabaseFetch('DELETE', 'product_names', { name: 'eq.' + name }).catch(() => {});
-  }
   saveData();
   refreshProductNames();
   toast(`"${name}" listeden kaldırıldı.`, 'success');
