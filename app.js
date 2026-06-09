@@ -2560,6 +2560,14 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     });
   });
+  // İhale formu için de aynı
+  const tenderProduct = document.getElementById('tender-product');
+  if (tenderProduct) {
+    tenderProduct.addEventListener('change', function() {
+      const unit = (data.productUnits || {})[this.value.trim()];
+      if (unit) document.getElementById('tender-unit').value = unit;
+    });
+  }
 });
 
 document.getElementById('entry-form').addEventListener('submit', async (e) => {
