@@ -1361,6 +1361,7 @@ function goToMonth(ay, yil) {
 // ----- DASHBOARD -----
 function refreshDashboard() {
   try {
+  // Kritik stok: ürün adı bazında grupla (toplam stok ≤ max criticalLevel)
   const prods = Object.values(data.products).filter(p => p.active !== false);
   const el = _el;
   if (el('total-varieties')) el('total-varieties').textContent = prods.length;
@@ -1374,7 +1375,16 @@ function refreshDashboard() {
   }).length;
   if (el('total-expiring')) el('total-expiring').textContent = expiringCount;
 
-  const kritik = prods.filter(p => p.criticalLevel > 0 && p.stock <= p.criticalLevel);
+  // Aggregate by product name
+  const groups = {};
+  prods.forEach(p => {
+    if (!groups[p.name]) groups[p.name] = { name: p.name, totalStock: 0, maxCritical: 0, unit: p.unit || '', batchCount: 0 };
+    groups[p.name].totalStock += (p.stock || 0);
+    if ((p.criticalLevel || 0) > groups[p.name].maxCritical) groups[p.name].maxCritical = p.criticalLevel || 0;
+    if (p.unit && !groups[p.name].unit) groups[p.name].unit = p.unit;
+    groups[p.name].batchCount++;
+  });
+  const kritik = Object.values(groups).filter(g => g.maxCritical > 0 && g.totalStock <= g.maxCritical);
   if (el('critical-count')) el('critical-count').textContent = kritik.length;
   // critical-badge-container rengi inline style ile sabit, dinamik değişmez
 
@@ -1402,10 +1412,10 @@ function refreshDashboard() {
   if (!kritik.length) {
     kritikDiv.innerHTML = '<p style="color:var(--text-secondary);text-align:center;font-size:0.9rem;">✅ Tüm stoklar normal seviyede.</p>';
   } else {
-    kritikDiv.innerHTML = kritik.slice(0, 3).map(p => `
+    kritikDiv.innerHTML = kritik.slice(0, 3).map(g => `
       <div style="display:flex;align-items:center;gap:12px;background:var(--warning-light);padding:12px;border-radius:var(--border-radius-sm);border:1px solid rgba(234,179,8,0.2);">
         <i class="fa-solid fa-triangle-exclamation" style="color:var(--warning);font-size:18px;"></i>
-        <div style="flex:1;"><strong>${htmlEscape(p.name)}</strong><br><span style="font-size:13px;color:var(--text-secondary);">Stok: ${_fmt(p.stock)} / Limit: ${p.criticalLevel} ${htmlEscape(p.unit)}</span></div>
+        <div style="flex:1;"><strong>${htmlEscape(g.name)}</strong><br><span style="font-size:13px;color:var(--text-secondary);">Toplam Stok: ${_fmt(g.totalStock)} / Limit: ${g.maxCritical} ${htmlEscape(g.unit)} (${g.batchCount} parti)</span></div>
         <span style="background:#422006;color:var(--warning);padding:2px 10px;border-radius:999px;font-size:12px;font-weight:700;">KRİTİK</span>
       </div>
     `).join('');
@@ -4095,22 +4105,32 @@ document.querySelectorAll('.nav-item[data-target]').forEach(item => {
 
 // ----- KRITIK STOK LISTESI -----
 function refreshCriticalStock() {
-  const prods = Object.values(data.products).filter(p => p.active !== false && p.criticalLevel > 0 && p.stock <= p.criticalLevel);
+  const prods = Object.values(data.products).filter(p => p.active !== false);
+  const groups = {};
+  prods.forEach(p => {
+    if (!groups[p.name]) groups[p.name] = { name: p.name, totalStock: 0, maxCritical: 0, unit: p.unit || '', batchCount: 0, partis: [] };
+    groups[p.name].totalStock += (p.stock || 0);
+    if ((p.criticalLevel || 0) > groups[p.name].maxCritical) groups[p.name].maxCritical = p.criticalLevel || 0;
+    if (p.unit && !groups[p.name].unit) groups[p.name].unit = p.unit;
+    groups[p.name].batchCount++;
+    groups[p.name].partis.push(p);
+  });
+  const kritik = Object.values(groups).filter(g => g.maxCritical > 0 && g.totalStock <= g.maxCritical);
   const container = document.getElementById('critical-stock-full-list');
   const countEl = document.getElementById('critical-stock-count');
-  if (!prods.length) {
-    container.innerHTML = '<p style="color:var(--text-secondary);text-align:center;font-size:0.9rem;padding:30px 0;">? Tüm stoklar normal seviyede.</p>';
+  if (!kritik.length) {
+    container.innerHTML = '<p style="color:var(--text-secondary);text-align:center;font-size:0.9rem;padding:30px 0;">✅ Tüm stoklar normal seviyede.</p>';
     if (countEl) countEl.textContent = '0 ürün';
     return;
   }
-  if (countEl) countEl.textContent = prods.length + ' ürün';
-  container.innerHTML = prods.map(p => `
+  if (countEl) countEl.textContent = kritik.length + ' ürün';
+  container.innerHTML = kritik.map(g => `
     <div style="display:flex;align-items:center;gap:12px;background:var(--warning-light);padding:12px 16px;border-radius:var(--border-radius-sm);border:1px solid rgba(234,179,8,0.2);">
       <i class="fa-solid fa-triangle-exclamation" style="color:var(--warning);font-size:18px;"></i>
       <div style="flex:1;min-width:0;">
-        <strong>${htmlEscape(p.name)}</strong>
-        <span style="font-size:12px;color:var(--text-muted);margin-left:8px;">[${htmlEscape(p.partiNo)}]</span>
-        <br><span style="font-size:13px;color:var(--text-secondary);">Stok: ${_fmt(p.stock)} / Limit: ${p.criticalLevel} ${htmlEscape(p.unit)}</span>
+        <strong>${htmlEscape(g.name)}</strong>
+        <span style="font-size:12px;color:var(--text-muted);margin-left:8px;">${g.batchCount} parti</span>
+        <br><span style="font-size:13px;color:var(--text-secondary);">Toplam Stok: ${_fmt(g.totalStock)} / Limit: ${g.maxCritical} ${htmlEscape(g.unit)}</span>
       </div>
       <span style="background:#422006;color:var(--warning);padding:2px 10px;border-radius:999px;font-size:12px;font-weight:700;white-space:nowrap;">KRİTİK</span>
     </div>
@@ -4118,20 +4138,34 @@ function refreshCriticalStock() {
 }
 
 function _criticalExportData() {
-  const prods = Object.values(data.products).filter(p => p.active !== false && p.criticalLevel > 0 && p.stock <= p.criticalLevel)
-    .sort((a, b) => a.name.localeCompare(b.name));
-  return prods.map(p => {
-    const eslesenIhale = (data.tenders || []).filter(t => t.companyName === p.companyName && t.product === p.name);
-    const ihaleKalan = eslesenIhale.reduce((top, t) => top + (t.quantity - t.delivered), 0);
-    return { ...p, ihaleKalan };
+  const prods = Object.values(data.products).filter(p => p.active !== false);
+  const groups = {};
+  prods.forEach(p => {
+    if (!groups[p.name]) groups[p.name] = { name: p.name, totalStock: 0, maxCritical: 0, unit: p.unit || '', batchCount: 0, categories: new Set(), sttDates: [], companyName: p.companyName || '' };
+    groups[p.name].totalStock += (p.stock || 0);
+    if ((p.criticalLevel || 0) > groups[p.name].maxCritical) groups[p.name].maxCritical = p.criticalLevel || 0;
+    if (p.unit && !groups[p.name].unit) groups[p.name].unit = p.unit;
+    groups[p.name].batchCount++;
+    if (p.category) groups[p.name].categories.add(p.category);
+    if (p.stt) groups[p.name].sttDates.push(p.stt);
   });
+  return Object.values(groups).filter(g => g.maxCritical > 0 && g.totalStock <= g.maxCritical)
+    .sort((a, b) => a.name.localeCompare(b.name))
+    .map(g => {
+      const eslesenIhale = (data.tenders || []).filter(t => t.product === g.name);
+      const ihaleKalan = eslesenIhale.reduce((top, t) => top + (t.quantity - t.delivered), 0);
+      return { ...g, ihaleKalan, categories: [...g.categories], sttDates: g.sttDates };
+    });
 }
 
 function criticalExportXLSX() {
   const rows = _criticalExportData();
-  const headers = ['Parti No', 'Kategori', 'Ürün Adı', 'Stok', 'Birim', 'İhale Kalan', 'Kritik Limit', 'STT'];
-  const data = rows.map(p => [p.partiNo, p.category || '-', p.name, _fmt(p.stock), p.unit,
-    p.ihaleKalan > 0 ? _fmt(p.ihaleKalan) + ' ' + p.unit : '—', p.criticalLevel, formatDate(p.stt) || '—']);
+  const headers = ['Ürün Adı', 'Kategori', 'Toplam Stok', 'Birim', 'İhale Kalan', 'Kritik Limit', 'Parti Sayısı', 'STT Aralığı'];
+  const data = rows.map(g => {
+    const cats = [...g.categories].join(', ') || '-';
+    const sttRange = g.sttDates.length ? g.sttDates.sort()[0] + (g.sttDates.length > 1 ? ' — ' + g.sttDates.sort().pop() : '') : '—';
+    return [g.name, cats, _fmt(g.totalStock), g.unit, g.ihaleKalan > 0 ? _fmt(g.ihaleKalan) + ' ' + g.unit : '—', g.maxCritical, g.batchCount, sttRange];
+  });
   _htmlExcelBlob(data, headers, 'kritik_stok_listesi.xls');
   _closeMenu('critical-export-menu');
   toast('Excel dosyası indirildi.', 'success');
@@ -4144,9 +4178,13 @@ function criticalExportWord() {
 <body><h2>Kritik Stok Listesi</h2>
 <table border="1" cellpadding="6" cellspacing="0" style="border-collapse:collapse;font-family:Arial;font-size:13px;width:100%;">
 <thead><tr style="background:#e2e8f0;">
-<th>Parti No</th><th>Kategori</th><th>Ürün Adı</th><th>Stok</th><th>Birim</th><th>İhale Kalan</th><th>Kritik Limit</th><th>STT</th>
+<th>Ürün Adı</th><th>Kategori</th><th>Toplam Stok</th><th>Birim</th><th>İhale Kalan</th><th>Kritik Limit</th><th>Parti Sayısı</th><th>STT Aralığı</th>
 </tr></thead>
-<tbody>${rows.map(p => `<tr><td>${p.partiNo}</td><td>${p.category || '-'}</td><td>${p.name}</td><td align="right">${_fmt(p.stock)}</td><td>${p.unit}</td><td align="right">${p.ihaleKalan > 0 ? _fmt(p.ihaleKalan) + ' ' + p.unit : '—'}</td><td align="right">${p.criticalLevel}</td><td>${formatDate(p.stt) || '—'}</td></tr>`).join('\n')}</tbody></table></body></html>`;
+<tbody>${rows.map(g => {
+  const cats = [...g.categories].join(', ') || '-';
+  const sttRange = g.sttDates.length ? g.sttDates.sort()[0] + (g.sttDates.length > 1 ? ' — ' + g.sttDates.sort().pop() : '') : '—';
+  return `<tr><td>${g.name}</td><td>${cats}</td><td align="right">${_fmt(g.totalStock)}</td><td>${g.unit}</td><td align="right">${g.ihaleKalan > 0 ? _fmt(g.ihaleKalan) + ' ' + g.unit : '—'}</td><td align="right">${g.maxCritical}</td><td align="right">${g.batchCount}</td><td>${sttRange}</td></tr>`;
+}).join('\n')}</tbody></table></body></html>`;
   const blob = new Blob(['\ufeff' + html], { type: 'application/msword;charset=utf-8' });
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
@@ -4173,8 +4211,12 @@ function criticalExportPrint() {
     <body>
     <h2>Kritik Stok Listesi</h2>
     <table>
-      <thead><tr><th>Parti No</th><th>Kategori</th><th>Ürün Adı</th><th>Stok</th><th>Birim</th><th>İhale Kalan</th><th>Kritik Limit</th><th>STT</th></tr></thead>
-      <tbody>${rows.map(p => `<tr><td>${htmlEscape(p.partiNo)}</td><td>${htmlEscape(p.category || '-')}</td><td>${htmlEscape(p.name)}</td><td>${_fmt(p.stock)}</td><td>${htmlEscape(p.unit)}</td><td>${p.ihaleKalan > 0 ? _fmt(p.ihaleKalan) + ' ' + htmlEscape(p.unit) : '—'}</td><td>${p.criticalLevel}</td><td>${formatDate(p.stt) || '—'}</td></tr>`).join('')}</tbody>
+      <thead><tr><th>Ürün Adı</th><th>Kategori</th><th>Toplam Stok</th><th>Birim</th><th>İhale Kalan</th><th>Kritik Limit</th><th>Parti Sayısı</th><th>STT Aralığı</th></tr></thead>
+      <tbody>${rows.map(g => {
+        const cats = [...g.categories].join(', ') || '-';
+        const sttRange = g.sttDates.length ? g.sttDates.sort()[0] + (g.sttDates.length > 1 ? ' — ' + g.sttDates.sort().pop() : '') : '—';
+        return `<tr><td>${htmlEscape(g.name)}</td><td>${htmlEscape(cats)}</td><td>${_fmt(g.totalStock)}</td><td>${htmlEscape(g.unit)}</td><td>${g.ihaleKalan > 0 ? _fmt(g.ihaleKalan) + ' ' + htmlEscape(g.unit) : '—'}</td><td>${g.maxCritical}</td><td>${g.batchCount}</td><td>${sttRange}</td></tr>`;
+      }).join('')}</tbody>
     </table>
     <p style="margin-top:16px;font-size:11px;color:#666;">Toplam ${rows.length} kritik stok ürünü</p>
     </body></html>
