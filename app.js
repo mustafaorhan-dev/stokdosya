@@ -1042,33 +1042,22 @@ function refreshYearCompare() {
       const girisMeta = chart.getDatasetMeta(0);
       const cikisMeta = chart.getDatasetMeta(1);
       ctx.textBaseline = 'middle';
-      girisMeta.data.forEach((bar, idx) => {
-        const val = girisData[idx];
-        if (!val) return;
-        const endX = bar.x + bar.width - 4;
-        ctx.save();
-        ctx.font = 'bold 12px Outfit, Arial, sans-serif';
-        ctx.textAlign = 'right';
-        ctx.textBaseline = 'middle';
-        ctx.shadowColor = 'rgba(0,0,0,0.5)';
-        ctx.shadowBlur = 3;
-        ctx.fillStyle = '#fff';
-        ctx.fillText(_fmt(val), endX, bar.y);
-        ctx.restore();
-      });
-      cikisMeta.data.forEach((bar, idx) => {
-        const val = cikisData[idx];
-        if (!val) return;
-        const endX = bar.x + bar.width - 4;
-        ctx.save();
-        ctx.font = 'bold 12px Outfit, Arial, sans-serif';
-        ctx.textAlign = 'right';
-        ctx.textBaseline = 'middle';
-        ctx.shadowColor = 'rgba(0,0,0,0.5)';
-        ctx.shadowBlur = 3;
-        ctx.fillStyle = '#fff';
-        ctx.fillText(_fmt(val), endX, bar.y);
-        ctx.restore();
+      [girisMeta, cikisMeta].forEach((meta, di) => {
+        const dataArr = di === 0 ? girisData : cikisData;
+        meta.data.forEach((bar, idx) => {
+          const val = dataArr[idx];
+          if (!val) return;
+          const centerX = bar.x + bar.width / 2;
+          ctx.save();
+          ctx.font = 'bold 12px Outfit, Arial, sans-serif';
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.shadowColor = 'rgba(0,0,0,0.5)';
+          ctx.shadowBlur = 3;
+          ctx.fillStyle = '#fff';
+          ctx.fillText(_fmt(val), centerX, bar.y);
+          ctx.restore();
+        });
       });
     }
   };
