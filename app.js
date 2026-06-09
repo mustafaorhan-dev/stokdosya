@@ -1408,10 +1408,10 @@ function refreshDashboard() {
           }
         },
         scales: {
-          r: {
-            grid: {
-              color: isDark ? 'rgba(148,163,184,0.12)' : 'rgba(0,0,0,0.05)'
-            },
+            r: {
+              grid: {
+                color: isDark ? 'rgba(148,163,184,0.12)' : 'rgba(0,0,0,0.12)'
+              },
             ticks: { display: false }
           }
         },
