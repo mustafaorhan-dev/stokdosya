@@ -1142,7 +1142,7 @@ function refreshYearCompare() {
       scales: {
         x: {
           beginAtZero: true,
-          grid: { color: isDark ? 'rgba(148,163,184,0.08)' : 'rgba(0,0,0,0.06)' },
+          grid: { color: isDark ? 'rgba(148,163,184,0.2)' : 'rgba(0,0,0,0.1)' },
           ticks: { color: labelColor, font: { size: 11 } },
           title: {
             display: !!birim,
