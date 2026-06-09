@@ -882,9 +882,11 @@ function renderYearChart(yil) {
     options: {
       responsive: true,
       maintainAspectRatio: false,
+      layout: { padding: { top: 24 } },
       animation: { duration: 800, easing: 'easeOutQuart' },
       plugins: {
         legend: {
+          position: 'bottom',
           labels: { color: labelColor, font: { size: 12, weight: '600' }, usePointStyle: true, padding: 16 }
         },
         tooltip: {
@@ -1176,11 +1178,11 @@ function refreshYearCompare() {
     options: {
       responsive: true,
       maintainAspectRatio: false,
-      layout: { padding: { top: 24, bottom: 8 } },
+      layout: { padding: { top: 32, bottom: 8 } },
       plugins: {
         legend: {
           display: true,
-          position: 'top',
+          position: 'bottom',
           align: 'center',
           labels: {
             color: labelColor,
