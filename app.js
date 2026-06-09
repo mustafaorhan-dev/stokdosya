@@ -1125,7 +1125,7 @@ function refreshYearCompare() {
           ctx.textBaseline = 'bottom';
           ctx.shadowColor = 'rgba(0,0,0,0.5)';
           ctx.shadowBlur = 3;
-          ctx.fillStyle = '#fff';
+          ctx.fillStyle = isDark ? '#fff' : '#0f172a';
           ctx.fillText(_fmt(val), bar.x, bar.y - 4);
           ctx.restore();
         });
