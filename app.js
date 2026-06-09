@@ -123,8 +123,10 @@ async function supabaseSave() {
       try { await supabaseFetch('POST', 'tenders', null, tenderArray); } catch(e) { toast('❌ İhale kayıtları Supabase\'e kaydedilemedi', 'error'); }
     }
 
-    // Companies → settings'e JSON olarak kaydet (DELETE yetkisi gerekmez)
-    const settingRows = Object.entries(data.settings || {}).map(([k, v]) => ({ key: k, value: v }));
+    // Companies, product names, units → settings'e JSON olarak kaydet (DELETE yetkisi gerekmez)
+    const settingRows = Object.entries(data.settings || {})
+      .filter(([k]) => k !== '_companies' && k !== '_productNames' && k !== '_productUnits')
+      .map(([k, v]) => ({ key: k, value: v }));
     settingRows.push({ key: '_companies', value: JSON.stringify(data.companies || []) });
     settingRows.push({ key: '_productNames', value: JSON.stringify(data.productNames || []) });
     settingRows.push({ key: '_productUnits', value: JSON.stringify(data.productUnits || {}) });
@@ -4399,6 +4401,7 @@ function refreshAll() {
     if (id === 'daily-cost') _safe(refreshDailyCost);
     if (id === 'critical-stock-view') _safe(refreshCriticalStock);
     if (id === 'year-compare') _safe(refreshYearCompare);
+    if (id === 'suppliers') { _safe(refreshSuppliers); _safe(refreshProductNames); }
   }
   } catch (e) { console.error('refreshAll hatası:', e); }
 }
@@ -5161,6 +5164,7 @@ document.addEventListener('DOMContentLoaded', () => {
       data.tenders = remoteData.tenders || [];
       data.companies = remoteData.companies || [];
       data.productNames = remoteData.productNames || [];
+      data.productUnits = remoteData.productUnits || {};
       const autoLocalFlags = data.settings._userActiveFlags;
       const autoLocalForce = data.settings._forceLogout;
       data.settings = remoteData.settings || {};
