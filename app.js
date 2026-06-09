@@ -1070,22 +1070,38 @@ function refreshYearCompare() {
         {
           label: 'Giriş',
           data: girisData,
-          backgroundColor: isDark ? 'rgba(34,197,94,0.8)' : '#22c55e',
-          borderColor: isDark ? '#22c55e' : '#16a34a',
-          borderWidth: 1,
-          borderRadius: 3,
-          barPercentage: 1,
-          categoryPercentage: 0.65
+          backgroundColor: function(ctx) {
+            if (!ctx.chart?.ctx) return isDark ? 'rgba(34,197,94,0.85)' : '#22c55e';
+            const c = ctx.chart.ctx;
+            const g = c.createLinearGradient(0, 0, ctx.chart.width, 0);
+            g.addColorStop(0, isDark ? 'rgba(34,197,94,0.2)' : 'rgba(34,197,94,0.5)');
+            g.addColorStop(1, isDark ? 'rgba(34,197,94,0.85)' : '#22c55e');
+            return g;
+          },
+          borderColor: isDark ? 'rgba(34,197,94,0.4)' : 'rgba(22,163,74,0.3)',
+          borderWidth: 0,
+          borderRadius: 6,
+          borderSkipped: false,
+          barPercentage: 0.7,
+          categoryPercentage: 0.75
         },
         {
           label: 'Çıkış',
           data: cikisData,
-          backgroundColor: isDark ? 'rgba(239,68,68,0.8)' : '#ef4444',
-          borderColor: isDark ? '#ef4444' : '#dc2626',
-          borderWidth: 1,
-          borderRadius: 3,
-          barPercentage: 1,
-          categoryPercentage: 0.65
+          backgroundColor: function(ctx) {
+            if (!ctx.chart?.ctx) return isDark ? 'rgba(239,68,68,0.85)' : '#ef4444';
+            const c = ctx.chart.ctx;
+            const g = c.createLinearGradient(0, 0, ctx.chart.width, 0);
+            g.addColorStop(0, isDark ? 'rgba(239,68,68,0.2)' : 'rgba(239,68,68,0.5)');
+            g.addColorStop(1, isDark ? 'rgba(239,68,68,0.85)' : '#ef4444');
+            return g;
+          },
+          borderColor: isDark ? 'rgba(239,68,68,0.4)' : 'rgba(220,38,38,0.3)',
+          borderWidth: 0,
+          borderRadius: 6,
+          borderSkipped: false,
+          barPercentage: 0.7,
+          categoryPercentage: 0.75
         }
       ]
     },
@@ -1093,7 +1109,7 @@ function refreshYearCompare() {
       indexAxis: 'y',
       responsive: true,
       maintainAspectRatio: false,
-      layout: { padding: { top: 6, bottom: 6 } },
+      layout: { padding: { top: 8, bottom: 8 } },
       plugins: {
         legend: {
           display: true,
@@ -1119,10 +1135,14 @@ function refreshYearCompare() {
           }
         }
       },
+      hover: {
+        mode: 'index',
+        intersect: false
+      },
       scales: {
         x: {
           beginAtZero: true,
-          grid: { color: isDark ? 'rgba(148,163,184,0.1)' : 'rgba(0,0,0,0.05)' },
+          grid: { color: isDark ? 'rgba(148,163,184,0.08)' : 'rgba(0,0,0,0.06)' },
           ticks: { color: labelColor, font: { size: 11 } },
           title: {
             display: !!birim,
@@ -1138,7 +1158,7 @@ function refreshYearCompare() {
         }
       },
       animation: {
-        duration: 600,
+        duration: 800,
         easing: 'easeOutQuart'
       }
     },
