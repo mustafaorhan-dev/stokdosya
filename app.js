@@ -2549,9 +2549,8 @@ document.getElementById('exit-form').addEventListener('submit', async (e) => {
   const date = document.getElementById('exit-date').value;
   const note = document.getElementById('exit-note').value.trim();
 
-  if (!productName || !amount || amount <= 0 || !date) { toast('Tüm alanları doldurun.', 'error'); return; }
+  if (!productName || !amount || amount <= 0 || !date || !personCount) { toast('Tüm alanları doldurun.', 'error'); return; }
   if (!isValidDate(date)) { toast('Geçersiz çıkış tarihi!', 'error'); return; }
-  if (!personCount && !confirm('⚠️ Kişi sayısı girilmedi! Günlük Maliyet hesaplamaları eksik olabilir. Devam etmek istiyor musunuz?')) { return; }
 
   const parts = Object.values(data.products)
     .filter(p => p.active !== false && p.name === productName && (p.stock || 0) > 0)
