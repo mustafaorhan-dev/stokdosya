@@ -8,7 +8,7 @@
 const SUPABASE_URL = 'https://jarnxfhviniqfdeptifb.supabase.co';
 const SUPABASE_ANON = 'sb_publishable_jDi72096C6MNcrcZHmpPFg_ATt5_2SP';
 
-let data = { products: {}, transactions: [], users: [], activeUser: '', tenders: [], companies: [], settings: {}, productNames: [] };
+let data = { products: {}, transactions: [], users: [], activeUser: '', tenders: [], companies: [], settings: {}, productNames: [], productUnits: {} };
 let nextPartiCounter = 1;
 let _syncLock = false;
 if (typeof Chart !== 'undefined') Chart.defaults.devicePixelRatio = window.devicePixelRatio;
@@ -130,7 +130,10 @@ async function supabaseSave() {
     }
 
     // Product names upsert
-    const nameRows = (data.productNames || []).map(n => ({ name: n }));
+    const nameRows = (data.productNames || []).map(n => ({
+      name: n,
+      unit: (data.productUnits || {})[n] || null
+    }));
     if (nameRows.length > 0) {
       try { await supabaseFetch('POST', 'product_names', null, nameRows); } catch(e) { toast('❌ Ürün isimleri Supabase\'e kaydedilemedi', 'error'); }
     }
@@ -197,12 +200,18 @@ async function supabaseLoad() {
     }));
 
     const compList = (companies || []).map(c => c.name);
-    const nameList = (productNames || []).map(n => n.name);
+
+    const nameList = [];
+    const unitsMap = {};
+    (productNames || []).forEach(n => {
+      nameList.push(n.name);
+      if (n.unit) unitsMap[n.name] = n.unit;
+    });
 
     const settingObj = {};
     (settings || []).forEach(s => { settingObj[s.key] = s.value; });
 
-    return { products: prodMap, transactions: txList, users: userList, tenders: tenderList, companies: compList, productNames: nameList, settings: settingObj, activeUser: data.activeUser || '' };
+    return { products: prodMap, transactions: txList, users: userList, tenders: tenderList, companies: compList, productNames: nameList, productUnits: unitsMap, settings: settingObj, activeUser: data.activeUser || '' };
   } catch (e) {
     console.error('Supabase yükleme hatası:', e);
     return null;
@@ -403,6 +412,7 @@ function initData() {
   if (!data.tenders) data.tenders = [];
   if (!data.companies) data.companies = [];
   if (!data.productNames) data.productNames = [];
+  if (!data.productUnits) data.productUnits = {};
   // Soft-delete migration: tüm mevcut ürünlere active:true ekle
   if (data.products) {
     Object.values(data.products).forEach(p => {
@@ -2240,7 +2250,12 @@ if (modalAddNameBtn) {
       const name = yeniIsim.trim();
   if (!data.productNames) data.productNames = [];
       if (data.productNames.includes(name)) { toast('Bu isim zaten listede.', 'warning'); return; }
+      const unit = prompt(`"${name}" için birim girin (kg, adet, litre, paket, koli, teneke, torba, şişe):`, 'kg');
       data.productNames.push(name);
+      if (unit && unit.trim()) {
+        if (!data.productUnits) data.productUnits = {};
+        data.productUnits[name] = unit.trim();
+      }
       data.productNames.sort((a, b) => a.localeCompare(b));
       saveData();
       refreshProductNames();
@@ -2520,6 +2535,32 @@ function refreshEntryForm() {
   }
   _csRefresh('entry-category');
 }
+
+// Kategori seçilince otomatik birim ata
+const _categoryUnits = { 'Sebze':'kg', 'Meyve':'kg', 'Bakliyat':'kg', 'Temel Gıda':'kg', 'Temizlik':'adet', 'Süt Ürünleri':'adet' };
+document.addEventListener('DOMContentLoaded', () => {
+  document.querySelectorAll('#entry-category, #np-category').forEach(sel => {
+    sel.addEventListener('change', function() {
+      const birim = _categoryUnits[this.value];
+      const target = this.id === 'entry-category' ? 'entry-unit' : 'np-unit';
+      if (birim) document.getElementById(target).value = birim;
+    });
+  });
+});
+
+// Ürün adı seçilince birimi otomatik doldur
+document.addEventListener('DOMContentLoaded', () => {
+  document.querySelectorAll('#entry-name, #np-name').forEach(sel => {
+    sel.addEventListener('change', function() {
+      const name = this.value;
+      const unit = (data.productUnits || {})[name];
+      if (unit) {
+        const target = this.id === 'entry-name' ? 'entry-unit' : 'np-unit';
+        document.getElementById(target).value = unit;
+      }
+    });
+  });
+});
 
 document.getElementById('entry-form').addEventListener('submit', async (e) => {
   e.preventDefault();
@@ -3466,11 +3507,13 @@ function refreshProductNames() {
     container.innerHTML = '<p style="color:var(--text-muted);text-align:center;padding:2rem 0;">Henüz ürün ismi eklenmemiş.</p>';
     return;
   }
-  container.innerHTML = '<table class="minimal-table" style="width:100%;"><thead><tr><th style="text-align:left;">Ürün Adı</th><th style="text-align:right;width:100px;">İşlem</th></tr></thead><tbody>' +
+  container.innerHTML = '<table class="minimal-table" style="width:100%;"><thead><tr><th style="text-align:left;">Ürün Adı</th><th style="text-align:center;width:80px;">Birim</th><th style="text-align:right;width:100px;">İşlem</th></tr></thead><tbody>' +
     data.productNames.map(n => {
       const enc = encodeURIComponent(n);
+      const unit = (data.productUnits || {})[n] || '—';
       return `<tr>
       <td><strong>${htmlEscape(n)}</strong></td>
+      <td style="text-align:center;color:var(--text-secondary);font-size:0.85rem;">${htmlEscape(unit)}</td>
       <td style="text-align:right;white-space:nowrap;">
         ${isViewOnly() ? '' : `<button class="btn-ui btn-sm btn-outline" onclick="editProductName('${enc}')" title="Düzenle" style="color:var(--warning);margin-right:4px;"><i class="fa-solid fa-pen"></i></button>`}
         ${isViewOnly() ? '' : `<button class="btn-ui btn-sm btn-outline" onclick="deleteProductName('${enc}')" title="Sil" style="color:var(--accent);"><i class="fa-solid fa-trash-can"></i></button>`}
@@ -3498,13 +3541,30 @@ function editProductName(enc) {
   const name = decodeURIComponent(enc);
   if (isViewOnly()) { toast('Görüntüleme modunda ürün adı düzenleyemezsiniz.', 'error'); return; }
   const yeni = prompt(`"${name}" için yeni ad girin:`, name);
-  if (!yeni || yeni.trim() === name) return;
+  if (!yeni || yeni.trim() === name) {
+    // ad değişmedi, sadece birim güncelleme dene
+    const curUnit = (data.productUnits || {})[name] || '';
+    const yeniUnit = prompt(`"${name}" için birim girin (kg, adet, litre, paket, koli, teneke, torba, şişe):`, curUnit);
+    if (yeniUnit !== null) {
+      if (!data.productUnits) data.productUnits = {};
+      data.productUnits[name] = yeniUnit.trim();
+      saveData();
+      refreshProductNames();
+      toast(`"${name}" birimi "${yeniUnit.trim() || '—'}" olarak güncellendi.`, 'success');
+    }
+    return;
+  }
   const yeniAd = yeni.trim();
   if (!yeniAd) { toast('Geçersiz ad.', 'error'); return; }
   if (data.productNames.includes(yeniAd)) { toast('Bu isim zaten listede!', 'error'); return; }
   const idx = data.productNames.indexOf(name);
   if (idx !== -1) data.productNames[idx] = yeniAd;
   data.productNames.sort((a, b) => a.localeCompare(b));
+  // birimi de taşı
+  if (data.productUnits && data.productUnits[name] !== undefined) {
+    data.productUnits[yeniAd] = data.productUnits[name];
+    delete data.productUnits[name];
+  }
   // products içindeki referansları güncelle
   Object.values(data.products).forEach(p => {
     if (p.name === name) p.name = yeniAd;
@@ -3526,12 +3586,19 @@ function editProductName(enc) {
 function addProductName() {
   if (isViewOnly()) { toast('Görüntüleme modunda ürün adı ekleyemezsiniz.', 'error'); return; }
   const input = document.getElementById('new-product-name-input');
+  const unitInput = document.getElementById('new-product-unit-input');
   const name = input.value.trim();
+  const unit = unitInput ? unitInput.value : '';
   if (!name) { toast('Ürün adı girin.', 'error'); return; }
   if (data.productNames.includes(name)) { toast('Bu isim zaten listede.', 'warning'); return; }
   data.productNames.push(name);
+  if (unit) {
+    if (!data.productUnits) data.productUnits = {};
+    data.productUnits[name] = unit;
+  }
   data.productNames.sort((a, b) => a.localeCompare(b));
   input.value = '';
+  if (unitInput) unitInput.value = '';
   saveData();
   refreshProductNames();
   toast('Ürün ismi eklendi.', 'success');
@@ -3542,6 +3609,7 @@ function deleteProductName(enc) {
   if (isViewOnly()) { toast('Görüntüleme modunda ürün ismi silemezsiniz.', 'error'); return; }
   if (!confirm(`"${name}" ürün ismini listeden kaldırmak istediğinize emin misiniz?`)) return;
   data.productNames = data.productNames.filter(n => n !== name);
+  if (data.productUnits) delete data.productUnits[name];
   saveData();
   refreshProductNames();
   toast(`"${name}" listeden kaldırıldı.`, 'success');

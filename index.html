@@ -1046,6 +1046,17 @@
                         </p>
                         <div style="display: flex; gap: 8px; margin-bottom: 1rem; flex-wrap: wrap;">
                             <input type="text" id="new-product-name-input" class="form-control" placeholder="Ürün adı girin" style="max-width:350px;" list="product-name-datalist">
+                            <select id="new-product-unit-input" class="form-control" style="max-width:120px;">
+                                <option value="">Birim seç</option>
+                                <option value="kg">kg</option>
+                                <option value="adet">adet</option>
+                                <option value="litre">litre</option>
+                                <option value="paket">paket</option>
+                                <option value="koli">koli</option>
+                                <option value="teneke">teneke</option>
+                                <option value="torba">torba</option>
+                                <option value="şişe">şişe</option>
+                            </select>
                             <button type="button" id="add-product-name-btn" class="btn-ui btn-primary"><i class="fa-solid fa-plus"></i> Ekle</button>
                             <button type="button" id="upload-names-btn" class="btn-ui btn-secondary"><i class="fa-solid fa-upload"></i> Liste Yükle</button>
                             <input type="file" id="upload-names-input" accept=".txt,.csv" style="display:none;">
