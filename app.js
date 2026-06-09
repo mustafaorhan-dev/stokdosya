@@ -3673,11 +3673,23 @@ document.getElementById('upload-names-input').addEventListener('change', (e) => 
   const reader = new FileReader();
   reader.onload = (ev) => {
     const text = ev.target.result;
-    const names = text.split(/\r?\n/).map(s => s.trim()).filter(s => s.length > 0);
-    if (!names.length) { toast('Dosyada geçerli ürün ismi bulunamadı.', 'error'); return; }
+    const lines = text.split(/\r?\n/).map(s => s.trim()).filter(s => s.length > 0);
+    if (!lines.length) { toast('Dosyada geçerli ürün ismi bulunamadı.', 'error'); return; }
     let added = 0;
-    names.forEach(n => {
-      if (!data.productNames.includes(n)) { data.productNames.push(n); added++; }
+    lines.forEach(line => {
+      // Format: "isim,birim" veya sadece "isim"
+      const parts = line.split(',');
+      const name = parts[0].trim();
+      const unit = parts.length > 1 ? parts[1].trim() : '';
+      if (!name) return;
+      if (!data.productNames.includes(name)) {
+        data.productNames.push(name);
+        if (unit) {
+          if (!data.productUnits) data.productUnits = {};
+          data.productUnits[name] = unit;
+        }
+        added++;
+      }
     });
     if (!added) { toast('Tüm isimler zaten listede.', 'info'); } else {
       data.productNames.sort((a, b) => a.localeCompare(b));
