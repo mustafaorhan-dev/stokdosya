@@ -326,7 +326,7 @@ async function clearCacheAndReload() {
   if (overlay) { overlay.style.display = 'flex'; document.getElementById('loading-text').textContent = 'Supabase\'ten yükleniyor...'; }
   try {
     data.products = {}; data.transactions = []; data.users = []; data.tenders = [];
-    data.companies = []; data.productNames = []; data.settings = {};
+    data.companies = []; data.productNames = []; data.productUnits = {}; data.settings = {};
     const remoteData = await supabaseLoad();
     if (remoteData) {
       data.products = remoteData.products || {};
@@ -335,6 +335,7 @@ async function clearCacheAndReload() {
       data.tenders = remoteData.tenders || [];
       data.companies = remoteData.companies || [];
       data.productNames = remoteData.productNames || [];
+      data.productUnits = remoteData.productUnits || {};
       data.settings = remoteData.settings || {};
       initData();
       toast('✅ Veriler Supabase\'ten yeniden yüklendi!', 'success');
@@ -364,6 +365,7 @@ async function sheetsPull() {
       if (remoteData.tenders && remoteData.tenders.length) data.tenders = remoteData.tenders;
       data.companies = remoteData.companies || [];
       data.productNames = remoteData.productNames || [];
+      data.productUnits = remoteData.productUnits || {};
       const sheetsLocalFlags = data.settings._userActiveFlags;
       const sheetsLocalForce = data.settings._forceLogout;
       data.settings = remoteData.settings || {};
