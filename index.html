@@ -837,28 +837,37 @@
                             <select id="yc-product" class="form-control" style="width:200px;font-size:13px;">
                                 <option value="">Tüm Ürünler</option>
                             </select>
+                            <select id="yc-year1" class="form-control" style="width:120px;font-size:13px;font-weight:700;"></select>
+                            <span style="color:var(--text-muted);font-size:13px;">vs</span>
+                            <select id="yc-year2" class="form-control" style="width:120px;font-size:13px;font-weight:700;"></select>
                         </div>
                     </div>
-                    <div style="padding:1rem 1.25rem;display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;border-bottom:1px solid var(--border-color);" id="yc-stats">
+                    <div style="padding:1rem 1.25rem;display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;border-bottom:1px solid var(--border-color);" id="yc-stats">
                         <div class="yc-stat-card">
-                            <span class="yc-stat-label">Karşılaştırılan Yıl</span>
-                            <span class="yc-stat-value" id="yc-year-count">0</span>
+                            <span class="yc-stat-label" id="yc-year1-label">Yıl 1</span>
+                            <span class="yc-stat-value yc-green" id="yc-year1-in">0</span>
+                            <span style="font-size:12px;color:var(--text-muted);">giriş</span>
+                            <span class="yc-stat-value yc-red" id="yc-year1-out" style="font-size:18px;">0</span>
+                            <span style="font-size:12px;color:var(--text-muted);">çıkış</span>
                         </div>
                         <div class="yc-stat-card">
-                            <span class="yc-stat-label">Toplam Giriş</span>
-                            <span class="yc-stat-value yc-green" id="yc-total-in">0</span>
-                        </div>
-                        <div class="yc-stat-card">
-                            <span class="yc-stat-label">Toplam Çıkış</span>
-                            <span class="yc-stat-value yc-red" id="yc-total-out">0</span>
+                            <span class="yc-stat-label" id="yc-year2-label">Yıl 2</span>
+                            <span class="yc-stat-value yc-green" id="yc-year2-in">0</span>
+                            <span style="font-size:12px;color:var(--text-muted);">giriş</span>
+                            <span class="yc-stat-value yc-red" id="yc-year2-out" style="font-size:18px;">0</span>
+                            <span style="font-size:12px;color:var(--text-muted);">çıkış</span>
                         </div>
                         <div class="yc-stat-card">
                             <span class="yc-stat-label">Net Değişim</span>
                             <span class="yc-stat-value" id="yc-net-change">0</span>
+                            <span style="font-size:12px;color:var(--text-muted);" id="yc-net-detail">(Yıl 2 - Yıl 1)</span>
                         </div>
                         <div class="yc-stat-card">
-                            <span class="yc-stat-label">En Yoğun Yıl</span>
-                            <span class="yc-stat-value yc-blue" id="yc-busiest-year">—</span>
+                            <span class="yc-stat-label">İşlem Sayısı</span>
+                            <span class="yc-stat-value" id="yc-year1-count" style="font-size:18px;">0</span>
+                            <span style="font-size:12px;color:var(--text-muted);">→</span>
+                            <span class="yc-stat-value" id="yc-year2-count" style="font-size:18px;">0</span>
+                            <span style="font-size:12px;color:var(--text-muted);" id="yc-count-change">(%0)</span>
                         </div>
                     </div>
                     <div style="padding:1rem;">
@@ -879,7 +888,6 @@
                                     <th style="text-align:right">Çıkış</th>
                                     <th style="text-align:right">Net</th>
                                     <th style="text-align:right">İşlem Sayısı</th>
-                                    <th style="text-align:right">Önceki Yıla Göre</th>
                                 </tr>
                             </thead>
                             <tbody id="yc-table-body"></tbody>

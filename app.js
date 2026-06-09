@@ -943,7 +943,6 @@ function refreshYearCompare() {
     urunler.map(u => `<option value="${htmlEscape(u).replace(/"/g, '&quot;')}"${u === secili ? ' selected' : ''}>${htmlEscape(u)}</option>`).join('');
   if (yeniHTML !== currentHTML) select.innerHTML = yeniHTML;
 
-  // Birim bul
   let birim = '';
   if (secili) {
     for (const p of Object.values(data.products)) {
@@ -968,55 +967,81 @@ function refreshYearCompare() {
   });
 
   const tumYillar = [...new Set([...Object.keys(yilGiris), ...Object.keys(yilCikis)].map(Number))].sort((a, b) => a - b);
-  const girisData = tumYillar.map(y => yilGiris[y] || 0);
-  const cikisData = tumYillar.map(y => yilCikis[y] || 0);
-  const toplam = girisData.reduce((s, v) => s + v, 0) + cikisData.reduce((s, v) => s + v, 0);
+  const girisDataAll = tumYillar.map(y => yilGiris[y] || 0);
+  const cikisDataAll = tumYillar.map(y => yilCikis[y] || 0);
+  const toplam = girisDataAll.reduce((s, v) => s + v, 0) + cikisDataAll.reduce((s, v) => s + v, 0);
+
+  // Populate year selects
+  const y1 = document.getElementById('yc-year1');
+  const y2 = document.getElementById('yc-year2');
+  if (tumYillar.length) {
+    const mevcut1 = y1.value;
+    const mevcut2 = y2.value;
+    const opts = tumYillar.map(y => `<option value="${y}">${y}</option>`).join('');
+    if (y1.innerHTML !== opts) y1.innerHTML = opts;
+    if (y2.innerHTML !== opts) y2.innerHTML = opts;
+    if (!mevcut1 || !tumYillar.includes(Number(mevcut1))) y1.value = tumYillar[tumYillar.length - 2] ?? tumYillar[0];
+    if (!mevcut2 || !tumYillar.includes(Number(mevcut2))) y2.value = tumYillar[tumYillar.length - 1];
+  } else {
+    y1.innerHTML = '<option value="">—</option>';
+    y2.innerHTML = '<option value="">—</option>';
+  }
+
+  const yil1 = Number(y1.value) || 0;
+  const yil2 = Number(y2.value) || 0;
+  const goster = [yil1, yil2].filter(Boolean);
+  const uniqueGoster = [...new Set(goster)].sort((a, b) => a - b);
+  const girisData = uniqueGoster.map(y => yilGiris[y] || 0);
+  const cikisData = uniqueGoster.map(y => yilCikis[y] || 0);
 
   // Stats
-  const totalIn = girisData.reduce((s, v) => s + v, 0);
-  const totalOut = cikisData.reduce((s, v) => s + v, 0);
-  const netChange = totalIn - totalOut;
-  const busiestYear = tumYillar.length ? tumYillar.reduce((a, b) => ((yilAdet[a] || 0) >= (yilAdet[b] || 0)) ? a : b) : null;
-  _el('yc-year-count').textContent = tumYillar.length;
-  _el('yc-total-in').textContent = _fmt(totalIn);
-  _el('yc-total-out').textContent = _fmt(totalOut);
-  const netEl = _el('yc-net-change');
+  const g1 = yilGiris[yil1] || 0, c1 = yilCikis[yil1] || 0;
+  const g2 = yilGiris[yil2] || 0, c2 = yilCikis[yil2] || 0;
+  const net1 = g1 - c1, net2 = g2 - c2;
+  const netChange = net2 - net1;
+  const a1 = yilAdet[yil1] || 0, a2 = yilAdet[yil2] || 0;
+  const countPct = a1 > 0 ? ((a2 - a1) / a1 * 100).toFixed(1) : (a2 > 0 ? '+100' : '0');
+
+  document.getElementById('yc-year1-label').textContent = yil1 || 'Yıl 1';
+  document.getElementById('yc-year2-label').textContent = yil2 || 'Yıl 2';
+  document.getElementById('yc-year1-in').textContent = _fmt(g1);
+  document.getElementById('yc-year1-out').textContent = _fmt(c1);
+  document.getElementById('yc-year2-in').textContent = _fmt(g2);
+  document.getElementById('yc-year2-out').textContent = _fmt(c2);
+
+  const netEl = document.getElementById('yc-net-change');
   netEl.textContent = (netChange >= 0 ? '+' : '') + _fmt(Math.abs(netChange)) + ' ' + birim;
   netEl.style.color = netChange > 0 ? 'var(--success)' : netChange < 0 ? 'var(--accent)' : 'var(--text-primary)';
-  _el('yc-busiest-year').textContent = busiestYear || '—';
+  document.getElementById('yc-net-detail').textContent =
+    yil1 && yil2 ? `(${yil2} - ${yil1})` : '';
+
+  document.getElementById('yc-year1-count').textContent = a1;
+  document.getElementById('yc-year2-count').textContent = a2;
+  const ccEl = document.getElementById('yc-count-change');
+  const ccVal = a2 - a1;
+  ccEl.textContent = `(${ccVal >= 0 ? '+' : ''}${ccVal}, %${countPct})`;
+  ccEl.style.color = ccVal > 0 ? 'var(--success)' : ccVal < 0 ? 'var(--accent)' : 'var(--text-primary)';
 
   // Detail table
-  const tbody = _el('yc-table-body');
-  const tempty = _el('yc-table-empty');
-  if (!tumYillar.length) {
+  const tbody = document.getElementById('yc-table-body');
+  const tempty = document.getElementById('yc-table-empty');
+  if (!uniqueGoster.length) {
     tbody.innerHTML = '';
     tempty.style.display = 'block';
   } else {
     tempty.style.display = 'none';
-    tbody.innerHTML = tumYillar.map((y, i) => {
+    tbody.innerHTML = uniqueGoster.map(y => {
       const g = yilGiris[y] || 0;
       const c = yilCikis[y] || 0;
       const net = g - c;
       const netStr = (net >= 0 ? '+' : '') + _fmt(Math.abs(net));
       const netClass = net > 0 ? 'yc-growth' : net < 0 ? 'yc-decline' : '';
-      const onceki = i > 0 ? (yilAdet[tumYillar[i-1]] || 0) : 0;
-      const simdi = yilAdet[y] || 0;
-      let gecisHtml = '<span class="yc-flat">—</span>';
-      if (i > 0 && onceki > 0) {
-        const fark = simdi - onceki;
-        const yuzde = ((fark / onceki) * 100);
-        const cls = fark > 0 ? 'yc-growth' : fark < 0 ? 'yc-decline' : 'yc-flat';
-        gecisHtml = `<span class="${cls}">${fark >= 0 ? '+' : ''}${_fmt(Math.abs(fark))} (%${yuzde.toFixed(1)})</span>`;
-      } else if (i > 0) {
-        gecisHtml = '<span class="yc-growth">YENİ</span>';
-      }
       return `<tr>
         <td style="font-weight:700;font-size:14px;">${y}</td>
         <td style="text-align:right;font-weight:700;color:var(--success);">${_fmt(g)}</td>
         <td style="text-align:right;font-weight:700;color:var(--accent);">${_fmt(c)}</td>
         <td style="text-align:right;font-weight:700;" class="${netClass}">${netStr}</td>
-        <td style="text-align:right;color:var(--text-secondary);">${simdi}</td>
-        <td style="text-align:right;">${gecisHtml}</td>
+        <td style="text-align:right;color:var(--text-secondary);">${yilAdet[y] || 0}</td>
       </tr>`;
     }).join('');
   }
@@ -1063,7 +1088,7 @@ function refreshYearCompare() {
   _yearCompareChart = new Chart(canvas, {
     type: 'bar',
     data: {
-      labels: tumYillar,
+      labels: uniqueGoster,
       datasets: [
         {
           label: 'Giriş',
@@ -1162,10 +1187,14 @@ function refreshYearCompare() {
   });
 }
 
-// Ürün değişince grafiği yenile
+// Ürün / yıl değişince grafiği yenile
 document.addEventListener('DOMContentLoaded', () => {
   const sel = document.getElementById('yc-product');
   if (sel) sel.addEventListener('change', refreshYearCompare);
+  const y1 = document.getElementById('yc-year1');
+  const y2 = document.getElementById('yc-year2');
+  if (y1) y1.addEventListener('change', refreshYearCompare);
+  if (y2) y2.addEventListener('change', refreshYearCompare);
 });
 
 // ----- TOAST -----
