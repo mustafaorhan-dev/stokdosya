@@ -369,7 +369,7 @@ input[type="file"].form-control { padding: 8px; }
 }
 #year-compare-canvas {
   width: 100%;
-  height: clamp(180px, 40vh, 400px);
+  height: clamp(200px, 35vh, 320px);
   display: block;
 }
 .yc-stat-card {
