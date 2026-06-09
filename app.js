@@ -436,6 +436,7 @@ async function loadData() {
       data.tenders = remoteData.tenders || [];
       data.companies = remoteData.companies || [];
       data.productNames = remoteData.productNames || [];
+      data.productUnits = remoteData.productUnits || {};
       if (remoteData.settings) {
         const localFlags = data.settings._userActiveFlags;
         const localForce = data.settings._forceLogout;
