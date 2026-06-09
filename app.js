@@ -11,6 +11,7 @@ const SUPABASE_ANON = 'sb_publishable_jDi72096C6MNcrcZHmpPFg_ATt5_2SP';
 let data = { products: {}, transactions: [], users: [], activeUser: '', tenders: [], companies: [], settings: {}, productNames: [] };
 let nextPartiCounter = 1;
 let _syncLock = false;
+if (typeof Chart !== 'undefined') Chart.defaults.devicePixelRatio = window.devicePixelRatio;
 
 function isSupabaseReady() {
   return SUPABASE_URL && SUPABASE_ANON;
@@ -1123,8 +1124,6 @@ function refreshYearCompare() {
           ctx.font = 'bold 11px Outfit, Arial, sans-serif';
           ctx.textAlign = 'center';
           ctx.textBaseline = 'bottom';
-          ctx.shadowColor = 'rgba(0,0,0,0.5)';
-          ctx.shadowBlur = 3;
           ctx.fillStyle = isDark ? '#fff' : '#0f172a';
           ctx.fillText(_fmt(val), bar.x, bar.y - 4);
           ctx.restore();
@@ -4263,7 +4262,9 @@ function refreshAll() {
     if (id === 'month-view') _safe(refreshMonthView);
     if (id === 'years-view') _safe(refreshYearsView);
     if (id === 'daily') _safe(refreshDailyView);
+    if (id === 'daily-cost') _safe(refreshDailyCost);
     if (id === 'critical-stock-view') _safe(refreshCriticalStock);
+    if (id === 'year-compare') _safe(refreshYearCompare);
   }
   } catch (e) { console.error('refreshAll hatası:', e); }
 }
