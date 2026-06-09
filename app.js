@@ -733,12 +733,13 @@ const barValuePlugin = {
   afterDatasetsDraw(chart) {
     const ctx = chart.ctx;
     const birim = _chartUnit();
+    const isDark = getTheme() === 'dark';
     chart.data.datasets.forEach((dataset, i) => {
       const meta = chart.getDatasetMeta(i);
       meta.data.forEach((bar, index) => {
         const val = dataset.data[index];
         if (val === 0) return;
-        ctx.fillStyle = dataset.borderColor || '#fff';
+        ctx.fillStyle = isDark ? '#fff' : '#0f172a';
         ctx.font = 'bold 11px Outfit, sans-serif';
         ctx.textAlign = 'center';
         ctx.textBaseline = 'bottom';
