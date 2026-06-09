@@ -1047,15 +1047,15 @@ function refreshYearCompare() {
         meta.data.forEach((bar, idx) => {
           const val = dataArr[idx];
           if (!val) return;
-          const centerX = bar.base + (bar.x - bar.base) / 2;
+          const endX = bar.x - 4;
           ctx.save();
           ctx.font = 'bold 12px Outfit, Arial, sans-serif';
-          ctx.textAlign = 'center';
+          ctx.textAlign = 'right';
           ctx.textBaseline = 'middle';
           ctx.shadowColor = 'rgba(0,0,0,0.5)';
           ctx.shadowBlur = 3;
           ctx.fillStyle = '#fff';
-          ctx.fillText(_fmt(val), centerX, bar.y);
+          ctx.fillText(_fmt(val), endX, bar.y);
           ctx.restore();
         });
       });
