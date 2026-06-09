@@ -123,30 +123,15 @@ async function supabaseSave() {
       try { await supabaseFetch('POST', 'tenders', null, tenderArray); } catch(e) { toast('❌ İhale kayıtları Supabase\'e kaydedilemedi', 'error'); }
     }
 
-    // Companies: tamamen sil + yeniden ekle (silme yetkisi yoksa eski satırlar kalır)
-    try { await supabaseFetch('DELETE', 'companies'); } catch(e) { /* sessiz */ }
-    const compRows = (data.companies || []).map(c => ({ name: c }));
-    if (compRows.length > 0) {
-      try { await supabaseFetch('POST', 'companies', null, compRows); } catch(e) { toast('❌ Firmalar Supabase\'e kaydedilemedi', 'error'); }
-    }
-
-    // Product names: tamamen sil + yeniden ekle
-    try { await supabaseFetch('DELETE', 'product_names'); } catch(e) { /* sessiz */ }
-    const nameRows = (data.productNames || []).map(n => ({
-      name: n,
-      unit: (data.productUnits || {})[n] || null
-    }));
-    if (nameRows.length > 0) {
-      try { await supabaseFetch('POST', 'product_names', null, nameRows); } catch(e) { toast('❌ Ürün isimleri Supabase\'e kaydedilemedi', 'error'); }
-    }
-
-    // Settings upsert (ayrıca companies/productNames/productUnits JSON yedekleri)
+    // Companies, product names + units → settings'e JSON olarak kaydedilir (DELETE gerekmez)
     const settingRows = Object.entries(data.settings || {})
-      .filter(([k]) => k !== '_companies' && k !== '_productNames' && k !== '_productUnits')
+      .filter(([k]) => k !== '_appListData')
       .map(([k, v]) => ({ key: k, value: v }));
-    settingRows.push({ key: '_companies', value: JSON.stringify(data.companies || []) });
-    settingRows.push({ key: '_productNames', value: JSON.stringify(data.productNames || []) });
-    settingRows.push({ key: '_productUnits', value: JSON.stringify(data.productUnits || {}) });
+    settingRows.push({ key: '_appListData', value: JSON.stringify({
+      companies: data.companies || [],
+      productNames: data.productNames || [],
+      productUnits: data.productUnits || {}
+    }) });
     if (settingRows.length > 0) {
       try { await supabaseFetch('POST', 'settings', null, settingRows); } catch(e) { toast('❌ Ayarlar Supabase\'e kaydedilemedi', 'error'); }
     }
@@ -215,19 +200,20 @@ async function supabaseLoad() {
     });
 
     const settingObj = {};
-    let settingCompanies, settingNames, settingUnits;
+    let appListData = null;
     (settings || []).forEach(s => {
-      settingObj[s.key] = s.value;
-      if (s.key === '_companies') { try { settingCompanies = JSON.parse(s.value); } catch(e) {} }
-      if (s.key === '_productNames') { try { settingNames = JSON.parse(s.value); } catch(e) {} }
-      if (s.key === '_productUnits') { try { settingUnits = JSON.parse(s.value); } catch(e) {} }
+      if (s.key === '_appListData') {
+        try { appListData = JSON.parse(s.value); } catch(e) {}
+      } else {
+        settingObj[s.key] = s.value;
+      }
     });
 
     return {
       products: prodMap, transactions: txList, users: userList, tenders: tenderList,
-      companies: settingCompanies || compList,
-      productNames: settingNames || nameList,
-      productUnits: settingUnits || unitsMap,
+      companies: (appListData && appListData.companies) || compList,
+      productNames: (appListData && appListData.productNames) || nameList,
+      productUnits: (appListData && appListData.productUnits) || unitsMap,
       settings: settingObj, activeUser: data.activeUser || ''
     };
   } catch (e) {
@@ -3963,7 +3949,7 @@ async function supabaseBackup(label) {
 // ----- SUPABASE SETTINGS TEMİZLİĞİ -----
 async function _cleanupSupabaseSettings() {
   if (!isSupabaseReady()) return;
-  const silinecekKeys = ['_migrated', '_deletedUsers', 'apiUrl', 'github', 'Anahtar'];
+  const silinecekKeys = ['_migrated', '_productNames', '_productUnits', '_companies', '_deletedUsers', 'apiUrl', 'github', 'Anahtar'];
   // Numerik anahtarlar (eski migrasyon)
   for (let i = 0; i <= 15; i++) silinecekKeys.push(String(i));
   // _forceLogout'u boş yap (silme, değerini sıfırla)
