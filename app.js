@@ -1047,7 +1047,7 @@ function refreshYearCompare() {
         meta.data.forEach((bar, idx) => {
           const val = dataArr[idx];
           if (!val) return;
-          const centerX = bar.x + bar.width / 2;
+          const centerX = bar.base + (bar.x - bar.base) / 2;
           ctx.save();
           ctx.font = 'bold 12px Outfit, Arial, sans-serif';
           ctx.textAlign = 'center';
