@@ -833,10 +833,32 @@
                 <div class="panel-container">
                     <div class="panel-header">
                         <h3><i class="fa-solid fa-chart-line" style="color:var(--primary);"></i> Yıllık Karşılaştırma</h3>
-                        <div style="display:flex;gap:8px;align-items:center;">
+                        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
                             <select id="yc-product" class="form-control" style="width:200px;font-size:13px;">
                                 <option value="">Tüm Ürünler</option>
                             </select>
+                        </div>
+                    </div>
+                    <div style="padding:1rem 1.25rem;display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;border-bottom:1px solid var(--border-color);" id="yc-stats">
+                        <div class="yc-stat-card">
+                            <span class="yc-stat-label">Karşılaştırılan Yıl</span>
+                            <span class="yc-stat-value" id="yc-year-count">0</span>
+                        </div>
+                        <div class="yc-stat-card">
+                            <span class="yc-stat-label">Toplam Giriş</span>
+                            <span class="yc-stat-value yc-green" id="yc-total-in">0</span>
+                        </div>
+                        <div class="yc-stat-card">
+                            <span class="yc-stat-label">Toplam Çıkış</span>
+                            <span class="yc-stat-value yc-red" id="yc-total-out">0</span>
+                        </div>
+                        <div class="yc-stat-card">
+                            <span class="yc-stat-label">Net Değişim</span>
+                            <span class="yc-stat-value" id="yc-net-change">0</span>
+                        </div>
+                        <div class="yc-stat-card">
+                            <span class="yc-stat-label">En Yoğun Yıl</span>
+                            <span class="yc-stat-value yc-blue" id="yc-busiest-year">—</span>
                         </div>
                     </div>
                     <div style="padding:1rem;">
@@ -847,6 +869,22 @@
                                 Henüz veri bulunamadı.
                             </div>
                         </div>
+                    </div>
+                    <div style="padding:0 1.25rem 1.25rem;" id="yc-table-section">
+                        <table class="minimal-table" id="yc-table">
+                            <thead>
+                                <tr>
+                                    <th>Yıl</th>
+                                    <th style="text-align:right">Giriş</th>
+                                    <th style="text-align:right">Çıkış</th>
+                                    <th style="text-align:right">Net</th>
+                                    <th style="text-align:right">İşlem Sayısı</th>
+                                    <th style="text-align:right">Önceki Yıla Göre</th>
+                                </tr>
+                            </thead>
+                            <tbody id="yc-table-body"></tbody>
+                        </table>
+                        <div id="yc-table-empty" style="display:none;color:var(--text-secondary);text-align:center;padding:30px 0;">Henüz veri bulunamadı.</div>
                     </div>
                 </div>
             </div>

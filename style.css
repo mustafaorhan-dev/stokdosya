@@ -372,6 +372,41 @@ input[type="file"].form-control { padding: 8px; }
   height: clamp(180px, 40vh, 400px);
   display: block;
 }
+.yc-stat-card {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 14px 16px;
+  border-radius: var(--border-radius-sm);
+  background: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  min-width: 0;
+}
+.yc-stat-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+.yc-stat-value {
+  font-size: 22px;
+  font-weight: 800;
+  color: var(--text-primary);
+  line-height: 1.1;
+}
+.yc-stat-value.yc-green { color: var(--success); }
+.yc-stat-value.yc-red { color: var(--accent); }
+.yc-stat-value.yc-blue { color: var(--primary); }
+#yc-table-section {
+  overflow-x: auto;
+}
+#yc-table-body td {
+  padding: 10px 12px;
+}
+.yc-growth { color: var(--success); font-weight: 700; }
+.yc-decline { color: var(--accent); font-weight: 700; }
+.yc-flat { color: var(--text-muted); }
 /* Year chart */
 .year-chart-wrapper {
   position: relative;

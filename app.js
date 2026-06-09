@@ -956,19 +956,70 @@ function refreshYearCompare() {
     }
   }
 
-  const yilGiris = {}, yilCikis = {};
+  const yilGiris = {}, yilCikis = {}, yilAdet = {};
   data.transactions.forEach(t => {
     if (!t.date || !t.amount) return;
     if (secili && t.productName !== secili) return;
     const yil = new Date(t.date).getFullYear();
     if (t.type === 'giris') { if (!yilGiris[yil]) yilGiris[yil] = 0; yilGiris[yil] += t.amount; }
     else if (t.type === 'cikis') { if (!yilCikis[yil]) yilCikis[yil] = 0; yilCikis[yil] += t.amount; }
+    if (!yilAdet[yil]) yilAdet[yil] = 0;
+    yilAdet[yil]++;
   });
 
   const tumYillar = [...new Set([...Object.keys(yilGiris), ...Object.keys(yilCikis)].map(Number))].sort((a, b) => a - b);
   const girisData = tumYillar.map(y => yilGiris[y] || 0);
   const cikisData = tumYillar.map(y => yilCikis[y] || 0);
   const toplam = girisData.reduce((s, v) => s + v, 0) + cikisData.reduce((s, v) => s + v, 0);
+
+  // Stats
+  const totalIn = girisData.reduce((s, v) => s + v, 0);
+  const totalOut = cikisData.reduce((s, v) => s + v, 0);
+  const netChange = totalIn - totalOut;
+  const busiestYear = tumYillar.length ? tumYillar.reduce((a, b) => ((yilAdet[a] || 0) >= (yilAdet[b] || 0)) ? a : b) : null;
+  _el('yc-year-count').textContent = tumYillar.length;
+  _el('yc-total-in').textContent = _fmt(totalIn);
+  _el('yc-total-out').textContent = _fmt(totalOut);
+  const netEl = _el('yc-net-change');
+  netEl.textContent = (netChange >= 0 ? '+' : '') + _fmt(Math.abs(netChange)) + ' ' + birim;
+  netEl.style.color = netChange > 0 ? 'var(--success)' : netChange < 0 ? 'var(--accent)' : 'var(--text-primary)';
+  _el('yc-busiest-year').textContent = busiestYear || '—';
+
+  // Detail table
+  const tbody = _el('yc-table-body');
+  const tempty = _el('yc-table-empty');
+  if (!tumYillar.length) {
+    tbody.innerHTML = '';
+    tempty.style.display = 'block';
+  } else {
+    tempty.style.display = 'none';
+    tbody.innerHTML = tumYillar.map((y, i) => {
+      const g = yilGiris[y] || 0;
+      const c = yilCikis[y] || 0;
+      const net = g - c;
+      const netStr = (net >= 0 ? '+' : '') + _fmt(Math.abs(net));
+      const netClass = net > 0 ? 'yc-growth' : net < 0 ? 'yc-decline' : '';
+      const onceki = i > 0 ? (yilAdet[tumYillar[i-1]] || 0) : 0;
+      const simdi = yilAdet[y] || 0;
+      let gecisHtml = '<span class="yc-flat">—</span>';
+      if (i > 0 && onceki > 0) {
+        const fark = simdi - onceki;
+        const yuzde = ((fark / onceki) * 100);
+        const cls = fark > 0 ? 'yc-growth' : fark < 0 ? 'yc-decline' : 'yc-flat';
+        gecisHtml = `<span class="${cls}">${fark >= 0 ? '+' : ''}${_fmt(Math.abs(fark))} (%${yuzde.toFixed(1)})</span>`;
+      } else if (i > 0) {
+        gecisHtml = '<span class="yc-growth">YENİ</span>';
+      }
+      return `<tr>
+        <td style="font-weight:700;font-size:14px;">${y}</td>
+        <td style="text-align:right;font-weight:700;color:var(--success);">${_fmt(g)}</td>
+        <td style="text-align:right;font-weight:700;color:var(--accent);">${_fmt(c)}</td>
+        <td style="text-align:right;font-weight:700;" class="${netClass}">${netStr}</td>
+        <td style="text-align:right;color:var(--text-secondary);">${simdi}</td>
+        <td style="text-align:right;">${gecisHtml}</td>
+      </tr>`;
+    }).join('');
+  }
 
   if (!toplam) {
     canvas.style.display = 'none';
