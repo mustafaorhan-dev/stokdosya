@@ -1151,7 +1151,6 @@ function refreshYearCompare() {
           borderColor: isDark ? 'rgba(34,197,94,0.4)' : 'rgba(22,163,74,0.3)',
           borderWidth: 0,
           borderRadius: 6,
-          borderSkipped: false,
           barPercentage: goster.length > 3 ? 0.7 : 0.6,
           categoryPercentage: goster.length > 3 ? 0.8 : 0.7
         },
@@ -1169,7 +1168,6 @@ function refreshYearCompare() {
           borderColor: isDark ? 'rgba(239,68,68,0.4)' : 'rgba(220,38,38,0.3)',
           borderWidth: 0,
           borderRadius: 6,
-          borderSkipped: false,
           barPercentage: goster.length > 3 ? 0.7 : 0.6,
           categoryPercentage: goster.length > 3 ? 0.8 : 0.7
         }
