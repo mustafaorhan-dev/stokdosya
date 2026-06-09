@@ -3619,6 +3619,10 @@ function deleteProductName(enc) {
   if (!confirm(`"${name}" ürün ismini listeden kaldırmak istediğinize emin misiniz?`)) return;
   data.productNames = data.productNames.filter(n => n !== name);
   if (data.productUnits) delete data.productUnits[name];
+  // Supabase'den de sil
+  if (isSupabaseReady()) {
+    supabaseFetch('DELETE', 'product_names', { name: 'eq.' + name }).catch(() => {});
+  }
   saveData();
   refreshProductNames();
   toast(`"${name}" listeden kaldırıldı.`, 'success');
