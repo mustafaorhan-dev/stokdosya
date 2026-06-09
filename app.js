@@ -971,6 +971,13 @@ function refreshYearCompare() {
   const cikisDataAll = tumYillar.map(y => yilCikis[y] || 0);
   const toplam = girisDataAll.reduce((s, v) => s + v, 0) + cikisDataAll.reduce((s, v) => s + v, 0);
 
+  // Mode
+  const activeBtn = document.querySelector('.yc-mode-btn.active');
+  const mode = activeBtn ? activeBtn.dataset.mode : 'all';
+  const yc = document.querySelector('.yc-year-controls');
+  const sep = document.querySelector('.yc-year-sep');
+  if (yc) yc.style.display = mode === 'all' ? 'none' : 'flex';
+
   // Populate year selects
   const y1 = document.getElementById('yc-year1');
   const y2 = document.getElementById('yc-year2');
@@ -987,50 +994,91 @@ function refreshYearCompare() {
     y2.innerHTML = '<option value="">—</option>';
   }
 
-  const yil1 = Number(y1.value) || 0;
-  const yil2 = Number(y2.value) || 0;
-  const goster = [yil1, yil2].filter(Boolean);
-  const uniqueGoster = [...new Set(goster)].sort((a, b) => a - b);
-  const girisData = uniqueGoster.map(y => yilGiris[y] || 0);
-  const cikisData = uniqueGoster.map(y => yilCikis[y] || 0);
+  let goster;
+  if (mode === 'all') {
+    goster = tumYillar;
+  } else if (mode === 'range') {
+    const yil1 = Number(y1.value) || 0;
+    const yil2 = Number(y2.value) || 0;
+    const minY = Math.min(yil1, yil2);
+    const maxY = Math.max(yil1, yil2);
+    goster = tumYillar.filter(y => y >= minY && y <= maxY);
+  } else {
+    const yil1 = Number(y1.value) || 0;
+    const yil2 = Number(y2.value) || 0;
+    goster = [...new Set([yil1, yil2].filter(Boolean))].sort((a, b) => a - b);
+  }
+
+  if (sep) sep.textContent = mode === 'range' ? '→' : 'vs';
+
+  const girisData = goster.map(y => yilGiris[y] || 0);
+  const cikisData = goster.map(y => yilCikis[y] || 0);
 
   // Stats
-  const g1 = yilGiris[yil1] || 0, c1 = yilCikis[yil1] || 0;
-  const g2 = yilGiris[yil2] || 0, c2 = yilCikis[yil2] || 0;
-  const net1 = g1 - c1, net2 = g2 - c2;
-  const netChange = net2 - net1;
-  const a1 = yilAdet[yil1] || 0, a2 = yilAdet[yil2] || 0;
-  const countPct = a1 > 0 ? ((a2 - a1) / a1 * 100).toFixed(1) : (a2 > 0 ? '+100' : '0');
+  if (mode === 'all') {
+    const totalIn = girisData.reduce((s, v) => s + v, 0);
+    const totalOut = cikisData.reduce((s, v) => s + v, 0);
+    const netChange = totalIn - totalOut;
+    const totalCount = goster.reduce((s, y) => s + (yilAdet[y] || 0), 0);
+    const busiestYear = goster.length ? goster.reduce((a, b) => ((yilAdet[a] || 0) >= (yilAdet[b] || 0)) ? a : b) : null;
 
-  document.getElementById('yc-year1-label').textContent = yil1 || 'Yıl 1';
-  document.getElementById('yc-year2-label').textContent = yil2 || 'Yıl 2';
-  document.getElementById('yc-year1-in').textContent = _fmt(g1);
-  document.getElementById('yc-year1-out').textContent = _fmt(c1);
-  document.getElementById('yc-year2-in').textContent = _fmt(g2);
-  document.getElementById('yc-year2-out').textContent = _fmt(c2);
+    document.getElementById('yc-year1-label').textContent = 'Toplam Giriş';
+    document.getElementById('yc-year2-label').textContent = 'Toplam Çıkış';
+    document.getElementById('yc-year1-in').textContent = _fmt(totalIn);
+    document.getElementById('yc-year1-out').textContent = '—';
+    document.getElementById('yc-year2-in').textContent = '—';
+    document.getElementById('yc-year2-out').textContent = _fmt(totalOut);
 
-  const netEl = document.getElementById('yc-net-change');
-  netEl.textContent = (netChange >= 0 ? '+' : '') + _fmt(Math.abs(netChange)) + ' ' + birim;
-  netEl.style.color = netChange > 0 ? 'var(--success)' : netChange < 0 ? 'var(--accent)' : 'var(--text-primary)';
-  document.getElementById('yc-net-detail').textContent =
-    yil1 && yil2 ? `(${yil2} - ${yil1})` : '';
+    const netEl = document.getElementById('yc-net-change');
+    netEl.textContent = (netChange >= 0 ? '+' : '') + _fmt(Math.abs(netChange)) + ' ' + birim;
+    netEl.style.color = netChange > 0 ? 'var(--success)' : netChange < 0 ? 'var(--accent)' : 'var(--text-primary)';
+    document.getElementById('yc-net-detail').textContent = `En yoğun: ${busiestYear || '—'}`;
 
-  document.getElementById('yc-year1-count').textContent = a1;
-  document.getElementById('yc-year2-count').textContent = a2;
-  const ccEl = document.getElementById('yc-count-change');
-  const ccVal = a2 - a1;
-  ccEl.textContent = `(${ccVal >= 0 ? '+' : ''}${ccVal}, %${countPct})`;
-  ccEl.style.color = ccVal > 0 ? 'var(--success)' : ccVal < 0 ? 'var(--accent)' : 'var(--text-primary)';
+    document.getElementById('yc-year1-count').textContent = goster.length + ' yıl';
+    document.getElementById('yc-year2-count').textContent = _fmt(totalCount);
+    const ccEl = document.getElementById('yc-count-change');
+    ccEl.textContent = 'işlem';
+    ccEl.style.color = 'var(--text-muted)';
+  } else {
+    const yil1 = Number(y1.value) || 0;
+    const yil2 = Number(y2.value) || 0;
+    const g1 = yilGiris[yil1] || 0, c1 = yilCikis[yil1] || 0;
+    const g2 = yilGiris[yil2] || 0, c2 = yilCikis[yil2] || 0;
+    const net1 = g1 - c1, net2 = g2 - c2;
+    const netChange = net2 - net1;
+    const a1 = yilAdet[yil1] || 0, a2 = yilAdet[yil2] || 0;
+    const countPct = a1 > 0 ? ((a2 - a1) / a1 * 100).toFixed(1) : (a2 > 0 ? '+100' : '0');
+
+    document.getElementById('yc-year1-label').textContent = yil1 || 'Yıl 1';
+    document.getElementById('yc-year2-label').textContent = yil2 || 'Yıl 2';
+    document.getElementById('yc-year1-in').textContent = _fmt(g1);
+    document.getElementById('yc-year1-out').textContent = _fmt(c1);
+    document.getElementById('yc-year2-in').textContent = _fmt(g2);
+    document.getElementById('yc-year2-out').textContent = _fmt(c2);
+
+    const netEl = document.getElementById('yc-net-change');
+    netEl.textContent = (netChange >= 0 ? '+' : '') + _fmt(Math.abs(netChange)) + ' ' + birim;
+    netEl.style.color = netChange > 0 ? 'var(--success)' : netChange < 0 ? 'var(--accent)' : 'var(--text-primary)';
+    document.getElementById('yc-net-detail').textContent =
+      yil1 && yil2 ? `(${yil2} - ${yil1})` : '';
+
+    document.getElementById('yc-year1-count').textContent = a1;
+    document.getElementById('yc-year2-count').textContent = a2;
+    const ccEl = document.getElementById('yc-count-change');
+    const ccVal = a2 - a1;
+    ccEl.textContent = `(${ccVal >= 0 ? '+' : ''}${ccVal}, %${countPct})`;
+    ccEl.style.color = ccVal > 0 ? 'var(--success)' : ccVal < 0 ? 'var(--accent)' : 'var(--text-primary)';
+  }
 
   // Detail table
   const tbody = document.getElementById('yc-table-body');
   const tempty = document.getElementById('yc-table-empty');
-  if (!uniqueGoster.length) {
+  if (!goster.length) {
     tbody.innerHTML = '';
     tempty.style.display = 'block';
   } else {
     tempty.style.display = 'none';
-    tbody.innerHTML = uniqueGoster.map(y => {
+    tbody.innerHTML = goster.map(y => {
       const g = yilGiris[y] || 0;
       const c = yilCikis[y] || 0;
       const net = g - c;
@@ -1088,7 +1136,7 @@ function refreshYearCompare() {
   _yearCompareChart = new Chart(canvas, {
     type: 'bar',
     data: {
-      labels: uniqueGoster,
+      labels: goster,
       datasets: [
         {
           label: 'Giriş',
@@ -1105,8 +1153,8 @@ function refreshYearCompare() {
           borderWidth: 0,
           borderRadius: 6,
           borderSkipped: false,
-          barPercentage: 0.6,
-          categoryPercentage: 0.7
+          barPercentage: goster.length > 3 ? 0.7 : 0.6,
+          categoryPercentage: goster.length > 3 ? 0.8 : 0.7
         },
         {
           label: 'Çıkış',
@@ -1123,8 +1171,8 @@ function refreshYearCompare() {
           borderWidth: 0,
           borderRadius: 6,
           borderSkipped: false,
-          barPercentage: 0.6,
-          categoryPercentage: 0.7
+          barPercentage: goster.length > 3 ? 0.7 : 0.6,
+          categoryPercentage: goster.length > 3 ? 0.8 : 0.7
         }
       ]
     },
@@ -1187,7 +1235,7 @@ function refreshYearCompare() {
   });
 }
 
-// Ürün / yıl değişince grafiği yenile
+// Ürün / yıl / mod değişince grafiği yenile
 document.addEventListener('DOMContentLoaded', () => {
   const sel = document.getElementById('yc-product');
   if (sel) sel.addEventListener('change', refreshYearCompare);
@@ -1195,6 +1243,15 @@ document.addEventListener('DOMContentLoaded', () => {
   const y2 = document.getElementById('yc-year2');
   if (y1) y1.addEventListener('change', refreshYearCompare);
   if (y2) y2.addEventListener('change', refreshYearCompare);
+  document.querySelectorAll('.yc-mode-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+      document.querySelectorAll('.yc-mode-btn').forEach(b => {
+        b.style.color = 'var(--text-muted)'; b.classList.remove('active');
+      });
+      this.style.color = 'var(--text-primary)'; this.classList.add('active');
+      refreshYearCompare();
+    });
+  });
 });
 
 // ----- TOAST -----

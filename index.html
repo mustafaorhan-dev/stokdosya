@@ -837,9 +837,16 @@
                             <select id="yc-product" class="form-control" style="width:200px;font-size:13px;">
                                 <option value="">Tüm Ürünler</option>
                             </select>
-                            <select id="yc-year1" class="form-control" style="width:120px;font-size:13px;font-weight:700;"></select>
-                            <span style="color:var(--text-muted);font-size:13px;">vs</span>
-                            <select id="yc-year2" class="form-control" style="width:120px;font-size:13px;font-weight:700;"></select>
+                            <div class="yc-mode-group" style="display:flex;border:1px solid var(--border-color);border-radius:6px;overflow:hidden;">
+                                <button class="yc-mode-btn active" data-mode="all" style="padding:4px 12px;font-size:12px;font-weight:600;border:none;background:none;cursor:pointer;color:var(--text-primary);">Tümü</button>
+                                <button class="yc-mode-btn" data-mode="compare" style="padding:4px 12px;font-size:12px;font-weight:600;border:none;background:none;cursor:pointer;color:var(--text-muted);">2 Yıl</button>
+                                <button class="yc-mode-btn" data-mode="range" style="padding:4px 12px;font-size:12px;font-weight:600;border:none;background:none;cursor:pointer;color:var(--text-muted);">Aralık</button>
+                            </div>
+                            <div class="yc-year-controls" style="display:flex;gap:8px;align-items:center;">
+                                <select id="yc-year1" class="form-control" style="width:110px;font-size:13px;font-weight:700;"></select>
+                                <span class="yc-year-sep" style="color:var(--text-muted);font-size:13px;font-weight:600;">vs</span>
+                                <select id="yc-year2" class="form-control" style="width:110px;font-size:13px;font-weight:700;"></select>
+                            </div>
                         </div>
                     </div>
                     <div style="padding:1rem 1.25rem;display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;border-bottom:1px solid var(--border-color);" id="yc-stats">

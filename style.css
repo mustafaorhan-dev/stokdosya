@@ -404,7 +404,12 @@ input[type="file"].form-control { padding: 8px; }
 #yc-table-body td {
   padding: 10px 12px;
 }
+.yc-mode-btn { transition: all .15s; }
+.yc-mode-btn:hover { background: var(--bg-tertiary) !important; }
+.yc-mode-btn.active { background: var(--primary) !important; color: #fff !important; }
 .yc-growth { color: var(--success); font-weight: 700; }
+.yc-decline { color: var(--accent); font-weight: 700; }
+.yc-flat { color: var(--text-muted); }
 .yc-decline { color: var(--accent); font-weight: 700; }
 .yc-flat { color: var(--text-muted); }
 /* Year chart */
