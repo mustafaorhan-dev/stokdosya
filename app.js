@@ -123,7 +123,24 @@ async function supabaseSave() {
       try { await supabaseFetch('POST', 'tenders', null, tenderArray); } catch(e) { toast('❌ İhale kayıtları Supabase\'e kaydedilemedi', 'error'); }
     }
 
-    // Companies, product names, units → settings'e JSON olarak kaydet (DELETE yetkisi gerekmez)
+    // Companies: tamamen sil + yeniden ekle (silme yetkisi yoksa eski satırlar kalır)
+    try { await supabaseFetch('DELETE', 'companies'); } catch(e) { /* sessiz */ }
+    const compRows = (data.companies || []).map(c => ({ name: c }));
+    if (compRows.length > 0) {
+      try { await supabaseFetch('POST', 'companies', null, compRows); } catch(e) { toast('❌ Firmalar Supabase\'e kaydedilemedi', 'error'); }
+    }
+
+    // Product names: tamamen sil + yeniden ekle
+    try { await supabaseFetch('DELETE', 'product_names'); } catch(e) { /* sessiz */ }
+    const nameRows = (data.productNames || []).map(n => ({
+      name: n,
+      unit: (data.productUnits || {})[n] || null
+    }));
+    if (nameRows.length > 0) {
+      try { await supabaseFetch('POST', 'product_names', null, nameRows); } catch(e) { toast('❌ Ürün isimleri Supabase\'e kaydedilemedi', 'error'); }
+    }
+
+    // Settings upsert (ayrıca companies/productNames/productUnits JSON yedekleri)
     const settingRows = Object.entries(data.settings || {})
       .filter(([k]) => k !== '_companies' && k !== '_productNames' && k !== '_productUnits')
       .map(([k, v]) => ({ key: k, value: v }));
@@ -133,7 +150,6 @@ async function supabaseSave() {
     if (settingRows.length > 0) {
       try { await supabaseFetch('POST', 'settings', null, settingRows); } catch(e) { toast('❌ Ayarlar Supabase\'e kaydedilemedi', 'error'); }
     }
-
     if (statusEl) statusEl.textContent = 'Sunucuya Bağlı';
     return true;
   } catch (e) {
@@ -3947,7 +3963,7 @@ async function supabaseBackup(label) {
 // ----- SUPABASE SETTINGS TEMİZLİĞİ -----
 async function _cleanupSupabaseSettings() {
   if (!isSupabaseReady()) return;
-  const silinecekKeys = ['_migrated', '_productNames', '_deletedUsers', 'apiUrl', 'github', 'Anahtar'];
+  const silinecekKeys = ['_migrated', '_productNames', '_productUnits', '_companies', '_deletedUsers', 'apiUrl', 'github', 'Anahtar'];
   // Numerik anahtarlar (eski migrasyon)
   for (let i = 0; i <= 15; i++) silinecekKeys.push(String(i));
   // _forceLogout'u boş yap (silme, değerini sıfırla)
