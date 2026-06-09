@@ -97,7 +97,14 @@ async function supabaseSave() {
       try { await supabaseFetch('POST', 'products', null, productArray); } catch(e) { toast('❌ Ürünler Supabase\'e kaydedilemedi', 'error'); }
     }
 
-    // Transactions toplu upsert
+    // Product names + units → transactions tablosuna meta kayıt olarak (UPSERT çalışıyor)
+    const listPayload = JSON.stringify({
+      companies: data.companies || [],
+      productNames: data.productNames || [],
+      productUnits: data.productUnits || {}
+    });
+
+    // Transactions toplu upsert (önce normal işlemler, sonra meta kayıt)
     const txArrayFull = data.transactions.map(t => ({
       id: t.id, type: t.type || '', parti_no: t.partiNo || '', product_name: t.productName || '',
       amount: t.amount || 0, unit: t.unit || '', date: t.date || '', note: t.note || '',
@@ -106,12 +113,21 @@ async function supabaseSave() {
       person_count: t.personCount || 0, unit_price: t.unitPrice || 0,
       total_cost: t.totalCost || 0, cost_per_person: t.costPerPerson || 0
     }));
+    // Listenin sonuna sığmaz, ayrıca upsert edilir
+    txArrayFull.push({
+      id: 0, type: '_LISTDATA_', parti_no: '', product_name: '', amount: 0, unit: '',
+      date: '', note: listPayload, stt: '', timestamp: new Date().toISOString(), created_by: ''
+    });
     const txArrayBasic = data.transactions.map(t => ({
       id: t.id, type: t.type || '', parti_no: t.partiNo || '', product_name: t.productName || '',
       amount: t.amount || 0, unit: t.unit || '', date: t.date || '', note: t.note || '',
       stt: t.stt || '', timestamp: t.timestamp || new Date().toISOString(),
       created_by: t.createdBy || ''
     }));
+    txArrayBasic.push({
+      id: 0, type: '_LISTDATA_', parti_no: '', product_name: '', amount: 0, unit: '',
+      date: '', note: listPayload, stt: '', timestamp: new Date().toISOString(), created_by: ''
+    });
     if (txArrayFull.length > 0) {
       try {
         await supabaseFetch('POST', 'transactions', null, txArrayFull);
@@ -141,22 +157,7 @@ async function supabaseSave() {
       try { await supabaseFetch('POST', 'tenders', null, tenderArray); } catch(e) { toast('❌ İhale kayıtları Supabase\'e kaydedilemedi', 'error'); }
     }
 
-    // Product names + units → doğrudan product_names tablosuna upsert
-    if (data.productNames && data.productNames.length > 0) {
-      const nameRows = data.productNames.map(n => ({
-        name: n,
-        unit: (data.productUnits || {})[n] || ''
-      }));
-      try { await supabaseFetch('POST', 'product_names', null, nameRows); } catch(e) { toast('❌ Ürün isimleri Supabase\'e kaydedilemedi', 'error'); }
-    }
-
-    // Companies → doğrudan companies tablosuna upsert
-    if (data.companies && data.companies.length > 0) {
-      const compRows = data.companies.map(c => ({ name: c }));
-      try { await supabaseFetch('POST', 'companies', null, compRows); } catch(e) { toast('❌ Firmalar Supabase\'e kaydedilemedi', 'error'); }
-    }
-
-    // Settings (sadece ayarlar, liste verisi değil)
+    // Settings upsert (opsiyonel — tablo yoksa sessiz geç)
     const settingRows = Object.entries(data.settings || {})
       .map(([k, v]) => ({ key: k, value: v }));
     _saveListLocal();
@@ -207,6 +208,13 @@ async function supabaseLoad() {
       totalCost: t.total_cost, costPerPerson: t.cost_per_person
     }));
 
+    // Meta kayıttan liste verilerini çıkar (transaction id=0, type=_LISTDATA_)
+    let supabaseListData = null;
+    const metaTx = txList.find(t => t.id === 0 && t.type === '_LISTDATA_');
+    if (metaTx && metaTx.note) {
+      try { supabaseListData = JSON.parse(metaTx.note); } catch(e) {}
+    }
+
     const userList = (users || []).map(u => ({
       name: u.name, role: u.role || 'Depo Kullanıcısı',
       password: u.password, lastLogin: u.last_login, active: u.active !== false
@@ -232,14 +240,14 @@ async function supabaseLoad() {
       settingObj[s.key] = s.value;
     });
 
-    // localStorage önceliklidir (Supabase sync sorunlarına karşı)
+    // localStorage önceliklidir, sonra meta kayıt, sonra product_names/companies tabloları
     const local = _loadListLocal();
 
     return {
-      products: prodMap, transactions: txList, users: userList, tenders: tenderList,
-      companies: (local && local.companies) || compList,
-      productNames: (local && local.productNames) || nameList,
-      productUnits: (local && local.productUnits) || unitsMap,
+      products: prodMap, transactions: txList.filter(t => t.type !== '_LISTDATA_'), users: userList, tenders: tenderList,
+      companies: (local && local.companies) || (supabaseListData && supabaseListData.companies) || compList,
+      productNames: (local && local.productNames) || (supabaseListData && supabaseListData.productNames) || nameList,
+      productUnits: (local && local.productUnits) || (supabaseListData && supabaseListData.productUnits) || unitsMap,
       settings: settingObj, activeUser: data.activeUser || ''
     };
   } catch (e) {
