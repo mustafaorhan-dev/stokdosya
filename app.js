@@ -13,6 +13,24 @@ let nextPartiCounter = 1;
 let _syncLock = false;
 if (typeof Chart !== 'undefined') Chart.defaults.devicePixelRatio = window.devicePixelRatio;
 
+// Liste verilerini localStorage'a yedekle (Supabase sync sorunlarına karşı)
+function _saveListLocal() {
+  try {
+    localStorage.setItem('_stok_listData', JSON.stringify({
+      companies: data.companies || [],
+      productNames: data.productNames || [],
+      productUnits: data.productUnits || {}
+    }));
+  } catch(e) {}
+}
+function _loadListLocal() {
+  try {
+    const raw = localStorage.getItem('_stok_listData');
+    if (raw) return JSON.parse(raw);
+  } catch(e) {}
+  return null;
+}
+
 function isSupabaseReady() {
   return SUPABASE_URL && SUPABASE_ANON;
 }
@@ -130,6 +148,7 @@ async function supabaseSave() {
       .map(([k, v]) => ({ key: k, value: v }));
     settingRows.push({ key: '_appListData', value: JSON.stringify(listData) });
     console.log('📦 _appListData kaydediliyor, ürün sayısı:', listData.productNames.length);
+    _saveListLocal();
     if (settingRows.length > 0) {
       try { await supabaseFetch('POST', 'settings', null, settingRows); } catch(e) { toast('❌ Ayarlar Supabase\'e kaydedilemedi', 'error'); }
     }
@@ -210,11 +229,14 @@ async function supabaseLoad() {
     const useAppData = appListData && appListData.productNames;
     console.log('📦 Kullanılan kaynak:', useAppData ? '_appListData' : 'product_names tablosu (fallback)');
 
+    // localStorage önceliklidir (Supabase sync sorunlarına karşı)
+    const local = _loadListLocal();
+
     return {
       products: prodMap, transactions: txList, users: userList, tenders: tenderList,
-      companies: (appListData && appListData.companies) || compList,
-      productNames: (appListData && appListData.productNames) || nameList,
-      productUnits: (appListData && appListData.productUnits) || unitsMap,
+      companies: (local && local.companies) || (appListData && appListData.companies) || compList,
+      productNames: (local && local.productNames) || (appListData && appListData.productNames) || nameList,
+      productUnits: (local && local.productUnits) || (appListData && appListData.productUnits) || unitsMap,
       settings: settingObj, activeUser: data.activeUser || ''
     };
   } catch (e) {
@@ -454,6 +476,14 @@ async function loadData() {
       initData();
       return;
     }
+  }
+  // Supabase yoksa veya hata verdiyse localStorage'dan dene
+  const local = _loadListLocal();
+  if (local) {
+    data.companies = local.companies || [];
+    data.productNames = local.productNames || [];
+    data.productUnits = local.productUnits || {};
+    console.log('📦 localStorage fallback kullanıldı, ürün sayısı:', data.productNames.length);
   }
   initData();
 }
@@ -2458,6 +2488,7 @@ async function deleteSupplier(enc) {
   if (isViewOnly()) { toast('Görüntüleme modunda tedarikçi silemezsiniz.', 'error'); return; }
   if (!confirm(`"${name}" tedarikçisini silmek istediğinize emin misiniz?`)) return;
   data.companies = (data.companies || []).filter(c => c !== name);
+  _saveListLocal();
   await saveData();
   refreshSuppliers();
   refreshEntryForm();
@@ -2488,6 +2519,7 @@ function editSupplier(enc) {
   (data.transactions || []).forEach(t => {
     if (t.companyName === name) t.companyName = yeniAd;
   });
+  _saveListLocal();
   saveData();
   refreshSuppliers();
   refreshEntryForm();
@@ -2512,6 +2544,7 @@ function editSupplier(enc) {
     data.companies = data.companies || [];
     data.companies.push(name);
     data.companies.sort((a, b) => a.localeCompare(b));
+    _saveListLocal();
     saveData();
     input.value = '';
     refreshSuppliers();
@@ -3523,20 +3556,28 @@ function refreshProductNames() {
     container.innerHTML = '<p style="color:var(--text-muted);text-align:center;padding:2rem 0;">Henüz ürün ismi eklenmemiş.</p>';
     return;
   }
-  container.innerHTML = '<table class="minimal-table" style="width:100%;"><thead><tr><th style="text-align:left;">Ürün Adı</th><th style="text-align:center;width:80px;">Birim</th><th style="text-align:right;width:100px;">İşlem</th></tr></thead><tbody>' +
+  // Tek tırnak karakteri encodeURIComponent ile encode edilmeyebilir, manuel replace
+  const _e = s => encodeURIComponent(s).replace(/'/g, '%27').replace(/"/g, '%22');
+
+  container.innerHTML = '<table class="minimal-table" style="width:100%;"><thead><tr><th style="text-align:left;">Ürün Adı</th><th style="text-align:center;width:80px;">Birim</th><th style="text-align:right;width:160px;">İşlem</th></tr></thead><tbody>' +
     data.productNames.map(n => {
-      const enc = encodeURIComponent(n);
+      const enc = _e(n);
       const unit = (data.productUnits || {})[n] || '—';
       return `<tr>
       <td><strong>${htmlEscape(n)}</strong></td>
       <td style="text-align:center;color:var(--text-secondary);font-size:0.85rem;">${htmlEscape(unit)}</td>
       <td style="text-align:right;white-space:nowrap;">
         ${isViewOnly() ? '' : `<button class="btn-ui btn-sm btn-outline" onclick="editProductName('${enc}')" title="Düzenle" style="color:var(--warning);margin-right:4px;"><i class="fa-solid fa-pen"></i></button>`}
-        ${isViewOnly() ? '' : `<button class="btn-ui btn-sm btn-outline" onclick="deleteProductName('${enc}')" title="Sil" style="color:var(--accent);"><i class="fa-solid fa-trash-can"></i></button>`}
+        ${isViewOnly() ? '' : `<button class="btn-ui btn-sm btn-outline" onclick="deleteProductName('${enc}')" title="Sil" style="color:var(--accent);margin-right:4px;"><i class="fa-solid fa-trash-can"></i></button>`}
+        ${isViewOnly() ? '' : `<input type="checkbox" class="bulk-product-cb" data-enc="${enc}" style="width:16px;height:16px;cursor:pointer;vertical-align:middle;">`}
       </td>
     </tr>`;
     }).join('') +
-    '</tbody></table>';
+    '</tbody></table>' +
+    (isViewOnly() ? '' : `<div style="margin-top:8px;display:flex;gap:6px;align-items:center;">
+      <button id="bulk-delete-products-btn" class="btn-ui btn-sm btn-accent"><i class="fa-solid fa-trash-can"></i> Seçilenleri Sil</button>
+      <span id="bulk-product-count" style="font-size:0.85rem;color:var(--text-muted);">0 seçili</span>
+    </div>`);
 
   // np-name dropdown'ini güncelle
   const nameSelect = document.getElementById('np-name');
@@ -3564,6 +3605,7 @@ function editProductName(enc) {
     if (yeniUnit !== null) {
       if (!data.productUnits) data.productUnits = {};
       data.productUnits[name] = yeniUnit.trim();
+      _saveListLocal();
       saveData();
       refreshProductNames();
       toast(`"${name}" birimi "${yeniUnit.trim() || '—'}" olarak güncellendi.`, 'success');
@@ -3593,6 +3635,7 @@ function editProductName(enc) {
   (data.tenders || []).forEach(t => {
     if (t.product === name) t.product = yeniAd;
   });
+  _saveListLocal();
   saveData();
   refreshProductNames();
   refreshWarehouse();
@@ -3615,6 +3658,7 @@ function addProductName() {
   data.productNames.sort((a, b) => a.localeCompare(b));
   input.value = '';
   if (unitInput) unitInput.value = '';
+  _saveListLocal();
   saveData();
   refreshProductNames();
   toast('Ürün ismi eklendi.', 'success');
@@ -3626,6 +3670,7 @@ async function deleteProductName(enc) {
   if (!confirm(`"${name}" ürün ismini listeden kaldırmak istediğinize emin misiniz?`)) return;
   data.productNames = data.productNames.filter(n => n !== name);
   if (data.productUnits) delete data.productUnits[name];
+  _saveListLocal();
   await saveData();
   refreshProductNames();
   toast(`"${name}" listeden kaldırıldı.`, 'success');
@@ -3716,6 +3761,36 @@ document.getElementById('upload-names-input').addEventListener('change', (e) => 
   };
   reader.readAsText(file);
   e.target.value = '';
+});
+
+// Toplu ürün ismi silme (bulk delete)
+document.getElementById('product-name-list').addEventListener('change', (e) => {
+  if (e.target.classList.contains('bulk-product-cb')) {
+    const checked = document.querySelectorAll('.bulk-product-cb:checked').length;
+    const counter = document.getElementById('bulk-product-count');
+    if (counter) counter.textContent = `${checked} seçili`;
+  }
+});
+document.addEventListener('click', (e) => {
+  if (e.target.id === 'bulk-delete-products-btn') {
+    if (isViewOnly()) { toast('Görüntüleme modunda silemezsiniz.', 'error'); return; }
+    const checked = document.querySelectorAll('.bulk-product-cb:checked');
+    if (!checked.length) { toast('Seçili ürün yok.', 'info'); return; }
+    const names = [];
+    checked.forEach(cb => {
+      const name = decodeURIComponent(cb.dataset.enc);
+      names.push(name);
+    });
+    if (!confirm(`${names.length} ürün ismini listeden kaldırmak istediğinize emin misiniz?\n\n${names.join('\n')}`)) return;
+    names.forEach(name => {
+      data.productNames = data.productNames.filter(n => n !== name);
+      if (data.productUnits) delete data.productUnits[name];
+    });
+    _saveListLocal();
+    saveData();
+    refreshProductNames();
+    toast(`${names.length} ürün ismi kaldırıldı.`, 'success');
+  }
 });
 
 async function toggleUserActive(name) {
@@ -5165,9 +5240,11 @@ document.addEventListener('DOMContentLoaded', () => {
       data.transactions = remoteData.transactions || [];
       data.users = remoteData.users || [];
       data.tenders = remoteData.tenders || [];
-      data.companies = remoteData.companies || [];
-      data.productNames = remoteData.productNames || [];
-      data.productUnits = remoteData.productUnits || {};
+      // List verileri için localStorage önceliklidir (supabase sync sorunlarına karşı)
+      const local = _loadListLocal();
+      data.companies = (local && local.companies) || remoteData.companies || [];
+      data.productNames = (local && local.productNames) || remoteData.productNames || [];
+      data.productUnits = (local && local.productUnits) || remoteData.productUnits || {};
       const autoLocalFlags = data.settings._userActiveFlags;
       const autoLocalForce = data.settings._forceLogout;
       data.settings = remoteData.settings || {};
