@@ -86,37 +86,19 @@ async function supabaseSave() {
       productUnits: data.productUnits || {}
     });
 
-    // Transactions toplu upsert (önce normal işlemler, sonra meta kayıt)
-    const txArrayFull = data.transactions.map(t => ({
-      id: t.id, type: t.type || '', parti_no: t.partiNo || '', product_name: t.productName || '',
-      amount: t.amount || 0, unit: t.unit || '', date: t.date || '', note: t.note || '',
-      stt: t.stt || '', timestamp: t.timestamp || new Date().toISOString(),
-      created_by: t.createdBy || '',
-      person_count: t.personCount || 0, unit_price: t.unitPrice || 0,
-      total_cost: t.totalCost || 0, cost_per_person: t.costPerPerson || 0
-    }));
-    // Listenin sonuna sığmaz, ayrıca upsert edilir
-    txArrayFull.push({
-      id: 0, type: '_LISTDATA_', parti_no: '', product_name: '', amount: 0, unit: '',
-      date: '', note: listPayload, stt: '', timestamp: new Date().toISOString(), created_by: ''
-    });
-    const txArrayBasic = data.transactions.map(t => ({
+    // Transactions toplu upsert
+    const txArray = data.transactions.map(t => ({
       id: t.id, type: t.type || '', parti_no: t.partiNo || '', product_name: t.productName || '',
       amount: t.amount || 0, unit: t.unit || '', date: t.date || '', note: t.note || '',
       stt: t.stt || '', timestamp: t.timestamp || new Date().toISOString(),
       created_by: t.createdBy || ''
     }));
-    txArrayBasic.push({
+    txArray.push({
       id: 0, type: '_LISTDATA_', parti_no: '', product_name: '', amount: 0, unit: '',
       date: '', note: listPayload, stt: '', timestamp: new Date().toISOString(), created_by: ''
     });
-    if (txArrayFull.length > 0) {
-      try {
-        await supabaseFetch('POST', 'transactions', null, txArrayFull);
-      } catch(e) {
-        toast('⚠️ İşlemler kaydedilemedi, basit alanlarla deneniyor...', 'warning');
-        try { await supabaseFetch('POST', 'transactions', null, txArrayBasic); } catch(e2) { toast('❌ İşlemler Supabase\'e kaydedilemedi', 'error'); }
-      }
+    if (txArray.length > 0) {
+      try { await supabaseFetch('POST', 'transactions', null, txArray); } catch(e) { toast('❌ İşlemler Supabase\'e kaydedilemedi', 'error'); }
     }
 
     // Users upsert (benzersiz)
@@ -348,6 +330,8 @@ async function clearCacheAndReload() {
   const overlay = document.getElementById('loading-overlay');
   if (overlay) { overlay.style.display = 'flex'; document.getElementById('loading-text').textContent = 'Supabase\'ten yükleniyor...'; }
   try {
+    const cacheLocalFlags = data.settings?._userActiveFlags;
+    const cacheLocalForce = data.settings?._forceLogout;
     data.products = {}; data.transactions = []; data.users = []; data.tenders = [];
     data.companies = []; data.productNames = []; data.productUnits = {}; data.settings = {};
     const remoteData = await supabaseLoad();
@@ -360,6 +344,8 @@ async function clearCacheAndReload() {
       data.productNames = remoteData.productNames || [];
       data.productUnits = remoteData.productUnits || {};
       data.settings = remoteData.settings || {};
+      if (cacheLocalFlags) data.settings._userActiveFlags = cacheLocalFlags;
+      if (cacheLocalForce) data.settings._forceLogout = cacheLocalForce;
       initData();
       toast('✅ Veriler Supabase\'ten yeniden yüklendi!', 'success');
       refreshAll();
@@ -5209,6 +5195,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // Supabase otomatik çekme: sayfa görünür olduğunda
   if (isSupabaseReady()) {
     async function autoPull() {
+      if (_syncLock) return;
       const remoteData = await supabaseLoad();
       if (!remoteData) return;
       data.products = remoteData.products || {};
