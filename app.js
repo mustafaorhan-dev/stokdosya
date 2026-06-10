@@ -1797,6 +1797,7 @@ function refreshDashboard() {
 
 // ----- ANBAR / WAREHOUSE -----
 let _warehouseFilter = 'ALL';
+let _aggFilter = 'ALL';
 let _hideZeroStock = false;
 let _onlyCritical = false;
 let _showDeletedProducts = false;
@@ -1879,14 +1880,14 @@ function refreshWarehouse() {
 function refreshAggregatedStock() {
   const prods = Object.values(data.products).filter(p => p.active !== false);
   const search = (document.getElementById('agg-stock-search')?.value || '').toLowerCase();
-  const catFilter = document.getElementById('agg-stock-category')?.value || '';
 
-  // Kategori filtre dropdown'ı doldur (ilk çağrıda)
-  const catSelect = document.getElementById('agg-stock-category');
-  if (catSelect && !catSelect.dataset.ready) {
-    catSelect.dataset.ready = '1';
+  // Kategori filtre butonlarını oluştur (ilk çağrıda)
+  const filterContainer = document.getElementById('agg-category-filter');
+  if (filterContainer && !filterContainer.dataset.ready) {
+    filterContainer.dataset.ready = '1';
     const cats = [...new Set(prods.map(p => p.category).filter(Boolean))].sort();
-    catSelect.innerHTML = '<option value="">Tüm Kategoriler</option>' + cats.map(c => `<option value="${htmlEscape(c)}">${htmlEscape(c)}</option>`).join('');
+    filterContainer.innerHTML = '<span class="category-tag active" data-category="ALL">Tümü</span>' +
+      cats.map(c => `<span class="category-tag" data-category="${htmlEscape(c)}">${htmlEscape(c)}</span>`).join('');
   }
 
   // Ürün adı bazında grupla
@@ -1903,7 +1904,7 @@ function refreshAggregatedStock() {
   let entries = Object.values(groups);
 
   // Kategori filtre
-  if (catFilter) entries = entries.filter(e => e.categories.has(catFilter));
+  if (_aggFilter !== 'ALL') entries = entries.filter(e => e.categories.has(_aggFilter));
   // Arama filtre
   if (search) entries = entries.filter(e => e.name.toLowerCase().includes(search));
 
@@ -5080,8 +5081,17 @@ document.addEventListener('DOMContentLoaded', () => {
   // Depodaki Ürün Miktarları filtreleri
   const aggSearch = document.getElementById('agg-stock-search');
   if (aggSearch) aggSearch.addEventListener('input', refreshAggregatedStock);
-  const aggCat = document.getElementById('agg-stock-category');
-  if (aggCat) aggCat.addEventListener('change', refreshAggregatedStock);
+  const aggFilterContainer = document.getElementById('agg-category-filter');
+  if (aggFilterContainer) {
+    aggFilterContainer.addEventListener('click', (e) => {
+      if (e.target.classList.contains('category-tag')) {
+        aggFilterContainer.querySelectorAll('.category-tag').forEach(t => t.classList.remove('active'));
+        e.target.classList.add('active');
+        _aggFilter = e.target.dataset.category;
+        refreshAggregatedStock();
+      }
+    });
+  }
 
   // Giriş formu: isim listesine hızlı ekle
   const entryAddNameBtn = document.getElementById('entry-add-name-btn');
