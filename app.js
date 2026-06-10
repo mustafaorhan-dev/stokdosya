@@ -119,14 +119,19 @@ async function supabaseSave() {
       }
     }
 
-    // Users upsert (benzersiz) — sadece tabloda var olan kolonlar gönderilsin
+    // Users upsert (benzersiz)
     const seenUsers = new Set();
     const userArray = data.users.filter(u => { if (seenUsers.has(u.name)) return false; seenUsers.add(u.name); return true; }).map(u => ({
       name: u.name, role: u.role || 'Depo Kullanıcısı', password: u.password,
-      last_login: u.lastLogin || null
+      last_login: u.lastLogin || null, active: u.active !== false
     }));
     if (userArray.length > 0) {
       try { await supabaseFetch('POST', 'stok_users', null, userArray); } catch(e) { toast('❌ Kullanıcı Supabase\'e kaydedilemedi: ' + e.message, 'error'); }
+    }
+
+    // Kullanıcı aktif/pasif durumlarını settings tablosuna kaydet
+    if (data.settings._userActiveFlags) {
+      try { await supabaseFetch('POST', 'settings', null, [{ key: '_userActiveFlags', value: data.settings._userActiveFlags }]); } catch(e) { /* sessiz */ }
     }
 
     // Tenders upsert
