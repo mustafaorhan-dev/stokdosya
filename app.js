@@ -126,12 +126,12 @@ async function supabaseSave() {
       last_login: u.lastLogin || null, active: u.active !== false
     }));
     if (userArray.length > 0) {
-      try { await supabaseFetch('POST', 'stok_users', null, userArray); } catch(e) { toast('❌ Kullanıcı Supabase\'e kaydedilemedi: ' + e.message, 'error'); }
+      try { await supabaseFetch('POST', 'stok_users', { on_conflict: 'name' }, userArray); } catch(e) { toast('❌ Kullanıcı Supabase\'e kaydedilemedi: ' + e.message, 'error'); }
     }
 
     // Kullanıcı aktif/pasif durumlarını settings tablosuna kaydet
     if (data.settings._userActiveFlags) {
-      try { await supabaseFetch('POST', 'settings', null, [{ key: '_userActiveFlags', value: data.settings._userActiveFlags }]); } catch(e) { /* sessiz */ }
+      try { await supabaseFetch('POST', 'settings', { on_conflict: 'key' }, [{ key: '_userActiveFlags', value: data.settings._userActiveFlags }]); } catch(e) { console.warn('⚠️ _userActiveFlags kaydedilemedi:', e); }
     }
 
     // Tenders upsert
@@ -197,10 +197,15 @@ async function supabaseLoad() {
       try { supabaseListData = JSON.parse(metaTx.note); } catch(e) {}
     }
 
-    const userList = (users || []).map(u => ({
-      name: u.name, role: u.role || 'Depo Kullanıcısı',
-      password: u.password, lastLogin: u.last_login, active: u.active !== false
-    }));
+    // Tekilleştir: aynı name'e sahip son kaydı kullan (upsert çalışmazsa oluşan mükerrerleri temizle)
+    const userMap = new Map();
+    (users || []).forEach(u => {
+      userMap.set(u.name, {
+        name: u.name, role: u.role || 'Depo Kullanıcısı',
+        password: u.password, lastLogin: u.last_login, active: u.active !== false
+      });
+    });
+    const userList = Array.from(userMap.values());
 
     const tenderList = (tenders || []).map(t => ({
       id: t.id, companyName: t.company_name, product: t.product,
@@ -284,7 +289,7 @@ async function heartbeatActiveSession() {
     if (forceLogout === data.activeUser) {
       const logoutUser = data.users.find(u => u.name === data.activeUser);
       if (logoutUser) logoutUser.active = false;
-      supabaseFetch('POST', 'settings', null, [{ key: '_forceLogout', value: '' }]).catch(() => {});
+      supabaseFetch('POST', 'settings', { on_conflict: 'key' }, [{ key: '_forceLogout', value: '' }]).catch(() => {});
       sessionStorage.removeItem('stokdosya_logged_in');
       sessionStorage.removeItem('stokdosya_activeUser');
       data.activeUser = '';
@@ -302,7 +307,7 @@ async function heartbeatActiveSession() {
     const cutoff = Date.now() - 120000;
     sessions = sessions.filter(s => new Date(s.time).getTime() > cutoff);
     data.settings._activeSessions = JSON.stringify(sessions);
-    await supabaseFetch('POST', 'settings', null, [{ key: '_activeSessions', value: data.settings._activeSessions }]);
+    await supabaseFetch('POST', 'settings', { on_conflict: 'key' }, [{ key: '_activeSessions', value: data.settings._activeSessions }]);
   } catch(e) { /* silent */ }
 }
 let _heartbeatInterval = null;
@@ -407,6 +412,10 @@ async function sheetsPull() {
 
 function initData() {
   if (!data.users) data.users = [];
+  // Mükerrer kullanıcıları temizle (son kayıt kazanır)
+  const userMap = new Map();
+  data.users.forEach(u => userMap.set(u.name, u));
+  data.users = Array.from(userMap.values());
   // _userActiveFlags ayarından aktif/pasif durumlarını uygula
   let userFlags = {};
   try { userFlags = JSON.parse(data.settings._userActiveFlags || '{}'); } catch(e) {}
@@ -3791,7 +3800,7 @@ async function toggleUserActive(name) {
   // Diğer tarayıcılardaki oturumu sonlandırmak için Supabase'e sinyal gönder
   if (!u.active && isSupabaseReady()) {
     data.settings._forceLogout = name;
-    try { await supabaseFetch('POST', 'settings', null, [{ key: '_forceLogout', value: name }]); } catch(e) {}
+    try { await supabaseFetch('POST', 'settings', { on_conflict: 'key' }, [{ key: '_forceLogout', value: name }]); } catch(e) {}
   }
   saveData();
   toast(`"${name}" kullanıcısı ${u.active ? 'aktifleştirildi' : 'pasif yapıldı'}.`, 'info');
