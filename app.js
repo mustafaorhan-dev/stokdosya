@@ -4505,7 +4505,7 @@ function refreshDailyView() {
       ? `<button class="btn-ui btn-sm btn-outline" onclick="deleteTransaction(${t.id})" style="padding:2px 8px;font-size:11px;color:var(--accent);margin-left:4px;" title="Sil"><i class="fa-solid fa-trash-can"></i></button>`
       : '';
     const silindiNotu = silindi ? ' <span style="color:var(--accent);font-weight:700;">[SİLİNDİ]</span>' : '';
-    return `<tr><td>${i+1}</td><td>${tip}</td><td style="font-weight:600;">${htmlEscape(t.partiNo)}${silindiNotu}</td><td>${htmlEscape(t.productName)}</td><td>${_fmt(t.amount)}</td><td>${htmlEscape(birim)}</td><td style="font-weight:600;color:var(--primary);font-size:13px;">${htmlEscape(t.createdBy) || '-'}</td><td style="color:var(--text-secondary);">${htmlEscape(t.note) || '-'}</td><td>${duzeltBtn}${silBtn}</td></tr>`;
+    return `<tr><td>${i+1}</td><td>${tip}</td><td style="font-weight:600;">${htmlEscape(t.partiNo)}${silindiNotu}</td><td>${htmlEscape(t.productName)}</td><td>${_fmt(t.amount)}</td><td>${htmlEscape(birim)}</td><td style="font-weight:600;color:var(--primary);font-size:13px;">${htmlEscape(t.createdBy) || '-'}</td><td style="color:var(--text-secondary);">${htmlEscape(t.note) || '-'}</td><td style="white-space:nowrap;">${duzeltBtn}${silBtn}</td></tr>`;
   }).join('');
   } catch(e) { console.error('refreshDailyView hatası:', e); toast('Günlük İşlemler hatası: ' + e.message, 'error'); }
 }
