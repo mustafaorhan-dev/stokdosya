@@ -11,6 +11,7 @@ const SUPABASE_ANON = 'sb_publishable_jDi72096C6MNcrcZHmpPFg_ATt5_2SP';
 let data = { products: {}, transactions: [], users: [], activeUser: '', tenders: [], companies: [], settings: {}, productNames: [], productUnits: {} };
 let nextPartiCounter = 1;
 let _syncLock = false;
+let _formDirty = false;
 if (typeof Chart !== 'undefined') Chart.defaults.devicePixelRatio = window.devicePixelRatio;
 
 function isSupabaseReady() {
@@ -176,7 +177,7 @@ async function supabaseLoad() {
     let supabaseListData = null;
     const metaTx = txList.find(t => t.id === 0 && t.type === '_LISTDATA_');
     if (metaTx && metaTx.note) {
-      try { supabaseListData = JSON.parse(metaTx.note); } catch(e) {}
+      try { supabaseListData = JSON.parse(metaTx.note); } catch(e) { console.warn('⚠️ _LISTDATA_ ayrıştırma hatası:', e); }
     }
 
     // Tekilleştir: aynı name'e sahip son kaydı kullan (upsert çalışmazsa oluşan mükerrerleri temizle)
@@ -240,8 +241,8 @@ function recalculateStocks() {
     if (!data.transactions.some(tx => tx.partiNo === pid)) {
       data.products[pid].stock = legacyStocks[pid];
     }
-    });
-  }
+  });
+}
 
 // ---------- KULLANICI GİRİŞİ (local veri kontrolü) ----------
 function sheetsLogin(username, password) {
@@ -264,7 +265,7 @@ async function heartbeatActiveSession() {
     if (Array.isArray(remote)) {
       const obj = {};
       remote.forEach(s => obj[s.key] = s.value);
-      if (obj._activeSessions) { try { sessions = JSON.parse(obj._activeSessions); } catch(e) {} }
+      if (obj._activeSessions) { try { sessions = JSON.parse(obj._activeSessions); } catch(e) { console.warn('⚠️ _activeSessions ayrıştırma hatası:', e); } }
       forceLogout = obj._forceLogout || '';
     }
     // Başka bir yönetici bu kullanıcıyı pasif yaptıysa oturumu kapat
@@ -290,8 +291,9 @@ async function heartbeatActiveSession() {
     sessions = sessions.filter(s => new Date(s.time).getTime() > cutoff);
     data.settings._activeSessions = JSON.stringify(sessions);
     await supabaseFetch('POST', 'settings', { on_conflict: 'key' }, [{ key: '_activeSessions', value: data.settings._activeSessions }]);
-  } catch(e) { /* silent */ }
+  } catch(e) { console.warn('⚠️ Heartbeat hatası:', e); }
 }
+
 let _heartbeatInterval = null;
 function startHeartbeat() {
   if (_heartbeatInterval) return;
@@ -332,8 +334,7 @@ async function clearCacheAndReload() {
   try {
     const cacheLocalFlags = data.settings?._userActiveFlags;
     const cacheLocalForce = data.settings?._forceLogout;
-    data.products = {}; data.transactions = []; data.users = []; data.tenders = [];
-    data.companies = []; data.productNames = []; data.productUnits = {}; data.settings = {};
+    // Önce Supabase'ten çek, başarılı olursa veriyi değiştir (veri kaybını önler)
     const remoteData = await supabaseLoad();
     if (remoteData) {
       data.products = remoteData.products || {};
@@ -375,11 +376,8 @@ async function sheetsPull() {
       data.companies = remoteData.companies || [];
       data.productNames = remoteData.productNames || [];
       data.productUnits = remoteData.productUnits || {};
-      const sheetsLocalFlags = data.settings._userActiveFlags;
-      const sheetsLocalForce = data.settings._forceLogout;
-      data.settings = remoteData.settings || {};
-      if (sheetsLocalFlags) data.settings._userActiveFlags = sheetsLocalFlags;
-      if (sheetsLocalForce) data.settings._forceLogout = sheetsLocalForce;
+      // Yerel ayarları koru, uzaktaki ayarlarla birleştir
+      data.settings = { ...data.settings, ...(remoteData.settings || {}) };
       initData();
       toast('✅ Veriler Supabase\'ten alındı!', 'success');
       return true;
@@ -404,7 +402,7 @@ function initData() {
   data.users = Array.from(userMap.values());
   // _userActiveFlags ayarından aktif/pasif durumlarını uygula
   let userFlags = {};
-  try { userFlags = JSON.parse(data.settings._userActiveFlags || '{}'); } catch(e) {}
+  try { userFlags = JSON.parse(data.settings._userActiveFlags || '{}'); } catch(e) { console.warn('⚠️ _userActiveFlags ayrıştırma hatası:', e); }
   data.users.forEach(u => {
     if (userFlags[u.name] !== undefined) u.active = userFlags[u.name];
     else if (u.active === undefined) u.active = true;
@@ -557,6 +555,7 @@ function sanitizeDateInput(input) {
 
 document.querySelectorAll('input[type="date"]').forEach(el => {
   el.addEventListener('input', function() { sanitizeDateInput(this); });
+  el.addEventListener('change', function() { sanitizeDateInput(this); });
 });
 
 // ----- KİŞİ ADI AYIKLAMA -----
@@ -1298,6 +1297,7 @@ function navigateTo(target) {
     target = 'dashboard';
   }
 
+  _formDirty = false;
   document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
   document.querySelectorAll('.view-section').forEach(v => v.classList.remove('active'));
 
@@ -2613,10 +2613,12 @@ document.getElementById('entry-form').addEventListener('submit', async (e) => {
 
   // Parti No oluştur
   let partiNo = generateBatchPrefix() + String(nextBatchNoSeq()).padStart(2, '0');
-  // Çakışma olursa arttır
-  while (data.products[partiNo]) {
+  // Çakışma olursa arttır (maks 100 deneme)
+  let _partiDeneme = 0;
+  while (data.products[partiNo] && _partiDeneme < 100) {
     data.settings.batchCounters[todayStr()]++;
     partiNo = generateBatchPrefix() + String(data.settings.batchCounters[todayStr()]).padStart(2, '0');
+    _partiDeneme++;
   }
 
   // Yeni ürün oluştur
@@ -3350,7 +3352,7 @@ async function deleteTender(id) {
     const pr = silinen.product.toLowerCase();
     Object.entries(data.products).forEach(([partiNo, p]) => {
       if (p.companyName.toLowerCase() === co && p.name.toLowerCase() === pr) {
-        p.stock = Math.max(0, (p.stock || 0) - miktar);
+        p.stock = (p.stock || 0) - miktar;
       }
     });
   }
@@ -3389,7 +3391,7 @@ document.getElementById('tender-form').addEventListener('submit', (e) => {
     const pr = product.toLowerCase();
     Object.entries(data.products).forEach(([partiNo, p]) => {
       if (p.companyName.toLowerCase() === co && p.name.toLowerCase() === pr) {
-        p.stock = Math.max(0, (p.stock || 0) + fark);
+        p.stock = (p.stock || 0) + fark;
       }
     });
   }
@@ -3452,7 +3454,7 @@ function refreshSettings() {
     const a = isAdmin();
     aktifUserBox.style.display = a ? '' : 'none';
     let activeSessions = [];
-    try { activeSessions = JSON.parse(data.settings._activeSessions || '[]'); } catch(e) {}
+    try { activeSessions = JSON.parse(data.settings._activeSessions || '[]'); } catch(e) { console.warn('⚠️ _activeSessions ayrıştırma hatası:', e); }
     const now = Date.now();
     activeSessions = activeSessions.filter(s => (now - new Date(s.time).getTime()) < 120000);
     const aktifSet = new Set(activeSessions.map(s => s.user));
@@ -3682,7 +3684,7 @@ document.getElementById('add-user-btn').addEventListener('click', async () => {
   if (data.users.find(u => u.name === name)) { toast('Bu kullanıcı zaten var.', 'error'); return; }
   data.users.push({ name, role, password, active: true });
   let userFlags = {};
-  try { userFlags = JSON.parse(data.settings._userActiveFlags || '{}'); } catch(e) {}
+  try { userFlags = JSON.parse(data.settings._userActiveFlags || '{}'); } catch(e) { console.warn('⚠️ _userActiveFlags ayrıştırma hatası:', e); }
   userFlags[name] = true;
   data.settings._userActiveFlags = JSON.stringify(userFlags);
   const ok = await saveData();
@@ -3780,7 +3782,7 @@ async function toggleUserActive(name) {
   if (!u.active && data.activeUser === name) data.activeUser = 'MUSTAFA ORHAN';
   // _userActiveFlags ayarını güncelle (Supabase kolonu olmasa da çalışır)
   let userFlags = {};
-  try { userFlags = JSON.parse(data.settings._userActiveFlags || '{}'); } catch(e) {}
+  try { userFlags = JSON.parse(data.settings._userActiveFlags || '{}'); } catch(e) { console.warn('⚠️ _userActiveFlags ayrıştırma hatası:', e); }
   userFlags[name] = u.active;
   data.settings._userActiveFlags = JSON.stringify(userFlags);
   // Diğer tarayıcılardaki oturumu sonlandırmak için Supabase'e sinyal gönder
@@ -3799,7 +3801,7 @@ async function deleteUserPermanently(name) {
   if (!confirm(`"${name}" kullanıcısını tamamen silmek istediğinize emin misiniz?`)) return;
   data.users = data.users.filter(u => u.name !== name);
   let userFlags = {};
-  try { userFlags = JSON.parse(data.settings._userActiveFlags || '{}'); } catch(e) {}
+  try { userFlags = JSON.parse(data.settings._userActiveFlags || '{}'); } catch(e) { console.warn('⚠️ _userActiveFlags ayrıştırma hatası:', e); }
   delete userFlags[name];
   data.settings._userActiveFlags = JSON.stringify(userFlags);
   if (data.activeUser === name) data.activeUser = 'MUSTAFA ORHAN';
@@ -4070,7 +4072,8 @@ function scheduleAutoBackup() {
   const timeStr = data.settings.autoBackupTime;
   if (!timeStr || !/^\d{2}:\d{2}$/.test(timeStr)) {
     data.settings.autoBackupEnabled = false;
-    document.getElementById('auto-backup-toggle').checked = false;
+    const autoToggle = document.getElementById('auto-backup-toggle');
+    if (autoToggle) autoToggle.checked = false;
     saveData();
     toast('Geçersiz saat — otomatik yedek devre dışı.', 'error');
     return;
@@ -4420,7 +4423,7 @@ function refreshAll() {
   const cloudUser = _el('cloud-user-text');
   if (cloudUser && data.activeUser) { cloudUser.textContent = '• ' + data.activeUser; cloudUser.style.display = ''; }
 
-  _safe(refreshUserSelect);
+
   _safe(buildMonthMenu);
   _safe(refreshPersonFilter);
   _safe(refreshDashboard);
@@ -4593,7 +4596,7 @@ async function deleteTransaction(id) {
   // Stoğu geri al
   const p = data.products[t.partiNo];
   if (p) {
-    if (t.type === 'giris') p.stock = Math.max(0, (p.stock || 0) - t.amount);
+    if (t.type === 'giris') p.stock = (p.stock || 0) - t.amount;
     else if (t.type === 'cikis') p.stock = (p.stock || 0) + t.amount;
   }
 
@@ -4989,22 +4992,12 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     try {
-      // Gizli kurtarma hesabı: mo / 1 › admin şifresini sıfırla ve giriş yap
-      if (user === 'mo' && pass === '1') {
-        document.getElementById('login-username').value = 'MUSTAFA ORHAN';
-        document.getElementById('login-password').value = '159357';
-        toast('ℹ️ Kurtarma hesabı ile giriş yapıldı. Yönetici şifresi sıfırlandı.', 'success');
-        document.getElementById('login-btn').click();
-        return;
-      }
-
       btn.disabled = true;
       btn.textContent = 'Kontrol ediliyor...';
       errEl.style.display = 'none';
 
       // 1) Kullanıcıyı doğrula (lokalde ara)
-      var foundUser = data.users.find(function(u) { return u.name === user && u.password === pass; }) ||
-        (user === 'MUSTAFA ORHAN' && pass === '159357' ? data.users.find(function(u) { return u.name === 'MUSTAFA ORHAN'; }) : null);
+      var foundUser = data.users.find(function(u) { return u.name === user && u.password === pass; });
 
       if (foundUser && foundUser.active === false) {
         errEl.textContent = 'Bu kullanıcı pasif durumda. Giriş yapılamaz.';
@@ -5195,7 +5188,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // Supabase otomatik çekme: sayfa görünür olduğunda
   if (isSupabaseReady()) {
     async function autoPull() {
-      if (_syncLock) return;
+      if (_syncLock || _formDirty) return;
       const remoteData = await supabaseLoad();
       if (!remoteData) return;
       data.products = remoteData.products || {};
@@ -5267,6 +5260,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     if (sessionStorage.getItem('stokdosya_logged_in')) {
       inactivityTimer = setTimeout(() => {
+        if (_heartbeatInterval) { clearInterval(_heartbeatInterval); _heartbeatInterval = null; }
         sessionStorage.removeItem('stokdosya_logged_in');
         sessionStorage.removeItem('stokdosya_activeUser');
         const loginScr = document.getElementById('login-screen');
@@ -5282,6 +5276,9 @@ document.addEventListener('DOMContentLoaded', () => {
       }, INACTIVITY_TIMEOUT);
     }
   }
+
+  // Form düzenleme takibi (autoPull çakışmasını önlemek için)
+  document.addEventListener('input', () => { _formDirty = true; }, { passive: true });
 
   const activityEvents = ['mousedown', 'keydown', 'touchstart', 'scroll', 'mousemove', 'wheel', 'click'];
   activityEvents.forEach(evt => {
