@@ -123,7 +123,7 @@ async function supabaseSave() {
     const seenUsers = new Set();
     const userArray = data.users.filter(u => { if (seenUsers.has(u.name)) return false; seenUsers.add(u.name); return true; }).map(u => ({
       name: u.name, role: u.role || 'Depo Kullanıcısı', password: u.password,
-      last_login: u.lastLogin || null, active: u.active !== false
+      last_login: u.lastLogin || null
     }));
     if (userArray.length > 0) {
       try { await supabaseFetch('POST', 'stok_users', { on_conflict: 'name' }, userArray); } catch(e) { toast('❌ Kullanıcı Supabase\'e kaydedilemedi: ' + e.message, 'error'); }
