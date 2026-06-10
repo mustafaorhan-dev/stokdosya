@@ -3570,7 +3570,9 @@ function refreshProductNames() {
   // Tek tırnak karakteri encodeURIComponent ile encode edilmeyebilir, manuel replace
   const _e = s => encodeURIComponent(s).replace(/'/g, '%27').replace(/"/g, '%22');
 
-  container.innerHTML = '<table class="minimal-table" style="width:100%;"><thead><tr><th style="text-align:left;">Ürün Adı</th><th style="text-align:center;width:80px;">Birim</th><th style="text-align:right;width:160px;">İşlem</th></tr></thead><tbody>' +
+  container.innerHTML = '<table class="minimal-table" style="width:100%;"><thead><tr><th style="text-align:left;">Ürün Adı</th><th style="text-align:center;width:80px;">Birim</th><th style="text-align:right;width:160px;">' +
+    (isViewOnly() ? 'İşlem' : 'İşlem <input type="checkbox" id="bulk-select-all" style="width:16px;height:16px;cursor:pointer;vertical-align:middle;margin-left:6px;" title="Tümünü Seç">') +
+    '</th></tr></thead><tbody>' +
     data.productNames.map(n => {
       const enc = _e(n);
       const unit = (data.productUnits || {})[n] || '—';
@@ -3778,6 +3780,12 @@ document.getElementById('upload-names-input').addEventListener('change', (e) => 
 document.getElementById('product-name-list').addEventListener('change', (e) => {
   if (e.target.classList.contains('bulk-product-cb')) {
     const checked = document.querySelectorAll('.bulk-product-cb:checked').length;
+    const counter = document.getElementById('bulk-product-count');
+    if (counter) counter.textContent = `${checked} seçili`;
+  }
+  if (e.target.id === 'bulk-select-all') {
+    document.querySelectorAll('.bulk-product-cb').forEach(cb => cb.checked = e.target.checked);
+    const checked = e.target.checked ? document.querySelectorAll('.bulk-product-cb').length : 0;
     const counter = document.getElementById('bulk-product-count');
     if (counter) counter.textContent = `${checked} seçili`;
   }
