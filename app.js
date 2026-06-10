@@ -154,15 +154,16 @@ async function supabaseSave() {
 async function supabaseLoad() {
   if (!isSupabaseReady()) return null;
   try {
-    const [products, transactions, users, tenders, companies, productNames, settings] = await Promise.all([
+    const [products, transactions, users, tenders, companies, productNames] = await Promise.all([
       supabaseFetch('GET', 'products', { order: 'parti_no.asc' }),
       supabaseFetch('GET', 'transactions', { order: 'id.asc' }),
       supabaseFetch('GET', 'stok_users', { order: 'name.asc' }),
       supabaseFetch('GET', 'tenders', { order: 'id.asc' }),
       supabaseFetch('GET', 'companies', { order: 'name.asc' }),
-      supabaseFetch('GET', 'product_names', { order: 'name.asc' }),
-      supabaseFetch('GET', 'settings')
+      supabaseFetch('GET', 'product_names', { order: 'name.asc' })
     ]);
+    let settings = [];
+    try { settings = await supabaseFetch('GET', 'settings'); } catch(e) { /* settings tablosu yoksa sorun değil */ }
 
     const prodMap = {};
     (products || []).forEach(p => {
