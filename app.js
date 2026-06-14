@@ -1801,6 +1801,7 @@ let _aggFilter = 'ALL';
 let _hideZeroStock = false;
 let _onlyCritical = false;
 let _showDeletedProducts = false;
+let _showNewProducts = false;
 
 function sttDurum(stt) {
   if (!stt) return { text: '-', cls: '' };
@@ -1826,6 +1827,10 @@ function refreshWarehouse() {
   if (_warehouseFilter !== 'ALL') filtered = filtered.filter(p => p.category === _warehouseFilter);
   if (_hideZeroStock) filtered = filtered.filter(p => p.stock > 0);
   if (_onlyCritical) filtered = filtered.filter(p => p.criticalLevel > 0 && p.stock <= p.criticalLevel);
+  if (_showNewProducts) {
+    const otuzGunOnce = new Date(); otuzGunOnce.setDate(otuzGunOnce.getDate() - 30);
+    filtered = filtered.filter(p => p.createdAt && new Date(p.createdAt) >= otuzGunOnce);
+  }
   if (search) filtered = filtered.filter(p => p.name.toLowerCase().includes(search) || p.partiNo.toLowerCase().includes(search));
 
   // Filtre durumunu göster
@@ -1833,6 +1838,7 @@ function refreshWarehouse() {
   const aktifFiltreler = [];
   if (_hideZeroStock) aktifFiltreler.push('Sıfır stok gizli');
   if (_onlyCritical) aktifFiltreler.push('Kritik altı');
+  if (_showNewProducts) aktifFiltreler.push('Yeni gelenler');
   if (_warehouseFilter !== 'ALL') aktifFiltreler.push('Kategori: ' + _warehouseFilter);
   if (badge) {
     if (aktifFiltreler.length) {
@@ -1851,7 +1857,11 @@ function refreshWarehouse() {
     return;
   }
 
-  filtered.sort((a, b) => a.name.localeCompare(b.name));
+  if (_showNewProducts) {
+    filtered.sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || ''));
+  } else {
+    filtered.sort((a, b) => a.name.localeCompare(b.name));
+  }
   tbody.innerHTML = filtered.map(p => {
     const kritik = p.criticalLevel > 0 && p.stock <= p.criticalLevel;
     const stokClass = kritik ? 'color:var(--accent);font-weight:800;' : '';
@@ -1978,6 +1988,12 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('filter-deleted-btn').addEventListener('click', () => {
     _showDeletedProducts = !_showDeletedProducts;
     document.getElementById('filter-deleted-btn').classList.toggle('active', _showDeletedProducts);
+    refreshWarehouse();
+  });
+
+  document.getElementById('filter-new-btn').addEventListener('click', () => {
+    _showNewProducts = !_showNewProducts;
+    document.getElementById('filter-new-btn').classList.toggle('active', _showNewProducts);
     refreshWarehouse();
   });
 });
