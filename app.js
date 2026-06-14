@@ -3184,8 +3184,8 @@ function refreshTenderChart() {
   if (window._tenderPageChart) window._tenderPageChart.destroy();
   const isDark = getTheme() === 'dark';
   const labelColor = isDark ? '#e2e8f0' : '#334155';
-  const blueScale = ['#3b82f6', '#60a5fa', '#2563eb', '#93c5fd', '#1d4ed8', '#7dd3fc', '#1e40af', '#bae6fd'];
-  const barColors = ihaleVeri.map((_, i) => blueScale[i % blueScale.length]);
+  const palette = ['#22c55e','#3b82f6','#f97316','#8b5cf6','#ec4899','#14b8a6','#f59e0b','#ef4444','#06b6d4','#6366f1','#10b981','#e11d48'];
+  const barColors = ihaleVeri.map((_, i) => palette[i % palette.length]);
   const barLabelPlugin = {
     id: 'barLabel',
     afterDatasetsDraw(chart) {
