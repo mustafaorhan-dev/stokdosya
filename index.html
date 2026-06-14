@@ -1101,7 +1101,7 @@
                     <div id="user-guide-content" style="padding:2rem;max-width:800px;margin:0 auto;line-height:1.8;font-size:15px;color:var(--text-primary);">
 
                         <h2 style="margin-bottom:0.25rem;">STOKDEPO — Stok Yönetim Sistemi</h2>
-                        <p style="color:var(--text-secondary);margin-bottom:2rem;font-size:0.9rem;">Versiyon 2.1 — Kullanım Kılavuzu</p>
+                        <p style="color:var(--text-secondary);margin-bottom:2rem;font-size:0.9rem;">Versiyon 2.2 — Kullanım Kılavuzu</p>
 
                         <h3>1. Genel Bakış (Dashboard)</h3>
                         <p>Uygulamaya giriş yaptığınızda ilk olarak <strong>Genel Bakış</strong> sayfası açılır. Bu sayfada şunlar bulunur:</p>
@@ -1120,20 +1120,20 @@
                         <ul>
                             <li>Kategori filtreleri (Sebze, Meyve, Bakliyat, vb.) ile ürünleri filtreleyebilirsiniz.</li>
                             <li>Arama çubuğu ile ürün adı veya parti no ile arama yapabilirsiniz.</li>
-                            <li>"Sıfır Stokları Gizle" ve "Sadece Kritik Altı" filtreleri bulunur.</li>
+                            <li>"Sıfır Stokları Gizle", "Sadece Kritik Altı", "Yeni Gelenler" (son 30 günde giriş yapılanlar) ve "Silinenleri Göster" filtreleri bulunur.</li>
                             <li>"Liste Al" butonu ile Excel, Word veya PDF çıktısı alabilirsiniz (İhale Kalan sütunu dahil).</li>
                             <li>"Yeni Ürün" butonu ile yeni ürün kartı ekleyebilirsiniz.</li>
                             <li>Her ürün için düzenleme ve silme işlemleri yapılabilir.</li>
                         </ul>
 
-                        <h3>3. Mal Kabul (Giriş)</h3>
-                        <p>Depoya yeni ürün girişi yapmak için kullanılır.</p>
+                        <h3>3. Ürün Girişi</h3>
+                        <p>Depoya yeni ürün/parti girişi yapmak için kullanılır.</p>
                         <ul>
-                            <li>Ürün seçin (tüm aktif ürünler listelenir, tedarikçi filtresi yoktur).</li>
-                            <li>Miktar ve giriş tarihi bilgilerini girin.</li>
-                            <li>STT (Son Tüketim Tarihi) girilebilir, otomatik doldurulur.</li>
-                            <li>İhale bağlantısı varsa, ilgili ihaleye otomatik işlenir.</li>
-                            <li><strong>Çakışma önleme:</strong> Kayıt öncesi GitHub'dan en son veri çekilir, güncel stokla kontrol yapılır.</li>
+                            <li>Ürün adı, kategori, tedarikçi, miktar ve tarih bilgilerini girin.</li>
+                            <li>STT (Son Tüketim Tarihi) isteğe bağlı girilebilir.</li>
+                            <li>Tedarikçi seçildiğinde eşleşen ihaleye teslimat otomatik işlenir.</li>
+                            <li>Parti numarası otomatik oluşturulur: <code>A + YY + Hafta + Gün + Sıra</code>.</li>
+                            <li><strong>Çakışma önleme:</strong> Kayıt öncesi Supabase'den en son veri çekilir, güncel stokla kontrol yapılır.</li>
                         </ul>
 
                         <h3>4. Ürün Çıkış</h3>
