@@ -12,7 +12,7 @@ let data = { products: {}, transactions: [], users: [], activeUser: '', tenders:
 let nextPartiCounter = 1;
 let _syncLock = false;
 let _formDirty = false;
-if (typeof Chart !== 'undefined') Chart.defaults.devicePixelRatio = window.devicePixelRatio;
+if (typeof Chart !== 'undefined') Chart.defaults.devicePixelRatio = 4;
 
 function isSupabaseReady() {
   return SUPABASE_URL && SUPABASE_ANON;
