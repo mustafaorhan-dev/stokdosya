@@ -4446,6 +4446,8 @@ function refreshAll() {
     if (id === 'daily-cost') _safe(refreshDailyCost);
     if (id === 'critical-stock-view') _safe(refreshCriticalStock);
     if (id === 'year-compare') _safe(refreshYearCompare);
+    if (id === 'stt-tracking') _safe(refreshSttTracking);
+    if (id === 'tender-tracking') _safe(refreshTenders);
     if (id === 'suppliers') { _safe(refreshSuppliers); _safe(refreshProductNames); }
   }
   } catch (e) { console.error('refreshAll hatası:', e); }
