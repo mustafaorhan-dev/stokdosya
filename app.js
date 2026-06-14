@@ -1308,7 +1308,7 @@ function navigateTo(target) {
   if (view) view.classList.add('active');
 
   const titles = {
-    'dashboard': 'Genel Bakış', 'warehouse': 'Anbar Listesi', 'aggregated-stock': 'Depodaki Ürün Miktarları', 'entry': 'Yeni Ürün & Parti Tanımı',
+    'dashboard': 'Genel Bakış', 'warehouse': 'Anbar Listesi', 'aggregated-stock': 'Depodaki Ürün Miktarları', 'entry': 'Ürün Girişi',
     'exit': 'Ürün Çıkış', 'daily': 'Günlük İşlemler', 'month-view': 'Aylık Rapor',
     'years-view': 'Yıllık Raporlar', 'year-compare': 'Yıllık Karşılaştırma', 'stt-tracking': 'STT Takibi', 'tender-tracking': 'İhale Takip', 'suppliers': 'Tedarikçiler',     'supplier-report-view': 'Aylık Tedarikçi Raporu', 'critical-stock-view': 'Kritik Stok Listesi', 'user-guide-view': 'Kullanım Kılavuzu', 'settings-view': 'Ayarlar & Bulut', 'daily-cost': 'Günlük Maliyet'
   };
