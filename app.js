@@ -1605,93 +1605,35 @@ function refreshDashboard() {
     });
   }
 
-  // Hızlı Bilgiler (horizontal bar)
+  // Hızlı Bilgiler (modern kartlar)
   const sttOlan = prods.filter(p => p.stt).length;
   const tedarikciSayisi = data.companies.length;
   const toplamIslem = data.transactions.length;
   const bugunHareketAdet = bugunHareket.length;
   const qiContainer = document.getElementById('quick-info-list');
-  qiContainer.innerHTML = `<canvas id="quick-info-canvas"></canvas>`;
-  if (window._qiChart) window._qiChart.destroy();
+  if (window._qiChart) { window._qiChart.destroy(); window._qiChart = null; }
 
   const isDark = getTheme() === 'dark';
-  const qiLabels = ["STT'li Ürün", 'Tedarikçi', 'Toplam İşlem', 'Bugünkü İşlem', 'Ürün Listesi'];
-  const qiData = [sttOlan, tedarikciSayisi, toplamIslem, bugunHareketAdet, (data.productNames || []).length];
-  const qiColors = ['#3b82f6', '#2563eb', '#a78bfa', '#94a3b8', '#10b981'];
+  const qiItems = [
+    { icon: 'fa-regular fa-clock', label: "STT'li Ürün", value: sttOlan, gradient: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)' },
+    { icon: 'fa-solid fa-truck', label: 'Tedarikçi', value: tedarikciSayisi, gradient: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)' },
+    { icon: 'fa-solid fa-arrows-repeat', label: 'Toplam İşlem', value: toplamIslem, gradient: 'linear-gradient(135deg, #a18cd1 0%, #fbc2eb 100%)' },
+    { icon: 'fa-solid fa-calendar-day', label: 'Bugünkü İşlem', value: bugunHareketAdet, gradient: 'linear-gradient(135deg, #fccb90 0%, #d57eeb 100%)' },
+    { icon: 'fa-solid fa-cubes', label: 'Ürün Listesi', value: (data.productNames || []).length, gradient: 'linear-gradient(135deg, #5ee7df 0%, #b490ca 100%)' }
+  ];
 
-  const qiLabelPlugin = {
-    id: 'qiLabel',
-    afterDatasetsDraw(chart) {
-      const ctx = chart.ctx;
-      const meta = chart.getDatasetMeta(0);
-      ctx.font = 'bold 12px Outfit, Arial, sans-serif';
-      ctx.textBaseline = 'middle';
-      meta.data.forEach((bar, idx) => {
-        const val = qiData[idx];
-        if (!val) return;
-        ctx.fillStyle = isDark ? '#f1f5f9' : '#0f172a';
-        ctx.textAlign = 'right';
-        ctx.fillText(val, bar.x - 6, bar.y);
-      });
-    }
-  };
-
-  window._qiChart = new Chart(document.getElementById('quick-info-canvas'), {
-    type: 'bar',
-    data: {
-      labels: qiLabels,
-      datasets: [{
-        data: qiData,
-        backgroundColor: qiColors.map(c => isDark ? c + 'CC' : c),
-        borderColor: qiColors,
-        borderWidth: 0,
-        borderRadius: 6,
-        barPercentage: 0.9,
-        categoryPercentage: 0.95
-      }]
-    },
-    options: {
-      indexAxis: 'y',
-      responsive: true,
-      maintainAspectRatio: false,
-      layout: {
-        padding: 0
-      },
-      plugins: {
-        legend: { display: false },
-        tooltip: {
-          backgroundColor: isDark ? '#1e293b' : '#fff',
-          titleColor: isDark ? '#e2e8f0' : '#0f172a',
-          bodyColor: isDark ? '#cbd5e1' : '#334155',
-          borderColor: isDark ? 'rgba(148,163,184,0.2)' : 'rgba(0,0,0,0.1)',
-          borderWidth: 1,
-          padding: 8,
-          cornerRadius: 6,
-          callbacks: {
-            label: ctx => ` ${ctx.parsed.x} adet`
-          }
-        }
-      },
-      scales: {
-        x: {
-          reverse: true,
-          beginAtZero: true,
-          grid: { color: isDark ? 'rgba(148,163,184,0.1)' : 'rgba(0,0,0,0.05)' },
-          ticks: { display: false }
-        },
-        y: {
-          position: 'right',
-          grid: { display: false },
-          ticks: { color: isDark ? '#e2e8f0' : '#334155', font: { size: 11, weight: '600' } }
-        }
-      },
-      animation: {
-        duration: 600,
-        easing: 'easeOutQuart'
-      }
-    },
-    plugins: [qiLabelPlugin]
-  });
+  qiContainer.innerHTML = `<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:12px;">
+    ${qiItems.map((item, i) => `
+      <div style="position:relative;border-radius:12px;padding:14px 12px;background:${isDark ? 'rgba(30,41,59,0.6)' : '#fff'};border:1px solid ${isDark ? 'rgba(148,163,184,0.1)' : 'rgba(0,0,0,0.06)'};overflow:hidden;${i === qiItems.length - 1 ? 'grid-column:1 / -1;' : ''}">
+        <div style="position:absolute;top:0;left:0;width:4px;height:100%;border-radius:0 2px 2px 0;background:${item.gradient};"></div>
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
+          <i class="${item.icon}" style="font-size:13px;background:${item.gradient};-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;"></i>
+          <span style="font-size:11px;font-weight:600;color:${isDark ? '#94a3b8' : '#64748b'};">${item.label}</span>
+        </div>
+        <span style="font-size:22px;font-weight:800;background:${item.gradient};-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;line-height:1.2;">${_fmt(item.value)}</span>
+      </div>
+    `).join('')}
+  </div>`;
 
   // İhale Çekilme Yüzdeleri Grafiği (bar)
   const canvas = document.getElementById('tender-chart-canvas');
