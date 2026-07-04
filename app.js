@@ -1855,6 +1855,9 @@ function refreshAggregatedStock() {
 
   let entries = Object.values(groups);
 
+  // Stok 0 olanları gösterme (depoda olmayan ürün)
+  entries = entries.filter(e => e.totalStock > 0);
+
   // Kategori filtre
   if (_aggFilter !== 'ALL') entries = entries.filter(e => e.categories.has(_aggFilter));
   // Arama filtre
@@ -2644,7 +2647,7 @@ function _fmt(n) {
 // ----- ÇIKIŞ FORMU -----
 function refreshExitForm() {
   const select = document.getElementById('exit-product');
-  const prods = Object.values(data.products).filter(p => p.active !== false);
+  const prods = Object.values(data.products).filter(p => p.active !== false && (p.stock || 0) > 0);
   const grouped = {};
   prods.forEach(p => {
     if (!grouped[p.name]) grouped[p.name] = { name: p.name, totalStock: 0, unit: p.unit };
