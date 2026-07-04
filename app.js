@@ -1307,6 +1307,51 @@ function refreshYearCompare() {
   });
 }
 
+function pdfYearCompare() {
+  if (!data.transactions.length) { toast('Veri yok.', 'info'); return; }
+  const secili = document.getElementById('yc-product')?.value || '';
+  const urunAdi = secili || 'Tüm Ürünler';
+  const yilGiris = {}, yilCikis = {};
+  data.transactions.forEach(t => {
+    if (!t.date || !t.amount) return;
+    if (secili && t.productName !== secili) return;
+    const yil = new Date(t.date).getFullYear();
+    if (t.type === 'giris') { if (!yilGiris[yil]) yilGiris[yil] = 0; yilGiris[yil] += t.amount; }
+    else if (t.type === 'cikis') { if (!yilCikis[yil]) yilCikis[yil] = 0; yilCikis[yil] += t.amount; }
+  });
+  const tumYillar = [...new Set([...Object.keys(yilGiris), ...Object.keys(yilCikis)].map(Number))].sort((a, b) => a - b);
+  const satirlar = tumYillar.map(y => {
+    const g = yilGiris[y] || 0, c = yilCikis[y] || 0;
+    return `<tr><td>${y}</td><td style="text-align:right">${_fmt(g)}</td><td style="text-align:right">${_fmt(c)}</td><td style="text-align:right;font-weight:700;color:${g-c>0?'var(--success)':'var(--accent)'}">${(g-c>=0?'+':'')+_fmt(Math.abs(g-c))}</td></tr>`;
+  }).join('');
+  const tGiris = tumYillar.reduce((s, y) => s + (yilGiris[y] || 0), 0);
+  const tCikis = tumYillar.reduce((s, y) => s + (yilCikis[y] || 0), 0);
+  const w = window.open('', '_blank');
+  w.document.write(`
+    <html><head><title>Yıllık Karşılaştırma</title>
+    <style>
+      body { font-family:Arial; padding:24px; color:#1e293b; }
+      h2 { margin-bottom:4px; }
+      .sub { color:#64748b; margin-bottom:16px; font-size:13px; }
+      table { width:100%; border-collapse:collapse; font-size:12px; }
+      th, td { border:1px solid #cbd5e1; padding:6px 10px; text-align:left; }
+      th { background:#f1f5f9; text-transform:uppercase; font-size:11px; }
+      .toplam { font-weight:700; background:#f8fafc; }
+    </style></head>
+    <body>
+      <h2>Yıllık Karşılaştırma</h2>
+      <p class="sub">Ürün: ${htmlEscape(urunAdi)} &nbsp;|&nbsp; ${tumYillar.length} yıl</p>
+      <table>
+        <thead><tr><th>Yıl</th><th style="text-align:right">Giriş</th><th style="text-align:right">Çıkış</th><th style="text-align:right">Net</th></tr></thead>
+        <tbody>${satirlar}</tbody>
+        <tfoot><tr class="toplam"><td>Toplam</td><td style="text-align:right">${_fmt(tGiris)}</td><td style="text-align:right">${_fmt(tCikis)}</td><td style="text-align:right">${_fmt(tGiris - tCikis)}</td></tr></tfoot>
+      </table>
+      <script>window.print();<\/script>
+    </body></html>
+  `);
+  w.document.close();
+}
+
 // Ürün / yıl / mod değişince grafiği yenile
 document.addEventListener('DOMContentLoaded', () => {
   const sel = document.getElementById('yc-product');
