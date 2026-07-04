@@ -2,30 +2,6 @@
 <html lang="tr">
 
 <head>
-<script>
-  // Sadece senin bileceğin giriş şifren:
-  const ORETI_SIFRE = "4056"; 
-
-  // Şifre onaylanmadıysa sayfayı daha yüklenmeden tamamen gizle
-  if (localStorage.getItem("stok_grid_izni") !== "onaylandi") {
-    // Sayfa içeriğini tamamen saklayan geçici bir stil ekliyoruz
-    document.write('<style id="kilit-stili">html { display: none !important; }</style>');
-    
-    // Sayfa tamamen yüklendiğinde şifreyi sor
-    window.addEventListener("DOMContentLoaded", () => {
-      let girilenSifre = prompt("Bu projeye erişmek için lütfen şifreyi giriniz:");
-      
-      if (girilenSifre === ORETI_SIFRE) {
-        localStorage.setItem("stok_grid_izni", "onaylandi");
-        // Şifre doğruysa gizleme stilini kaldır, siteyi aç
-        document.getElementById("kilit-stili").remove();
-      } else {
-        alert("Hatalı şifre! Erişim engellendi.");
-        window.location.href = "about:blank"; // Boş sayfaya fırlat
-      }
-    });
-  }
-</script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>STOKDEPO</title>
