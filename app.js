@@ -2619,8 +2619,6 @@ document.getElementById('entry-form').addEventListener('submit', async (e) => {
   e.preventDefault();
   if (isViewOnly()) { toast('Görüntüleme modunda giriş yapamazsınız.', 'error'); return; }
 
-  // Supabase'ten son veriyi çek
-  if (isSupabaseReady()) {
   // Not: supabaseLoad veri kaybına yol açabileceği için kaldırıldı
 
   const name = document.getElementById('entry-name').value.trim();
