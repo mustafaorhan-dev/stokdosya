@@ -312,7 +312,7 @@
                                 <div id="export-menu" class="export-menu" style="display:none;position:absolute;top:100%;right:0;z-index:100;background:var(--bg-primary);border:1px solid var(--border-color);border-radius:var(--border-radius-sm);box-shadow:0 4px 12px rgba(0,0,0,0.15);min-width:160px;overflow:hidden;">
                                     <button class="export-option" data-format="xlsx" style="display:flex;align-items:center;gap:8px;width:100%;padding:10px 14px;border:none;background:none;cursor:pointer;font-family:inherit;font-size:13px;color:var(--text-primary);"><i class="fa-regular fa-file-excel" style="color:#22c55e;font-size:16px;"></i> Excel (XLSX)</button>
                                     <button class="export-option" data-format="word" style="display:flex;align-items:center;gap:8px;width:100%;padding:10px 14px;border:none;background:none;cursor:pointer;font-family:inherit;font-size:13px;color:var(--text-primary);"><i class="fa-regular fa-file-word" style="color:#3b82f6;font-size:16px;"></i> Word (DOC)</button>
-                                    <button class="export-option" data-format="print" style="display:flex;align-items:center;gap:8px;width:100%;padding:10px 14px;border:none;background:none;cursor:pointer;font-family:inherit;font-size:13px;color:var(--text-primary);"><i class="fa-solid fa-print" style="color:#8b5cf6;font-size:16px;"></i> PDF / Yazdır</button>
+                                    <button class="export-option" data-format="print" style="display:flex;align-items:center;gap:8px;width:100%;padding:10px 14px;border:none;background:none;cursor:pointer;font-family:inherit;font-size:13px;color:var(--text-primary);"><i class="fa-solid fa-print" style="color:#8b5cf6;font-size:16px;"></i> Çıktı Al</button>
                                 </div>
                             </div>
                             <button id="add-product-btn" class="btn-ui btn-primary"><i class="fa-solid fa-plus"></i> Yeni Ürün</button>
@@ -352,7 +352,7 @@
                         <div style="display:flex;gap:8px;align-items:center;">
                             <input type="text" id="agg-stock-search" class="search-field" placeholder="Ürün ara..." style="width:200px;">
                             <span id="agg-stock-count" style="font-size:13px;color:var(--text-muted);"></span>
-                            <button class="btn-ui btn-sm btn-outline" onclick="aggStockExportPrint()" title="PDF / Yazdır"><i class="fa-solid fa-print"></i> Çıktı</button>
+                            <button class="btn-ui btn-primary" onclick="aggStockExportPrint()" title="Çıktı Al"><i class="fa-solid fa-print"></i> Çıktı Al</button>
                         </div>
                     </div>
                     <div class="category-badges-container" id="agg-category-filter" style="padding:0 1.25rem;"></div>
@@ -511,7 +511,7 @@
                             <option value="giris">Giriş</option>
                             <option value="cikis">Çıkış</option>
                         </select>
-                        <button class="btn-ui btn-primary" onclick="pdfCikti()"><i class="fa-solid fa-file-pdf"></i> PDF Çıktı</button>
+                        <button class="btn-ui btn-primary" onclick="pdfCikti()"><i class="fa-solid fa-print"></i> Çıktı Al</button>
                     </div>
                 </div>
 
@@ -550,7 +550,7 @@
                         <h3><i class="fa-solid fa-truck"></i> Aylık Tedarikçi Raporu</h3>
                         <div style="display:flex;gap:6px;flex-wrap:wrap;">
                             <button class="btn-ui btn-sm btn-outline" id="sr-show-deleted" onclick="toggleSrDeleted()" title="Silinen ürünleri göster"><i class="fa-solid fa-eye-slash"></i> <span>Silinen</span></button>
-                            <button class="btn-ui btn-sm btn-outline" onclick="srExportPrint()" title="PDF Çıktı"><i class="fa-solid fa-print"></i> Çıktı</button>
+                            <button class="btn-ui btn-primary" onclick="srExportPrint()" title="Çıktı Al"><i class="fa-solid fa-print"></i> Çıktı Al</button>
                         </div>
                     </div>
                     <div style="padding: 1rem;">
@@ -581,7 +581,7 @@
                     <div class="panel-header">
                         <h3 id="month-title">Aylık Rapor</h3>
                         <div style="display:flex; gap:8px;">
-                            <button class="btn-ui btn-sm btn-outline" onclick="monthExportPrint()"><i class="fa-solid fa-print"></i> Çıktı Al</button>
+                            <button class="btn-ui btn-primary" onclick="monthExportPrint()"><i class="fa-solid fa-print"></i> Çıktı Al</button>
                         </div>
                     </div>
                     <div style="padding: 1.5rem;">
@@ -636,7 +636,7 @@
                     </div>
                     <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
                         <input type="date" id="daily-cost-date" class="form-control" style="width:160px;" onchange="refreshDailyCost()">
-                        <button class="btn-ui btn-primary" onclick="pdfCiktiMaliyet()"><i class="fa-solid fa-file-pdf"></i> PDF</button>
+                        <button class="btn-ui btn-primary" onclick="pdfCiktiMaliyet()"><i class="fa-solid fa-print"></i> Çıktı Al</button>
                     </div>
                 </div>
 
@@ -703,7 +703,7 @@
                                     <div class="year-filter-options" id="year-filter-options"></div>
                                 </div>
                             </div>
-                            <button class="btn-ui btn-sm btn-outline" onclick="yearExportPrint()" title="PDF Çıktı"><i class="fa-solid fa-print"></i> Çıktı</button>
+                            <button class="btn-ui btn-primary" onclick="yearExportPrint()" title="Çıktı Al"><i class="fa-solid fa-print"></i> Çıktı Al</button>
                         </div>
                     </div>
                     <div style="padding: 1.5rem;">
@@ -834,7 +834,7 @@
                     <div class="panel-header">
                         <h3><i class="fa-solid fa-chart-line" style="color:var(--primary);"></i> Yıllık Karşılaştırma</h3>
                         <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
-                            <button class="btn-ui btn-primary" style="font-size:13px;padding:6px 14px;" onclick="pdfYearCompare()"><i class="fa-solid fa-file-pdf"></i> PDF</button>
+                            <button class="btn-ui btn-primary" style="font-size:13px;padding:6px 14px;" onclick="pdfYearCompare()"><i class="fa-solid fa-print"></i> Çıktı Al</button>
                             <select id="yc-product" class="form-control" style="width:200px;font-size:13px;">
                                 <option value="">Tüm Ürünler</option>
                             </select>
@@ -915,7 +915,7 @@
                                 <div id="stt-export-menu" class="export-menu" style="display:none;position:absolute;top:100%;right:0;z-index:100;background:var(--bg-primary);border:1px solid var(--border-color);border-radius:var(--border-radius-sm);box-shadow:0 4px 12px rgba(0,0,0,0.15);min-width:160px;overflow:hidden;">
                                     <button class="stt-export-option" data-format="xlsx" style="display:flex;align-items:center;gap:8px;width:100%;padding:10px 14px;border:none;background:none;cursor:pointer;font-family:inherit;font-size:13px;color:var(--text-primary);"><i class="fa-regular fa-file-excel" style="color:#22c55e;font-size:16px;"></i> Excel (XLSX)</button>
                                     <button class="stt-export-option" data-format="word" style="display:flex;align-items:center;gap:8px;width:100%;padding:10px 14px;border:none;background:none;cursor:pointer;font-family:inherit;font-size:13px;color:var(--text-primary);"><i class="fa-regular fa-file-word" style="color:#3b82f6;font-size:16px;"></i> Word (DOC)</button>
-                                    <button class="stt-export-option" data-format="print" style="display:flex;align-items:center;gap:8px;width:100%;padding:10px 14px;border:none;background:none;cursor:pointer;font-family:inherit;font-size:13px;color:var(--text-primary);"><i class="fa-solid fa-print" style="color:#8b5cf6;font-size:16px;"></i> PDF / Yazdır</button>
+                                    <button class="stt-export-option" data-format="print" style="display:flex;align-items:center;gap:8px;width:100%;padding:10px 14px;border:none;background:none;cursor:pointer;font-family:inherit;font-size:13px;color:var(--text-primary);"><i class="fa-solid fa-print" style="color:#8b5cf6;font-size:16px;"></i> Çıktı Al</button>
                                 </div>
                             </div>
                             <span id="stt-filter-badge" style="font-size:12px;color:var(--text-secondary);"></span>
@@ -961,7 +961,7 @@
                     <div class="panel-header">
                         <h3><i class="fa-solid fa-file-signature"></i> İhale Takip Listesi</h3>
                         <div style="display:flex; gap:8px;align-items:center;flex-wrap:wrap;">
-                            <button class="btn-ui btn-primary" style="font-size:13px;padding:6px 14px;" onclick="pdfTenders()"><i class="fa-solid fa-file-pdf"></i> PDF</button>
+                            <button class="btn-ui btn-primary" style="font-size:13px;padding:6px 14px;" onclick="pdfTenders()"><i class="fa-solid fa-print"></i> Çıktı Al</button>
                             <button id="add-tender-btn" class="btn-ui btn-primary"><i class="fa-solid fa-plus"></i> Yeni İhale</button>
                             <select id="tender-company-filter" class="form-control" style="width:auto;min-width:130px;font-size:13px;">
                                 <option value="">Tüm Firmalar</option>
@@ -1081,7 +1081,7 @@
                                 <div id="critical-export-menu" class="export-menu" style="display:none;position:absolute;top:100%;right:0;z-index:100;background:var(--bg-primary);border:1px solid var(--border-color);border-radius:var(--border-radius-sm);box-shadow:0 4px 12px rgba(0,0,0,0.15);min-width:160px;overflow:hidden;">
                                     <button class="critical-export-option" data-format="xlsx" style="display:flex;align-items:center;gap:8px;width:100%;padding:10px 14px;border:none;background:none;cursor:pointer;font-family:inherit;font-size:13px;color:var(--text-primary);"><i class="fa-regular fa-file-excel" style="color:#22c55e;font-size:16px;"></i> Excel (XLSX)</button>
                                     <button class="critical-export-option" data-format="word" style="display:flex;align-items:center;gap:8px;width:100%;padding:10px 14px;border:none;background:none;cursor:pointer;font-family:inherit;font-size:13px;color:var(--text-primary);"><i class="fa-regular fa-file-word" style="color:#3b82f6;font-size:16px;"></i> Word (DOC)</button>
-                                    <button class="critical-export-option" data-format="print" style="display:flex;align-items:center;gap:8px;width:100%;padding:10px 14px;border:none;background:none;cursor:pointer;font-family:inherit;font-size:13px;color:var(--text-primary);"><i class="fa-solid fa-print" style="color:#8b5cf6;font-size:16px;"></i> PDF / Yazdır</button>
+                                    <button class="critical-export-option" data-format="print" style="display:flex;align-items:center;gap:8px;width:100%;padding:10px 14px;border:none;background:none;cursor:pointer;font-family:inherit;font-size:13px;color:var(--text-primary);"><i class="fa-solid fa-print" style="color:#8b5cf6;font-size:16px;"></i> Çıktı Al</button>
                                 </div>
                             </div>
                         </div>
@@ -1097,7 +1097,7 @@
                 <div class="panel-container">
                     <div class="panel-header">
                         <h3><i class="fa-solid fa-book" style="color:var(--primary);"></i> Kullanım Kılavuzu</h3>
-                        <button class="btn-ui btn-primary" onclick="printUserGuide()"><i class="fa-solid fa-file-pdf"></i> PDF Çıktı</button>
+                        <button class="btn-ui btn-primary" onclick="printUserGuide()"><i class="fa-solid fa-print"></i> Çıktı Al</button>
                     </div>
                     <div id="user-guide-content" style="padding:2rem;max-width:800px;margin:0 auto;line-height:1.8;font-size:15px;color:var(--text-primary);">
 
