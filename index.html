@@ -637,7 +637,7 @@
                         <h3 style="margin:0;font-size:1.3rem;">Günlük Maliyet</h3>
                     </div>
                     <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
-                        <input type="date" id="daily-cost-date" class="form-control" style="width:160px;">
+                        <input type="date" id="daily-cost-date" class="form-control" style="width:160px;" onchange="refreshDailyCost()">
                         <button class="btn-ui btn-primary" onclick="pdfCiktiMaliyet()"><i class="fa-solid fa-file-pdf"></i> PDF</button>
                     </div>
                 </div>
@@ -676,12 +676,12 @@
                                 </tr>
                             </thead>
                             <tbody id="dc-body">
-                                <tr><td colspan="7" style="text-align:center;color:var(--text-muted);padding:40px;">Tarih seçip Maliyetleri Göster butonuna tıklayın.</td></tr>
+                                <tr><td colspan="7" style="text-align:center;color:var(--text-muted);padding:40px;">Tarih seçin, maliyetler otomatik yüklenecek.</td></tr>
                             </tbody>
                         </table>
                     </div>
                     <div style="padding:0.75rem 1rem; display:flex; gap:10px; flex-wrap:wrap;">
-                        <button class="btn-ui btn-primary" onclick="refreshDailyCost()"><i class="fa-solid fa-magnifying-glass"></i> Maliyetleri Göster</button>
+                        
                     </div>
                 </div>
             </div>
