@@ -1449,7 +1449,7 @@ function refreshDashboard() {
   }
 
   // Tarihi Yaklaşan / Geçen Ürünler
-  const expiring = Object.values(data.products).filter(p => p.active !== false && p.stt).map(p => {
+  const expiring = Object.values(data.products).filter(p => p.active !== false && p.stt && (p.stock || 0) > 0).map(p => {
     const sttDate = new Date(p.stt + 'T00:00:00');
     const fark = Math.ceil((sttDate - now) / (1000 * 60 * 60 * 24));
     return { ...p, sttGunFark: fark };
