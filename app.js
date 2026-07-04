@@ -184,23 +184,13 @@ async function supabaseLoad() {
       };
     });
 
-    const txList = (transactions || []).map(t => {
-      let costData = {};
-      let cleanNote = t.note || '';
-      const costMatch = cleanNote.match(/\[COST\](.*?)$/);
-      if (costMatch) {
-        try { costData = JSON.parse(costMatch[1]); cleanNote = cleanNote.replace(/\[COST\].*?$/, ''); } catch(e) {}
-      }
-      return {
-        id: t.id, type: t.type, partiNo: t.parti_no, productName: t.product_name,
-        amount: t.amount, unit: t.unit || '', date: t.date, note: cleanNote,
-        stt: t.stt || '', timestamp: t.timestamp, createdBy: t.created_by || '',
-        personCount: costData.pc || t.person_count || 0,
-        unitPrice: costData.up || t.unit_price || 0,
-        totalCost: costData.tc || t.total_cost || 0,
-        costPerPerson: costData.cp || t.cost_per_person || 0
-      };
-    });
+    const txList = (transactions || []).map(t => ({
+      id: t.id, type: t.type, partiNo: t.parti_no, productName: t.product_name,
+      amount: t.amount, unit: t.unit || '', date: t.date, note: t.note || '',
+      stt: t.stt || '', timestamp: t.timestamp, createdBy: t.created_by || '',
+      personCount: t.person_count || 0, unitPrice: t.unit_price || 0,
+      totalCost: t.total_cost || 0, costPerPerson: t.cost_per_person || 0
+    }));
 
     // Meta kayıttan liste verilerini çıkar (transaction id=0, type=_LISTDATA_)
     let supabaseListData = null;
@@ -2786,11 +2776,10 @@ document.getElementById('exit-form').addEventListener('submit', async (e) => {
     remaining -= deduct;
     const tc = unitPrice ? deduct * unitPrice : 0;
     const cp = personCount > 0 ? tc / personCount : 0;
-    const costMeta = JSON.stringify({ pc: personCount, up: unitPrice, tc, cp });
     transactions.push({
       id: Math.floor(Date.now() + Math.random() * 1000) + transactions.length,
       type: 'cikis', partiNo: p.partiNo, productName: p.name,
-      amount: deduct, unit: p.unit, date, note: (note || 'Ürün çıkış') + ' [COST]' + costMeta,
+      amount: deduct, unit: p.unit, date, note: note || 'Ürün çıkış',
       timestamp: new Date().toISOString(), createdBy: data.activeUser || '',
       personCount, unitPrice, totalCost: tc, costPerPerson: cp
     });
