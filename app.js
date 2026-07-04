@@ -5173,26 +5173,6 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // Giriş formu: isim listesine hızlı ekle
-  const entryAddNameBtn = document.getElementById('entry-add-name-btn');
-  if (entryAddNameBtn) {
-    entryAddNameBtn.addEventListener('click', () => {
-      const name = prompt('Yeni ürün adını girin:');
-      if (!name || !name.trim()) return;
-      const trimmed = name.trim();
-      if (data.productNames.includes(trimmed)) { toast('Zaten listede.', 'info'); return; }
-      data.productNames.push(trimmed);
-      data.productNames.sort((a, b) => a.localeCompare(b));
-      saveData();
-      const ns = document.getElementById('entry-name');
-      if (ns) {
-        ns.innerHTML = '<option value="">Ürün Adı Seçin</option>' +
-          data.productNames.map(n => `<option value="${htmlEscape(n)}">${htmlEscape(n)}</option>`).join('');
-        ns.value = trimmed;
-        _csRefresh('entry-name');
-      }
-      toast(`"${trimmed}" isim listesine eklendi.`, 'success');
-    });
-  }
 
   // Ay menüsü yıl değişikliği
   document.getElementById('months-year-select').addEventListener('change', buildMonthMenu);
