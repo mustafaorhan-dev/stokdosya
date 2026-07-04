@@ -80,6 +80,11 @@ async function supabaseSave() {
       try { await supabaseFetch('POST', 'products', null, productArray); } catch(e) { toast('❌ Ürünler Supabase\'e kaydedilemedi', 'error'); }
     }
 
+    // Ürün isim listesini products'tan senkronize et
+    Object.values(data.products).forEach(p => {
+      if (p.name && !data.productNames.includes(p.name)) data.productNames.push(p.name);
+    });
+
     // Product names + units → transactions tablosuna meta kayıt olarak (UPSERT çalışıyor)
     const listPayload = JSON.stringify({
       companies: data.companies || [],
@@ -125,6 +130,20 @@ async function supabaseSave() {
         price: t.price || 0, year: t.year || new Date().getFullYear()
       }));
       try { await supabaseFetch('POST', 'tenders', null, tenderArray); } catch(e) { toast('❌ İhale kayıtları Supabase\'e kaydedilemedi', 'error'); }
+    }
+
+    // Companies ayrı tabloya kaydet
+    if (data.companies.length > 0) {
+      const compArray = data.companies.map(name => ({ name }));
+      try { await supabaseFetch('POST', 'companies', { on_conflict: 'name' }, compArray); } catch(e) { console.warn('⚠️ companies tablosuna yazılamadı:', e); }
+    }
+
+    // Product names ayrı tabloya kaydet
+    const pnArray = data.productNames.map(name => ({
+      name, unit: (data.productUnits || {})[name] || ''
+    }));
+    if (pnArray.length > 0) {
+      try { await supabaseFetch('POST', 'product_names', { on_conflict: 'name' }, pnArray); } catch(e) { console.warn('⚠️ product_names tablosuna yazılamadı:', e); }
     }
 
     if (statusEl) statusEl.textContent = 'Sunucuya Bağlı';
@@ -433,8 +452,12 @@ function initData() {
       if (p.companyName && !data.companies.includes(p.companyName)) {
         data.companies.push(p.companyName);
       }
+      if (p.name && !data.productNames.includes(p.name)) {
+        data.productNames.push(p.name);
+      }
     });
     data.companies.sort((a, b) => a.localeCompare(b));
+    data.productNames.sort((a, b) => a.localeCompare(b));
   }
 }
 
@@ -1904,6 +1927,53 @@ function refreshAggregatedStock() {
   }).join('');
 }
 
+function aggStockExportPrint() {
+  const prods = Object.values(data.products).filter(p => p.active !== false);
+  const groups = {};
+  prods.forEach(p => {
+    if (!groups[p.name]) groups[p.name] = { name: p.name, totalStock: 0, unit: p.unit || '', categories: new Set(), batchCount: 0, sttDates: [] };
+    groups[p.name].totalStock += p.stock;
+    groups[p.name].batchCount++;
+    if (p.category) groups[p.name].categories.add(p.category);
+    if (p.unit && !groups[p.name].unit) groups[p.name].unit = p.unit;
+    if (p.stt) groups[p.name].sttDates.push(p.stt);
+  });
+  let entries = Object.values(groups).filter(e => e.totalStock > 0).sort((a, b) => a.name.localeCompare(b.name));
+  const w = window.open('', '_blank');
+  w.document.write(`
+    <html><head><title>Depodaki Ürün Miktarları</title>
+    <style>
+      body { font-family:Arial; padding:24px; color:#1e293b; }
+      h2 { margin-bottom:4px; font-size:20px; }
+      .sub { color:#64748b; margin-bottom:16px; font-size:13px; }
+      table { width:100%; border-collapse:collapse; font-size:12px; }
+      th, td { border:1px solid #cbd5e1; padding:6px 10px; text-align:left; }
+      th { background:#f1f5f9; font-size:11px; text-transform:uppercase; }
+      .r { text-align:right; }
+      @media print { .no-print { display:none; } body { padding:12px; } }
+    </style></head>
+    <body>
+      <h2>Depodaki Ürün Miktarları</h2>
+      <p class="sub">Oluşturulma: ${new Date().toLocaleDateString('tr-TR')}</p>
+      <table>
+        <thead><tr><th>#</th><th>Ürün Adı</th><th class="r">Toplam Stok</th><th>Birim</th><th class="r">Parti Sayısı</th><th>Kategoriler</th><th>En Erken STT</th><th>En Geç STT</th></tr></thead>
+        <tbody>
+          ${entries.map((e, i) => {
+            const sttVals = e.sttDates.filter(Boolean).sort();
+            const enErken = sttVals.length ? formatDate(sttVals[0]) : '—';
+            const enGec = sttVals.length ? formatDate(sttVals[sttVals.length - 1]) : '—';
+            const catStr = [...e.categories].join(', ');
+            return `<tr><td>${i + 1}</td><td><strong>${htmlEscape(e.name)}</strong></td><td class="r">${_fmt(e.totalStock)}</td><td>${htmlEscape(e.unit || '—')}</td><td class="r">${e.batchCount}</td><td>${htmlEscape(catStr || '—')}</td><td>${enErken}</td><td>${enGec}</td></tr>`;
+          }).join('')}
+        </tbody>
+      </table>
+      <p style="font-size:11px;color:#94a3b8;margin-top:20px;">STOKDEPO — Otomatik oluşturulmuş rapordur.</p>
+      <script>window.print();<\/script>
+    </body></html>
+  `);
+  w.document.close();
+}
+
 // Kategori filtreleme + Anbar filtre butonları
 document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('category-filter-container').addEventListener('click', (e) => {
@@ -2251,10 +2321,7 @@ document.getElementById('new-product-form').addEventListener('submit', async (e)
   e.preventDefault();
   if (isViewOnly()) { toast('Görüntüleme modunda ürün ekleyemezsiniz.', 'error'); return; }
 
-  // Supabase'ten son veriyi çek
-  if (isSupabaseReady()) {
-    try { const r = await supabaseLoad(); if (r) { data.products = r.products || {}; } } catch (e) { /* sessiz */ }
-  }
+  // Not: supabaseLoad veri kaybına yol açabileceği için kaldırıldı
 
   const isEdit = document.getElementById('np-is-edit').value === 'true';
   let partiNo = document.getElementById('np-id').value.trim().toUpperCase();
@@ -2554,8 +2621,7 @@ document.getElementById('entry-form').addEventListener('submit', async (e) => {
 
   // Supabase'ten son veriyi çek
   if (isSupabaseReady()) {
-    try { const r = await supabaseLoad(); if (r) { data.products = r.products || {}; } } catch (e) { /* sessiz */ }
-  }
+  // Not: supabaseLoad veri kaybına yol açabileceği için kaldırıldı
 
   const name = document.getElementById('entry-name').value.trim();
   const category = document.getElementById('entry-category').value;
@@ -2585,7 +2651,7 @@ document.getElementById('entry-form').addEventListener('submit', async (e) => {
 
   // Yeni ürün oluştur
   data.products[partiNo] = {
-    partiNo, name, category, unit, stock: amount, criticalLevel: 50, stt, companyName,
+    partiNo, name, category, unit, stock: amount, criticalLevel: 0, stt, companyName,
     active: true, createdAt: new Date().toISOString(), createdBy: data.activeUser || ''
   };
 
@@ -2602,7 +2668,14 @@ document.getElementById('entry-form').addEventListener('submit', async (e) => {
   let ihaleMsg = '';
   if (data.tenders && data.tenders.length && companyName) {
     const eslesen = data.tenders.filter(t => t.companyName === companyName && t.product === name);
-    eslesen.forEach(t => { t.delivered += amount; });
+    if (eslesen.length) {
+      const kalan = eslesen[0].quantity - eslesen[0].delivered;
+      if (amount > kalan) {
+        if (!confirm(`⚠️ Bu giriş ihale miktarını aşıyor! İhale: ${eslesen[0].quantity} kg, Teslim: ${eslesen[0].delivered} kg, Kalan: ${kalan} kg, Gireceğiniz: ${amount} kg. Devam etmek istiyor musunuz?`)) return;
+        if (!confirm(`❗ Son onay: ${amount} kg girişi ihale toplamını aşacak. Yine de kaydetmek istediğinize emin misiniz?`)) return;
+      }
+      eslesen.forEach(t => { t.delivered += amount; });
+    }
     if (eslesen.length) { await saveData(); ihaleMsg = ` | ✅ "${companyName}" ihaleye işlendi`; }
   }
 
@@ -2680,7 +2753,14 @@ document.getElementById('exit-form').addEventListener('submit', async (e) => {
 
   const parts = Object.values(data.products)
     .filter(p => p.active !== false && p.name === productName && (p.stock || 0) > 0)
-    .sort((a, b) => (a.createdAt || '').localeCompare(b.createdAt || ''));
+    .sort((a, b) => {
+      // Önce STT'si en yakın olan (FEFO), STT yoksa en eski giriş (FIFO)
+      const aStt = a.stt || '9999-99-99';
+      const bStt = b.stt || '9999-99-99';
+      const sttDiff = aStt.localeCompare(bStt);
+      if (sttDiff !== 0) return sttDiff;
+      return (a.createdAt || '').localeCompare(b.createdAt || '');
+    });
 
   if (!parts.length) { toast('Bu ürün için stok bulunamadı.', 'error'); return; }
 
@@ -3404,7 +3484,7 @@ function refreshSettings() {
       <span style="flex:1;min-width:120px;"><strong>${htmlEscape(u.name)}</strong> <span style="color:var(--text-secondary);font-size:13px;">— ${htmlEscape(u.role)}</span> ${aktif ? '<span style="background:var(--primary-light);color:var(--primary);padding:2px 8px;border-radius:999px;font-size:11px;font-weight:700;margin-left:6px;">AKTİF</span>' : ''} ${!aktifMi ? '<span style="background:var(--accent);color:#fff;padding:2px 8px;border-radius:999px;font-size:11px;font-weight:700;margin-left:6px;">PASİF</span>' : ''}</span>
       <span style="font-size:13px;color:var(--text-muted);font-family:monospace;">${'•'.repeat(8)}</span>
       ${canEditPass ? `<button class="btn-ui btn-sm btn-outline" onclick="editUserPassword('${u.name.replace(/'/g, '&#39;')}')" title="Şifre Değiştir" style="padding:4px 8px;font-size:12px;"><i class="fa-solid fa-key"></i></button>` : ''}
-      ${isAdmin && u.name !== 'MUSTAFA ORHAN' ? `<button class="btn-ui btn-sm ${aktifMi ? 'btn-outline' : ''}" onclick="toggleUserActive('${u.name.replace(/'/g, '&#39;')}')" style="color:${aktifMi ? 'var(--accent)' : 'var(--success)'};padding:4px 10px;font-size:12px;border:1px solid currentColor;border-radius:var(--border-radius-sm);background:transparent;cursor:pointer;">${aktifMi ? 'Pasif Yap' : 'Aktifleştir'}</button>
+      ${admin && u.name !== 'MUSTAFA ORHAN' ? `<button class="btn-ui btn-sm ${aktifMi ? 'btn-outline' : ''}" onclick="toggleUserActive('${u.name.replace(/'/g, '&#39;')}')" style="color:${aktifMi ? 'var(--accent)' : 'var(--success)'};padding:4px 10px;font-size:12px;border:1px solid currentColor;border-radius:var(--border-radius-sm);background:transparent;cursor:pointer;">${aktifMi ? 'Pasif Yap' : 'Aktifleştir'}</button>
       <button class="btn-ui btn-sm btn-outline" onclick="deleteUserPermanently('${u.name.replace(/'/g, '&#39;')}')" title="Kullanıcıyı Sil" style="color:var(--accent);padding:4px 8px;font-size:12px;margin-left:4px;"><i class="fa-solid fa-trash-can"></i></button>` : ''}
     </li>`;
   }).join('');
