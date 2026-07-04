@@ -107,9 +107,9 @@ async function supabaseSave() {
       try { await supabaseFetch('POST', 'transactions', null, txArray); } catch(e) { toast('❌ İşlemler Supabase\'e kaydedilemedi', 'error'); }
     }
 
-    // Cost bilgilerini ayrı tabloya kaydet
+    // Cost bilgilerini kaydet (transaction_id = id, upsert çalışır)
     const costRows = data.transactions.filter(t => (t.personCount || 0) > 0 || (t.unitPrice || 0) > 0).map(t => ({
-      id: Math.floor(Math.random() * 1000000000), transaction_id: t.id,
+      id: t.id, transaction_id: t.id,
       parti_no: t.partiNo, product_name: t.productName,
       amount: t.amount, unit: t.unit, date: t.date,
       person_count: t.personCount || 0, unit_price: t.unitPrice || 0,
@@ -2811,19 +2811,6 @@ document.getElementById('exit-form').addEventListener('submit', async (e) => {
 
   transactions.forEach(t => data.transactions.push(t));
   await saveData();
-
-  // Cost bilgilerini ayrı costs tablosuna kaydet
-  const costRows = transactions.filter(t => t.personCount > 0 || t.unitPrice > 0).map(t => ({
-    id: Math.floor(Math.random() * 1000000000), transaction_id: t.id,
-    parti_no: t.partiNo, product_name: t.productName,
-    amount: t.amount, unit: t.unit, date: t.date,
-    person_count: t.personCount || 0, unit_price: t.unitPrice || 0,
-    total_cost: t.totalCost || 0, cost_per_person: t.costPerPerson || 0,
-    note: t.note || '', created_by: data.activeUser || ''
-  }));
-  if (costRows.length > 0) {
-    try { await supabaseFetch('POST', 'costs', null, costRows); } catch(e) { console.warn('costs kaydedilemedi:', e); }
-  }
 
   toast(`${_fmt(amount)} ${parts[0].unit} ${productName} çıkışı kaydedildi.`, 'success');
   navigateTo('dashboard');
