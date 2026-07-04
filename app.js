@@ -3362,6 +3362,45 @@ function refreshTenders() {
   refreshTenderChart();
 }
 
+function pdfTenders() {
+  if (!data.tenders || !data.tenders.length) { toast('Yazdırılacak ihale kaydı yok.', 'info'); return; }
+  const yilFiltre = document.getElementById('tender-year-filter')?.value || '';
+  const firmaFiltre = document.getElementById('tender-company-filter')?.value || '';
+  let filtreli = data.tenders;
+  if (yilFiltre) filtreli = filtreli.filter(t => String(t.year || new Date().getFullYear()) === yilFiltre);
+  if (firmaFiltre) filtreli = filtreli.filter(t => t.companyName === firmaFiltre);
+  const satirlar = filtreli.map(t => {
+    const kalan = t.quantity - t.delivered;
+    const sozlesme = t.price * t.quantity;
+    const teslim = t.price * t.delivered;
+    const oran = sozlesme > 0 ? ((teslim / sozlesme) * 100).toFixed(1) : 0;
+    return `<tr><td>${htmlEscape(t.companyName)}</td><td>${t.year || ''}</td><td>${htmlEscape(t.product)}</td><td style="text-align:right">${_fmt(t.quantity)}</td><td style="text-align:right">${_fmt(t.delivered)}</td><td style="text-align:right">${_fmt(kalan)}</td><td style="text-align:right">${_fmt(t.price)} ₺</td><td style="text-align:right;font-weight:700">%${oran}</td></tr>`;
+  }).join('');
+  const baslik = `${yilFiltre || 'Tüm Yıllar'}${firmaFiltre ? ' — ' + firmaFiltre : ''}`;
+  const w = window.open('', '_blank');
+  w.document.write(`
+    <html><head><title>İhale Takip Listesi</title>
+    <style>
+      body { font-family:Arial; padding:24px; color:#1e293b; }
+      h2 { margin-bottom:4px; }
+      .sub { color:#64748b; margin-bottom:16px; font-size:13px; }
+      table { width:100%; border-collapse:collapse; font-size:12px; }
+      th, td { border:1px solid #cbd5e1; padding:6px 10px; text-align:left; }
+      th { background:#f1f5f9; text-transform:uppercase; font-size:11px; }
+    </style></head>
+    <body>
+      <h2>İhale Takip Listesi</h2>
+      <p class="sub">Filtre: ${htmlEscape(baslik)} &nbsp;|&nbsp; Toplam: ${filtreli.length} kayıt</p>
+      <table>
+        <thead><tr><th>Firma</th><th>Yıl</th><th>Ürün</th><th style="text-align:right">Anlaşma</th><th style="text-align:right">Teslim</th><th style="text-align:right">Kalan</th><th style="text-align:right">Birim Fiyat</th><th style="text-align:right">Oran</th></tr></thead>
+        <tbody>${satirlar}</tbody>
+      </table>
+      <script>window.print();<\/script>
+    </body></html>
+  `);
+  w.document.close();
+}
+
 function openTenderModal(editId) {
   const modal = document.getElementById('tender-modal');
   const form = document.getElementById('tender-form');
@@ -5265,7 +5304,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Periyodik kontrol: 30 saniyede bir Supabase'den taze veri çek
     setInterval(() => {
       if (document.visibilityState === 'visible') autoPull();
-    }, 40000);
+    }, 60000);
     document.addEventListener('visibilitychange', () => {
       if (document.visibilityState === 'visible') autoPull();
     });
