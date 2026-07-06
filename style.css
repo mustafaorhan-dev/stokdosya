@@ -783,7 +783,6 @@ input[type="file"].form-control { padding: 8px; }
 /* MEDIUM-LARGE SCREENS (1920px+ / 27") */
 @media (min-width: 1600px) and (max-width: 1999px) {
   :root { --sidebar-w: clamp(240px, 15vw, 280px); }
-  .view-section { padding: clamp(20px, 2vw, 36px); }
   .stats-grid { grid-template-columns: repeat(4, 1fr); }
   .dashboard-grid-3 { grid-template-columns: repeat(3, 1fr); }
 }
