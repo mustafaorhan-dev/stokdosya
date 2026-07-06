@@ -1374,6 +1374,7 @@ document.addEventListener('DOMContentLoaded', () => {
 // ----- TOAST -----
 function toast(msg, type = 'info') {
   const container = document.getElementById('toast-container');
+  if (!container) { alert(msg); return; }
   const el = document.createElement('div');
   el.className = `toast ${type}`;
   const icons = { success: '✅', error: '❌', warning: '⚠️', info: 'ℹ️' };
@@ -3607,11 +3608,11 @@ document.getElementById('tender-form').addEventListener('submit', (e) => {
   const price = _parseAmount(document.getElementById('tender-price').value);
   const year = parseInt(document.getElementById('tender-year')?.value) || new Date().getFullYear();
 
-  if (!companyName) { toast('Lütfen firma adı seçin.', 'error'); return; }
-  if (!product) { toast('Lütfen ürün adı girin.', 'error'); return; }
-  if (!unit) { toast('Lütfen birim girin (kg, adet, paket...).', 'error'); return; }
-  if (!quantity) { toast('Lütfen anlaşma miktarı girin.', 'error'); return; }
-  if (!price) { toast('Lütfen birim fiyat girin.', 'error'); return; }
+  if (!companyName) { toast('Firma adı seçin!', 'error'); return; }
+  if (!product) { toast('Ürün adı girin!', 'error'); return; }
+  if (!unit) { toast('Birim girin (kg, adet...)!', 'error'); return; }
+  if (!quantity) { toast('Miktar girin!', 'error'); return; }
+  if (!price) { toast('Birim fiyat girin!', 'error'); return; }
 
   // Stok güncelleme yardımcısı
   function _stokGuncelle(eski, yeni) {
