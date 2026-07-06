@@ -2553,8 +2553,8 @@ function refreshSuppliers() {
       return `<tr>
       <td><strong>${htmlEscape(c)}</strong></td>
       <td style="text-align:right;white-space:nowrap;">
-        ${isViewOnly() ? '' : `<button class="btn-ui btn-sm btn-outline" onclick="editSupplier('${enc}')" title="Düzenle" style="color:var(--warning);margin-right:4px;"><i class="fa-solid fa-pen"></i></button>`}
-        ${isViewOnly() ? '' : `<button class="btn-ui btn-sm btn-outline" onclick="deleteSupplier('${enc}')" title="Sil" style="color:var(--accent);"><i class="fa-solid fa-trash-can"></i></button>`}
+        ${isAdmin() ? `<button class="btn-ui btn-sm btn-outline" onclick="editSupplier('${enc}')" title="Düzenle" style="color:var(--warning);margin-right:4px;"><i class="fa-solid fa-pen"></i></button>` : ''}
+        ${isAdmin() ? `<button class="btn-ui btn-sm btn-outline" onclick="deleteSupplier('${enc}')" title="Sil" style="color:var(--accent);"><i class="fa-solid fa-trash-can"></i></button>` : ''}
       </td>
     </tr>`;
     }).join('') +
@@ -2563,7 +2563,7 @@ function refreshSuppliers() {
 
 async function deleteSupplier(enc) {
   const name = decodeURIComponent(enc);
-  if (isViewOnly()) { toast('Görüntüleme modunda tedarikçi silemezsiniz.', 'error'); return; }
+  if (!isAdmin()) { toast('Tedarikçi silme için yönetici yetkisi gerekli.', 'error'); return; }
   if (!confirm(`"${name}" tedarikçisini silmek istediğinize emin misiniz?`)) return;
   data.companies = (data.companies || []).filter(c => c !== name);
   await saveData();
@@ -2574,7 +2574,7 @@ async function deleteSupplier(enc) {
 
 function editSupplier(enc) {
   const name = decodeURIComponent(enc);
-  if (isViewOnly()) { toast('Görüntüleme modunda tedarikçi düzenleyemezsiniz.', 'error'); return; }
+  if (!isAdmin()) { toast('Tedarikçi düzenleme için yönetici yetkisi gerekli.', 'error'); return; }
   const yeni = prompt(`"${name}" için yeni ad girin:`, name);
   if (!yeni || yeni.trim().toUpperCase() === name) return;
   const yeniAd = yeni.trim().toUpperCase();
@@ -2613,7 +2613,7 @@ function editSupplier(enc) {
   const input = document.getElementById('new-supplier-input');
   if (!addBtn || !input) return;
   const addSupplier = () => {
-    if (isViewOnly()) { toast('Görüntüleme modunda tedarikçi ekleyemezsiniz.', 'error'); return; }
+    if (!isAdmin()) { toast('Tedarikçi ekleme için yönetici yetkisi gerekli.', 'error'); return; }
     const name = input.value.trim().toUpperCase();
     if (!name) { toast('Tedarikçi adı girin.', 'error'); return; }
     if ((data.companies || []).includes(name)) { toast('Bu tedarikçi zaten var!', 'error'); return; }
@@ -3811,14 +3811,14 @@ function refreshProductNames() {
       <td><strong>${htmlEscape(n)}</strong></td>
       <td style="text-align:center;color:var(--text-secondary);font-size:0.85rem;">${htmlEscape(unit)}</td>
       <td style="text-align:right;white-space:nowrap;">
-        ${isViewOnly() ? '' : `<button class="btn-ui btn-sm btn-outline" onclick="editProductName('${enc}')" title="Düzenle" style="color:var(--warning);margin-right:4px;"><i class="fa-solid fa-pen"></i></button>`}
-        ${isViewOnly() ? '' : `<button class="btn-ui btn-sm btn-outline" onclick="deleteProductName('${enc}')" title="Sil" style="color:var(--accent);margin-right:4px;"><i class="fa-solid fa-trash-can"></i></button>`}
-        ${isViewOnly() ? '' : `<input type="checkbox" class="bulk-product-cb" data-enc="${enc}" style="width:16px;height:16px;cursor:pointer;vertical-align:middle;">`}
+        ${isAdmin() ? `<button class="btn-ui btn-sm btn-outline" onclick="editProductName('${enc}')" title="Düzenle" style="color:var(--warning);margin-right:4px;"><i class="fa-solid fa-pen"></i></button>` : ''}
+        ${isAdmin() ? `<button class="btn-ui btn-sm btn-outline" onclick="deleteProductName('${enc}')" title="Sil" style="color:var(--accent);margin-right:4px;"><i class="fa-solid fa-trash-can"></i></button>` : ''}
+        ${isAdmin() ? `<input type="checkbox" class="bulk-product-cb" data-enc="${enc}" style="width:16px;height:16px;cursor:pointer;vertical-align:middle;">` : ''}
       </td>
     </tr>`;
     }).join('') +
     '</tbody></table>' +
-    (isViewOnly() ? '' : `<div style="margin-top:8px;display:flex;gap:6px;align-items:center;">
+    (isAdmin() ? `<div style="margin-top:8px;display:flex;gap:6px;align-items:center;">
       <button id="bulk-delete-products-btn" class="btn-ui btn-sm btn-accent"><i class="fa-solid fa-trash-can"></i> Seçilenleri Sil</button>
       <span id="bulk-product-count" style="font-size:0.85rem;color:var(--text-muted);">0 seçili</span>
     </div>`);
@@ -3878,7 +3878,7 @@ function printProductNameList() {
 
 function editProductName(enc) {
   const name = decodeURIComponent(enc);
-  if (isViewOnly()) { toast('Görüntüleme modunda ürün adı düzenleyemezsiniz.', 'error'); return; }
+  if (!isAdmin()) { toast('Ürün adı düzenleme için yönetici yetkisi gerekli.', 'error'); return; }
   const yeni = prompt(`"${name}" için yeni ad girin:`, name);
   if (!yeni || yeni.trim() === name) {
     // ad değişmedi, sadece birim güncelleme dene
@@ -3923,7 +3923,7 @@ function editProductName(enc) {
 }
 
 function addProductName() {
-  if (isViewOnly()) { toast('Görüntüleme modunda ürün adı ekleyemezsiniz.', 'error'); return; }
+  if (!isAdmin()) { toast('Ürün adı ekleme için yönetici yetkisi gerekli.', 'error'); return; }
   const input = document.getElementById('new-product-name-input');
   const unitInput = document.getElementById('new-product-unit-input');
   const name = input.value.trim();
@@ -3945,7 +3945,7 @@ function addProductName() {
 
 async function deleteProductName(enc) {
   const name = decodeURIComponent(enc);
-  if (isViewOnly()) { toast('Görüntüleme modunda ürün ismi silemezsiniz.', 'error'); return; }
+  if (!isAdmin()) { toast('Ürün adı silme için yönetici yetkisi gerekli.', 'error'); return; }
   if (!confirm(`"${name}" ürün ismini listeden kaldırmak istediğinize emin misiniz?`)) return;
   data.productNames = data.productNames.filter(n => n !== name);
   if (data.productUnits) delete data.productUnits[name];
@@ -4057,7 +4057,7 @@ document.getElementById('product-name-list').addEventListener('change', (e) => {
 });
 document.addEventListener('click', (e) => {
   if (e.target.id === 'bulk-delete-products-btn') {
-    if (isViewOnly()) { toast('Görüntüleme modunda silemezsiniz.', 'error'); return; }
+    if (!isAdmin()) { toast('Toplu silme için yönetici yetkisi gerekli.', 'error'); return; }
     const checked = document.querySelectorAll('.bulk-product-cb:checked');
     if (!checked.length) { toast('Seçili ürün yok.', 'info'); return; }
     const names = [];
