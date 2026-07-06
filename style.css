@@ -204,6 +204,14 @@ body {
 }
 .minimal-table tr:hover td { background: var(--bg-hover); }
 .minimal-table tr:last-child td { border-bottom: 0; }
+/* TENDER COMPACT TABLE */
+.tender-table { table-layout: fixed; }
+.tender-table th, .tender-table td { padding: 4px 5px !important; font-size: clamp(10px, 0.7vw, 12px) !important; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.tender-table td:first-child, .tender-table th:first-child { padding-left: 8px !important; }
+.tender-table td:last-child, .tender-table th:last-child { padding-right: 8px !important; text-align: right; }
+.tender-table th { letter-spacing: 0.5px; font-size: clamp(8px, 0.55vw, 10px) !important; }
+.tender-table td:nth-child(4), .tender-table td:nth-child(6), .tender-table td:nth-child(7), .tender-table td:nth-child(8), .tender-table td:nth-child(9), .tender-table td:nth-child(10), .tender-table td:nth-child(11) { text-align: right; }
+.table-wrap { overflow-x: auto; padding: 0 0 0 0 !important; }
 /* CATEGORY BADGES */
 .category-badges-container {
   display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px;
