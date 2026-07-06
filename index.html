@@ -964,6 +964,7 @@
                             <button class="btn-ui btn-primary" style="font-size:13px;padding:6px 14px;" onclick="pdfTenders()"><i class="fa-solid fa-print"></i> Çıktı Al</button>
                             <button id="csv-tender-btn" class="btn-ui btn-outline" onclick="document.getElementById('csv-tender-input').click()"><i class="fa-solid fa-upload"></i> CSV Yükle</button>
                             <input type="file" id="csv-tender-input" accept=".csv" style="display:none;" onchange="importTenderCSV(event)">
+                            <button class="btn-ui btn-outline" onclick="exportTenderCSV()"><i class="fa-solid fa-download"></i> CSV İndir</button>
                             <button id="add-tender-btn" class="btn-ui btn-primary"><i class="fa-solid fa-plus"></i> Yeni İhale</button>
                             <select id="tender-company-filter" class="form-control" style="width:auto;min-width:130px;font-size:13px;">
                                 <option value="">Tüm Firmalar</option>
@@ -1027,6 +1028,7 @@
                     <div class="panel-header">
                         <h3><i class="fa-solid fa-truck"></i> Tedarikçi Listesi <span id="supplier-count" style="font-size:0.8rem;font-weight:400;color:var(--text-muted);margin-left:6px;"></span></h3>
                         <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                            <button class="btn-ui btn-primary" onclick="printSupplierList()"><i class="fa-solid fa-print"></i> Çıktı Al</button>
                             <div style="display:flex;gap:6px;">
                                 <input type="text" id="new-supplier-input" class="form-control" placeholder="Yeni tedarikçi adı..." style="min-width:180px;">
                                 <button class="btn-ui btn-primary" id="add-supplier-btn"><i class="fa-solid fa-plus"></i> Ekle</button>
@@ -1044,6 +1046,7 @@
                 <div class="panel-container" style="margin-top:1.5rem;">
                     <div class="panel-header">
                         <h3><i class="fa-solid fa-list"></i> Ürün İsim Listesi <span id="product-name-count" style="font-size:0.8rem;font-weight:400;color:var(--text-muted);margin-left:6px;"></span></h3>
+                        <button class="btn-ui btn-primary" onclick="printProductNameList()"><i class="fa-solid fa-print"></i> Çıktı Al</button>
                     </div>
                     <div style="padding: 1.5rem;">
                         <p style="font-size: 0.9rem; color: var(--text-secondary); margin-bottom: 1rem; line-height: 1.4;">

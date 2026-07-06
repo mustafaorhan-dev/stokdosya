@@ -3429,6 +3429,24 @@ function importTenderCSV(event) {
   reader.readAsText(file, 'UTF-8');
 }
 
+function exportTenderCSV() {
+  if (!data.tenders || !data.tenders.length) { toast('İhale kaydı yok.', 'info'); return; }
+  const BOM = '\uFEFF';
+  const lines = ['Firma Adı;Yıl;Ürün;Miktar;Birim;Teslim Alınan;Birim Fiyat'];
+  data.tenders.forEach(t => {
+    lines.push(`${t.companyName};${t.year || ''};${t.product};${t.quantity};${t.unit || ''};${t.delivered || 0};${t.price}`);
+  });
+  const blob = new Blob([BOM + lines.join('\r\n')], { type: 'text/csv;charset=utf-8;' });
+  const link = document.createElement('a');
+  link.href = URL.createObjectURL(blob);
+  link.download = 'ihale_listesi.csv';
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(link.href);
+  toast('CSV indiriliyor...', 'success');
+}
+
 function refreshTenders() {
   if (!data.tenders) data.tenders = [];
   const tbody = document.getElementById('tender-body');
@@ -3817,6 +3835,44 @@ function refreshProductNames() {
   if (datalist) {
     datalist.innerHTML = data.productNames.map(n => `<option value="${htmlEscape(n)}">`).join('');
   }
+}
+
+function printSupplierList() {
+  const list = (data.companies || []).sort((a, b) => a.localeCompare(b));
+  if (!list.length) { toast('Tedarikçi listesi boş.', 'info'); return; }
+  const w = window.open('', '_blank');
+  w.document.write(`<html><head><title>Tedarikçi Listesi</title><style>
+    body{font-family:Arial;padding:24px;color:#1e293b;}
+    h2{margin-bottom:4px;} .sub{color:#64748b;margin-bottom:16px;font-size:13px;}
+    table{width:100%;border-collapse:collapse;font-size:12px;}
+    th,td{border:1px solid #cbd5e1;padding:6px 10px;text-align:left;}
+    th{background:#f1f5f9;text-transform:uppercase;font-size:11px;}
+  </style></head><body>
+    <h2>Tedarikçi Listesi</h2>
+    <p class="sub">Toplam: ${list.length} tedarikçi</p>
+    <table><thead><tr><th>#</th><th>Tedarikçi Adı</th></tr></thead><tbody>
+    ${list.map((c, i) => `<tr><td>${i + 1}</td><td>${c}</td></tr>`).join('')}
+    </tbody></table><script>window.print();<\/script></body></html>`);
+  w.document.close();
+}
+
+function printProductNameList() {
+  const names = (data.productNames || []).sort((a, b) => a.localeCompare(b));
+  if (!names.length) { toast('Ürün isim listesi boş.', 'info'); return; }
+  const w = window.open('', '_blank');
+  w.document.write(`<html><head><title>Ürün İsim Listesi</title><style>
+    body{font-family:Arial;padding:24px;color:#1e293b;}
+    h2{margin-bottom:4px;} .sub{color:#64748b;margin-bottom:16px;font-size:13px;}
+    table{width:100%;border-collapse:collapse;font-size:12px;}
+    th,td{border:1px solid #cbd5e1;padding:6px 10px;text-align:left;}
+    th{background:#f1f5f9;text-transform:uppercase;font-size:11px;}
+  </style></head><body>
+    <h2>Ürün İsim Listesi</h2>
+    <p class="sub">Toplam: ${names.length} ürün</p>
+    <table><thead><tr><th>#</th><th>Ürün Adı</th><th>Birim</th></tr></thead><tbody>
+    ${names.map((n, i) => `<tr><td>${i + 1}</td><td>${n}</td><td>${(data.productUnits || {})[n] || '—'}</td></tr>`).join('')}
+    </tbody></table><script>window.print();<\/script></body></html>`);
+  w.document.close();
 }
 
 function editProductName(enc) {
