@@ -1733,14 +1733,15 @@ function refreshDashboard() {
   const emptyMsg = document.getElementById('tender-chart-empty');
   const tenderYil = new Date().getFullYear();
   const firmaToplam = {};
-  (data.tenders || []).filter(t => t.quantity > 0 && (t.year || new Date().getFullYear()) === tenderYil).forEach(t => {
-    if (!firmaToplam[t.companyName]) firmaToplam[t.companyName] = { quantity: 0, delivered: 0 };
-    firmaToplam[t.companyName].quantity += t.quantity;
-    firmaToplam[t.companyName].delivered += (t.delivered || 0);
+  (data.tenders || []).filter(t => t.quantity > 0 && t.price > 0 && (t.year || new Date().getFullYear()) === tenderYil).forEach(t => {
+    if (!firmaToplam[t.companyName]) firmaToplam[t.companyName] = { sozlesmeTutar: 0, teslimTutar: 0 };
+    firmaToplam[t.companyName].sozlesmeTutar += t.quantity * t.price;
+    firmaToplam[t.companyName].teslimTutar += (t.delivered || 0) * t.price;
   });
   const ihaleVeri = Object.keys(firmaToplam).map(name => {
-    const { quantity, delivered } = firmaToplam[name];
-    return { label: name, pct: Math.min(100, Math.round((delivered / quantity) * 100)) };
+    const { sozlesmeTutar, teslimTutar } = firmaToplam[name];
+    const pct = sozlesmeTutar > 0 ? Math.round((teslimTutar / sozlesmeTutar) * 100) : 0;
+    return { label: name, pct: Math.min(100, pct) };
   });
   if (!ihaleVeri.length) {
     canvas.style.display = 'none';
@@ -3259,14 +3260,15 @@ function refreshTenderChart() {
   if (seciliFirma) {
     filteredTenders = filteredTenders.filter(t => t.companyName === seciliFirma);
   }
-  filteredTenders.filter(t => t.quantity > 0).forEach(t => {
-    if (!firmaToplam[t.companyName]) firmaToplam[t.companyName] = { quantity: 0, delivered: 0 };
-    firmaToplam[t.companyName].quantity += t.quantity;
-    firmaToplam[t.companyName].delivered += (t.delivered || 0);
+  filteredTenders.filter(t => t.quantity > 0 && t.price > 0).forEach(t => {
+    if (!firmaToplam[t.companyName]) firmaToplam[t.companyName] = { sozlesmeTutar: 0, teslimTutar: 0 };
+    firmaToplam[t.companyName].sozlesmeTutar += t.quantity * t.price;
+    firmaToplam[t.companyName].teslimTutar += (t.delivered || 0) * t.price;
   });
   const ihaleVeri = Object.keys(firmaToplam).map(name => {
-    const { quantity, delivered } = firmaToplam[name];
-    return { label: name, pct: Math.min(100, Math.round((delivered / quantity) * 100)) };
+    const { sozlesmeTutar, teslimTutar } = firmaToplam[name];
+    const pct = sozlesmeTutar > 0 ? Math.round((teslimTutar / sozlesmeTutar) * 100) : 0;
+    return { label: name, pct: Math.min(100, pct) };
   });
   if (!ihaleVeri.length) {
     canvas.style.display = 'none';
