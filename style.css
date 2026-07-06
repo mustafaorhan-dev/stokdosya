@@ -143,7 +143,7 @@ body {
   color: var(--text-secondary); white-space: nowrap;
 }
 /* VIEW SECTIONS */
-.view-section { display: none; padding: clamp(8px, 2vw, 32px); }
+.view-section { display: none; padding: clamp(4px, 1vw, 14px); }
 .view-section.active { display: block; }
 /* STATS GRID */
 .stats-grid {
@@ -182,30 +182,28 @@ body {
 }
 .panel-header {
   display: flex; align-items: center; justify-content: space-between;
-  padding: clamp(10px, 1.5vh, 18px) clamp(12px, 1.5vw, 20px);
+  padding: clamp(6px, 1vh, 12px) clamp(8px, 1vw, 14px);
   border-bottom: 1px solid var(--border-color);
-  flex-wrap: wrap; gap: clamp(6px, 1vw, 12px);
+  flex-wrap: wrap; gap: clamp(4px, 0.6vw, 8px);
 }
 .panel-header h3 { font-size: clamp(14px, 1.2vw, 17px); font-weight: 700; color: var(--text-primary); }
-.panel-body { padding: clamp(10px, 1.5vh, 18px) clamp(12px, 1.5vw, 20px); }
+.panel-body { padding: clamp(6px, 1vh, 12px) clamp(8px, 1vw, 14px); }
 /* TABLES */
 .minimal-table { width: 100%; border-collapse: collapse; min-width: 0; }
 .minimal-table th {
-  text-align: left; padding: clamp(6px, 0.8vh, 14px) clamp(8px, 1vw, 16px);
+  text-align: left; padding: clamp(4px, 0.6vh, 10px) clamp(6px, 0.8vw, 12px);
   font-size: clamp(9px, 0.7vw, 11px);
   text-transform: uppercase; letter-spacing: 1px;
   color: var(--text-muted); border-bottom: 1px solid var(--border-color);
   background: var(--bg-secondary); white-space: nowrap;
 }
 .minimal-table td {
-  padding: clamp(6px, 0.8vh, 14px) clamp(8px, 1vw, 16px);
+  padding: clamp(4px, 0.6vh, 10px) clamp(6px, 0.8vw, 12px);
   border-bottom: 1px solid var(--border-color);
   font-size: clamp(11px, 0.9vw, 14px); color: var(--text-primary);
 }
 .minimal-table tr:hover td { background: var(--bg-hover); }
 .minimal-table tr:last-child td { border-bottom: 0; }
-#tender-tracking .minimal-table td { padding: 4px 6px; font-size: clamp(10px, 0.8vw, 13px); }
-#tender-tracking .minimal-table th { padding: 5px 6px; font-size: clamp(8px, 0.6vw, 10px); }
 /* CATEGORY BADGES */
 .category-badges-container {
   display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px;
