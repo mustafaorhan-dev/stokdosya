@@ -964,7 +964,7 @@
                             <button class="btn-ui btn-primary" style="font-size:13px;padding:6px 14px;" onclick="pdfTenders()"><i class="fa-solid fa-print"></i> Çıktı Al</button>
                             <button id="csv-tender-btn" class="btn-ui btn-outline" onclick="document.getElementById('csv-tender-input').click()"><i class="fa-solid fa-upload"></i> CSV Yükle</button>
                             <input type="file" id="csv-tender-input" accept=".csv" style="display:none;" onchange="importTenderCSV(event)">
-                            <button class="btn-ui btn-outline" onclick="exportTenderCSV()"><i class="fa-solid fa-download"></i> CSV İndir</button>
+                            <button id="csv-tender-download-btn" class="btn-ui btn-outline" onclick="exportTenderCSV()"><i class="fa-solid fa-download"></i> CSV İndir</button>
                             <button id="add-tender-btn" class="btn-ui btn-primary"><i class="fa-solid fa-plus"></i> Yeni İhale</button>
                             <select id="tender-company-filter" class="form-control" style="width:auto;min-width:130px;font-size:13px;">
                                 <option value="">Tüm Firmalar</option>

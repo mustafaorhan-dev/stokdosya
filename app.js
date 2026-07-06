@@ -3354,7 +3354,7 @@ function refreshTenderChart() {
 function importTenderCSV(event) {
   const file = event.target.files[0];
   if (!file) return;
-  if (isViewOnly()) { toast('Görüntüleme modunda CSV yükleyemezsiniz.', 'error'); event.target.value = ''; return; }
+  if (!isAdmin()) { toast('CSV yükleme için yönetici yetkisi gerekli.', 'error'); event.target.value = ''; return; }
   const reader = new FileReader();
   reader.onload = function(e) {
     try {
@@ -3430,6 +3430,7 @@ function importTenderCSV(event) {
 }
 
 function exportTenderCSV() {
+  if (!isAdmin()) { toast('CSV indirme için yönetici yetkisi gerekli.', 'error'); return; }
   if (!data.tenders || !data.tenders.length) { toast('İhale kaydı yok.', 'info'); return; }
   const BOM = '\uFEFF';
   const lines = ['Firma Adı;Yıl;Ürün;Miktar;Birim;Teslim Alınan;Birim Fiyat'];
@@ -3510,8 +3511,8 @@ function refreshTenders() {
       <td style="text-align:right;white-space:nowrap;">${_fmt(teslimTutar)} ₺</td>
       <td style="text-align:right;white-space:nowrap;color:${oranRenk};font-weight:700;">%${oran} ${uyari80}</td>
       <td style="text-align:right;white-space:nowrap;">
-        ${isViewOnly() ? '' : `<button class="btn-ui btn-sm btn-outline" onclick="editTender(${t.id})" title="Düzenle"><i class="fa-solid fa-pen"></i></button>
-        <button class="btn-ui btn-sm btn-outline" onclick="deleteTender(${t.id})" title="Sil" style="color:var(--accent);"><i class="fa-solid fa-trash-can"></i></button>`}
+        ${isAdmin() ? `<button class="btn-ui btn-sm btn-outline" onclick="editTender(${t.id})" title="Düzenle"><i class="fa-solid fa-pen"></i></button>
+        <button class="btn-ui btn-sm btn-outline" onclick="deleteTender(${t.id})" title="Sil" style="color:var(--accent);"><i class="fa-solid fa-trash-can"></i></button>` : ''}
       </td>
     </tr>`;
   }).join('');
@@ -3603,7 +3604,7 @@ function openTenderModal(editId) {
 function editTender(id) { openTenderModal(id); }
 
 async function deleteTender(id) {
-  if (isViewOnly()) { toast('Görüntüleme modunda ihale silemezsiniz.', 'error'); return; }
+  if (!isAdmin()) { toast('Bu işlem için yönetici yetkisi gerekli.', 'error'); return; }
   if (!confirm('Bu ihaleyi silmek istediğinize emin misiniz?')) return;
   const silinen = data.tenders.find(t => t.id === id);
   if (silinen && data.products) {
@@ -3630,7 +3631,7 @@ document.getElementById('add-tender-btn').addEventListener('click', () => openTe
 
 document.getElementById('tender-form').addEventListener('submit', (e) => {
   e.preventDefault();
-  if (isViewOnly()) { toast('Görüntüleme modunda ihale ekleyemezsiniz.', 'error'); return; }
+  if (!isAdmin()) { toast('Bu işlem için yönetici yetkisi gerekli.', 'error'); return; }
   const editId = document.getElementById('tender-edit-id').value;
   const companyName = document.getElementById('tender-company').value.trim().toUpperCase();
   const product = document.getElementById('tender-product').value.trim();
@@ -4705,16 +4706,18 @@ function refreshAll() {
   }
   const vo = isViewOnly();
   if (_el('add-product-btn')) _el('add-product-btn').style.display = vo ? 'none' : '';
-  if (_el('add-tender-btn')) _el('add-tender-btn').style.display = vo ? 'none' : '';
-  if (_el('add-supplier-btn')) _el('add-supplier-btn').style.display = vo ? 'none' : '';
-  if (_el('np-add-supplier')) _el('np-add-supplier').style.display = vo ? 'none' : '';
-  if (_el('add-product-name-btn')) _el('add-product-name-btn').style.display = vo ? 'none' : '';
-  if (_el('upload-names-btn')) _el('upload-names-btn').style.display = vo ? 'none' : '';
-  if (_el('new-product-name-input')) _el('new-product-name-input').style.display = vo ? 'none' : '';
-  if (_el('add-product-name-from-modal')) _el('add-product-name-from-modal').style.display = vo ? 'none' : '';
+  if (_el('add-tender-btn')) _el('add-tender-btn').style.display = isAdmin() ? '' : 'none';
+  if (_el('csv-tender-btn')) _el('csv-tender-btn').style.display = isAdmin() ? '' : 'none';
+  if (_el('csv-tender-download-btn')) _el('csv-tender-download-btn').style.display = isAdmin() ? '' : 'none';
+  if (_el('add-supplier-btn')) _el('add-supplier-btn').style.display = isAdmin() ? '' : 'none';
+  if (_el('np-add-supplier')) _el('np-add-supplier').style.display = isAdmin() ? '' : 'none';
+  if (_el('add-product-name-btn')) _el('add-product-name-btn').style.display = isAdmin() ? '' : 'none';
+  if (_el('upload-names-btn')) _el('upload-names-btn').style.display = isAdmin() ? '' : 'none';
+  if (_el('new-product-name-input')) _el('new-product-name-input').style.display = isAdmin() ? '' : 'none';
+  if (_el('add-product-name-from-modal')) _el('add-product-name-from-modal').style.display = isAdmin() ? '' : 'none';
   if (_el('entry-form')) _el('entry-form').style.display = vo ? 'none' : '';
   if (_el('exit-form')) _el('exit-form').style.display = vo ? 'none' : '';
-  if (_el('new-supplier-input')) _el('new-supplier-input').style.display = vo ? 'none' : '';
+  if (_el('new-supplier-input')) _el('new-supplier-input').style.display = isAdmin() ? '' : 'none';
 
   const settingsNav = document.querySelector('.nav-item[data-target="settings-view"]');
   if (settingsNav) settingsNav.style.display = isAdmin() ? '' : 'none';
