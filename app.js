@@ -3446,17 +3446,29 @@ function refreshTenders() {
     firmaFilter.innerHTML = '<option value="">Tüm Firmalar</option>' +
       mevcutFirmalar.map(f => `<option value="${htmlEscape(f)}"${f === seciliFirma ? ' selected' : ''}>${htmlEscape(f)}</option>`).join('');
   }
-  if (!data.tenders.length) {
-    tbody.innerHTML = '<tr><td colspan="12" style="text-align:center;color:var(--text-muted);padding:40px;">Henüz ihale kaydı yok.</td></tr>';
-    refreshTenderChart();
-    return;
-  }
   // Filtrelere göre süz
   const yilFiltre = yilFilter?.value || '';
   const firmaFiltre = firmaFilter?.value || '';
   let filtreli = data.tenders;
   if (yilFiltre) filtreli = filtreli.filter(t => String(t.year || new Date().getFullYear()) === yilFiltre);
   if (firmaFiltre) filtreli = filtreli.filter(t => t.companyName === firmaFiltre);
+
+  // Ürün kalem sayısını göster
+  const countBadge = document.getElementById('tender-count-badge');
+  if (countBadge) {
+    const toplam = filtreli.length;
+    const firmaAdi = firmaFiltre || (firmaFilter?.options[firmaFilter.selectedIndex]?.textContent || '');
+    const urunCesidi = [...new Set(filtreli.map(t => t.product))].length;
+    if (firmaFiltre) countBadge.textContent = `${toplam} kalem (${urunCesidi} ürün)`;
+    else if (yilFiltre) countBadge.textContent = `${toplam} kayıt`;
+    else countBadge.textContent = toplam > 0 ? `${toplam} kayıt` : '';
+  }
+
+  if (!filtreli.length) {
+    tbody.innerHTML = '<tr><td colspan="12" style="text-align:center;color:var(--text-muted);padding:40px;">Filtreye uygun ihale kaydı bulunamadı.</td></tr>';
+    refreshTenderChart();
+    return;
+  }
   tbody.innerHTML = filtreli.map(t => {
     const kalan = t.quantity - t.delivered;
     const sozlesmeTutar = t.price * t.quantity;
