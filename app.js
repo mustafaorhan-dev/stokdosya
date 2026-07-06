@@ -585,7 +585,7 @@ function isValidDate(str) {
   if (!str) return true;
   if (!/^\d{4}-\d{2}-\d{2}$/.test(str)) return false;
   const [y, m, d] = str.split('-').map(Number);
-  if (y < 2016 || y > 2040) return false;
+  if (y < 2016 || y > 2100) return false;
   const date = new Date(y, m - 1, d);
   return date.getFullYear() === y && date.getMonth() === m - 1 && date.getDate() === d;
 }
@@ -636,7 +636,7 @@ function populateYearSelect(selectId, selectedYear) {
   if (!select) return;
   const cyil = new Date().getFullYear();
   select.innerHTML = '';
-  for (let y = 2016; y <= cyil + 5; y++) {
+  for (let y = 2016; y <= cyil + 50; y++) {
     const opt = document.createElement('option');
     opt.value = y;
     opt.textContent = y + ' Yılı';
