@@ -3348,6 +3348,81 @@ function refreshTenderChart() {
     plugins: [barLabelPlugin]
   });
 }
+function importTenderCSV(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  if (isViewOnly()) { toast('Görüntüleme modunda CSV yükleyemezsiniz.', 'error'); event.target.value = ''; return; }
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      const raw = e.target.result;
+      const lines = raw.split(/\r?\n/).filter(l => l.trim());
+      if (lines.length < 1) { toast('CSV dosyası boş.', 'error'); return; }
+      const sep = lines[0].includes(';') ? ';' : lines[0].includes('\t') ? '\t' : ',';
+      const rows = lines.map(l => l.split(sep).map(c => c.trim().replace(/^["']|["']$/g, '')));
+      const header = rows[0].map(h => h.toLowerCase().replace(/[ı]/g, 'i').replace(/[İ]/g, 'I').replace(/[ş]/g, 's').replace(/[ğ]/g, 'g').replace(/[ü]/g, 'u').replace(/[ö]/g, 'o').replace(/[ç]/g, 'c'));
+      const colMap = {};
+      const colKeys = ['firma','firma adı','firmaadi','company','companyname','company_name'];
+      const yearKeys = ['yıl','yil','year'];
+      const urunKeys = ['ürün','urun','product','malzeme','mal'];
+      const miktarKeys = ['miktar','quantity','anlaşma','anlasma','adet'];
+      const birimKeys = ['birim','unit'];
+      const teslimKeys = ['teslim','teslim alınan','delivered','teslimalinan'];
+      const fiyatKeys = ['birim fiyat','birimfiyat','fiyat','price','unitprice','unit_price'];
+      let dataStart = 0;
+      header.forEach((h, i) => {
+        if (colKeys.includes(h)) colMap.companyName = i;
+        else if (yearKeys.includes(h)) colMap.year = i;
+        else if (urunKeys.includes(h)) colMap.product = i;
+        else if (miktarKeys.includes(h)) colMap.quantity = i;
+        else if (birimKeys.includes(h)) colMap.unit = i;
+        else if (teslimKeys.includes(h)) colMap.delivered = i;
+        else if (fiyatKeys.includes(h)) colMap.price = i;
+      });
+      if (!colMap.companyName && !colMap.product && !colMap.quantity) {
+        colMap.companyName = 0; colMap.year = 1; colMap.product = 2; colMap.quantity = 3; colMap.unit = 4; colMap.delivered = 5; colMap.price = 6;
+        dataStart = 0;
+      } else {
+        dataStart = 1;
+      }
+      if (colMap.companyName === undefined || colMap.product === undefined || colMap.quantity === undefined) {
+        toast('CSV sütunları bulunamadı. Beklenen: Firma Adı, Yıl, Ürün, Miktar, Birim, Teslim Alınan, Birim Fiyat', 'error');
+        return;
+      }
+      const cyil = new Date().getFullYear();
+      let eklenen = 0, atlanan = 0;
+      for (let i = dataStart; i < rows.length; i++) {
+        const r = rows[i];
+        const companyName = colMap.companyName !== undefined ? r[colMap.companyName] || '' : '';
+        const year = colMap.year !== undefined ? parseInt(r[colMap.year]) || cyil : cyil;
+        const product = colMap.product !== undefined ? r[colMap.product] || '' : '';
+        const quantity = colMap.quantity !== undefined ? _parseAmount(r[colMap.quantity]) : 0;
+        const unit = colMap.unit !== undefined ? r[colMap.unit] || '' : '';
+        const delivered = colMap.delivered !== undefined ? _parseAmount(r[colMap.delivered]) || 0 : 0;
+        const price = colMap.price !== undefined ? _parseAmount(r[colMap.price]) : 0;
+        if (!companyName || !product || !quantity || !unit) { atlanan++; continue; }
+        data.tenders.push({
+          id: Math.floor(Date.now() + Math.random() * 1000 + i),
+          companyName: companyName.toUpperCase(),
+          product, quantity, unit, delivered, price, year
+        });
+        eklenen++;
+      }
+      if (eklenen > 0) {
+        saveData();
+        refreshTenders();
+        toast(`✅ ${eklenen} ihale CSV'den yüklendi.${atlanan > 0 ? ` (${atlanan} satır atlandı)` : ''}`, 'success');
+      } else {
+        toast('Hiç ihale yüklenemedi. Dosya formatını kontrol edin.', 'error');
+      }
+    } catch (err) {
+      toast('CSV ayrıştırma hatası: ' + err.message, 'error');
+    }
+    event.target.value = '';
+  };
+  reader.readAsText(file, 'UTF-8');
+}
+
 function refreshTenders() {
   if (!data.tenders) data.tenders = [];
   const tbody = document.getElementById('tender-body');
