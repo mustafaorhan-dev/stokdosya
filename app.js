@@ -3545,7 +3545,7 @@ function openTenderModal(editId) {
     const cyil = new Date().getFullYear();
     const seciliYil = editId ? data.tenders.find(x => x.id === editId)?.year || cyil : cyil;
     const yillar = [];
-    for (let y = cyil + 1; y >= 2016; y--) yillar.push(y);
+    for (let y = cyil + 50; y >= 2016; y--) yillar.push(y);
     yearSelect.innerHTML = yillar.map(y => `<option value="${y}"${y === seciliYil ? ' selected' : ''}>${y}</option>`).join('');
   }
 
