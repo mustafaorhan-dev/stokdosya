@@ -3607,7 +3607,11 @@ document.getElementById('tender-form').addEventListener('submit', (e) => {
   const price = _parseAmount(document.getElementById('tender-price').value);
   const year = parseInt(document.getElementById('tender-year')?.value) || new Date().getFullYear();
 
-  if (!companyName || !product || !quantity || !price || !unit) { toast('Tüm alanları doldurun.', 'error'); return; }
+  if (!companyName) { toast('Lütfen firma adı seçin.', 'error'); return; }
+  if (!product) { toast('Lütfen ürün adı girin.', 'error'); return; }
+  if (!unit) { toast('Lütfen birim girin (kg, adet, paket...).', 'error'); return; }
+  if (!quantity) { toast('Lütfen anlaşma miktarı girin.', 'error'); return; }
+  if (!price) { toast('Lütfen birim fiyat girin.', 'error'); return; }
 
   // Stok güncelleme yardımcısı
   function _stokGuncelle(eski, yeni) {
