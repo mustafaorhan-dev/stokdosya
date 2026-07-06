@@ -3355,8 +3355,8 @@ function importTenderCSV(event) {
   const reader = new FileReader();
   reader.onload = function(e) {
     try {
-      const raw = e.target.result;
-      const lines = raw.split(/\r?\n/).filter(l => l.trim());
+      const raw = e.target.result.replace(/^\uFEFF/, '');
+      const lines = raw.split(/\r?\n|\r/).filter(l => l.trim().length > 0);
       if (lines.length < 1) { toast('CSV dosyası boş.', 'error'); return; }
       const sep = lines[0].includes(';') ? ';' : lines[0].includes('\t') ? '\t' : ',';
       const rows = lines.map(l => l.split(sep).map(c => c.trim().replace(/^["']|["']$/g, '')));
@@ -3393,14 +3393,17 @@ function importTenderCSV(event) {
       let eklenen = 0, atlanan = 0;
       for (let i = dataStart; i < rows.length; i++) {
         const r = rows[i];
+        const maxIdx = Math.max(...Object.values(colMap).filter(v => v !== undefined));
+        if (r.length <= maxIdx) { atlanan++; continue; }
         const companyName = colMap.companyName !== undefined ? r[colMap.companyName] || '' : '';
         const year = colMap.year !== undefined ? parseInt(r[colMap.year]) || cyil : cyil;
         const product = colMap.product !== undefined ? r[colMap.product] || '' : '';
-        const quantity = colMap.quantity !== undefined ? _parseAmount(r[colMap.quantity]) : 0;
+        const quantity = colMap.quantity !== undefined ? _parseAmount(r[colMap.quantity] || '0') : 0;
         const unit = colMap.unit !== undefined ? r[colMap.unit] || '' : '';
-        const delivered = colMap.delivered !== undefined ? _parseAmount(r[colMap.delivered]) || 0 : 0;
-        const price = colMap.price !== undefined ? _parseAmount(r[colMap.price]) : 0;
-        if (!companyName || !product || !quantity || !unit) { atlanan++; continue; }
+        const delivered = colMap.delivered !== undefined ? _parseAmount(r[colMap.delivered] || '0') || 0 : 0;
+        const price = colMap.price !== undefined ? _parseAmount(r[colMap.price] || '0') : 0;
+        if (!companyName || !product || !unit) { atlanan++; continue; }
+        if (!quantity) { atlanan++; continue; }
         data.tenders.push({
           id: Math.floor(Date.now() + Math.random() * 1000 + i),
           companyName: companyName.toUpperCase(),
