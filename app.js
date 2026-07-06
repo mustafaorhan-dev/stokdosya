@@ -1412,10 +1412,10 @@ function navigateTo(target) {
   if (target === 'warehouse') _safe(refreshWarehouse);
   if (target === 'aggregated-stock') _safe(refreshAggregatedStock);
   if (target === 'month-view') _safe(refreshMonthView);
-  if (target === 'years-view') _safe(refreshYearsView);
-  if (target === 'year-compare') _safe(refreshYearCompare);
-  if (target === 'stt-tracking') _safe(refreshSttTracking);
-  if (target === 'tender-tracking') _safe(refreshTenders);
+  if (target === 'years-view') requestAnimationFrame(() => _safe(refreshYearsView));
+  if (target === 'year-compare') requestAnimationFrame(() => _safe(refreshYearCompare));
+  if (target === 'stt-tracking') requestAnimationFrame(() => _safe(refreshSttTracking));
+  if (target === 'tender-tracking') requestAnimationFrame(() => _safe(refreshTenders));
   if (target === 'suppliers') { _safe(refreshSuppliers); _safe(refreshProductNames); }
   if (target === 'critical-stock-view') _safe(refreshCriticalStock);
   if (target === 'entry') _safe(refreshEntryForm);
