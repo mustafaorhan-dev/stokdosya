@@ -3821,7 +3821,7 @@ function refreshProductNames() {
     (isAdmin() ? `<div style="margin-top:8px;display:flex;gap:6px;align-items:center;">
       <button id="bulk-delete-products-btn" class="btn-ui btn-sm btn-accent"><i class="fa-solid fa-trash-can"></i> Seçilenleri Sil</button>
       <span id="bulk-product-count" style="font-size:0.85rem;color:var(--text-muted);">0 seçili</span>
-    </div>`);
+    </div>` : '');
 
   // np-name dropdown'ini güncelle
   const nameSelect = document.getElementById('np-name');
