@@ -2180,9 +2180,9 @@ function refreshDashboard() {
             ctx.save();
             ctx.textAlign = 'left';
             ctx.textBaseline = 'middle';
-            ctx.font = 'bold 11px Outfit, Arial, sans-serif';
+            ctx.font = 'bold 14px Outfit, Arial, sans-serif';
             ctx.fillStyle = isDark ? '#fff' : '#0f172a';
-            ctx.fillText('%' + val, bar.x + 4, bar.y);
+            ctx.fillText('%' + val, bar.x + 8, bar.y);
             ctx.restore();
           });
         });
@@ -2229,11 +2229,11 @@ function refreshDashboard() {
             beginAtZero: true,
             max: 100,
             grid: { color: isDark ? 'rgba(148,163,184,0.15)' : 'rgba(0,0,0,0.08)' },
-            ticks: { callback: v => v + '%', color: labelColor, font: { size: 9 } }
+            ticks: { callback: v => v + '%', color: labelColor, font: { size: 11 } }
           },
           y: {
             grid: { display: false },
-            ticks: { color: labelColor, font: { size: 10, weight: 'bold' } }
+            ticks: { color: labelColor, font: { size: 12, weight: 'bold' } }
           }
         }
       },
