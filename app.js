@@ -1003,8 +1003,9 @@ function renderYearChart(yil) {
   });
 }
 
-// ----- YILLIK KARSILASTIRMA GRAFIGI -----
+// ----- YILLIK KARSILASTIRMA GRAFIGI (STOK) -----
 let _yearCompareChart = null;
+let _tenderYearCompareChart = null;
 
 function refreshYearCompare() {
   const select = document.getElementById('yc-product');
@@ -1012,21 +1013,13 @@ function refreshYearCompare() {
   const empty = document.getElementById('year-compare-empty');
   if (!canvas) return;
 
-  // Hangi veri tipi: stock veya tender
-  const dataTypeBtn = document.querySelector('.yc-data-type-btn.active');
-  const isTender = dataTypeBtn && dataTypeBtn.dataset.type === 'tender';
-
-  // Product filter - hem stok hem ihale ürünlerini birleştir
-  const stockUrunler = data.transactions.map(t => t.productName).filter(Boolean);
-  const tenderUrunler = data.tenders ? data.tenders.map(t => t.product).filter(Boolean) : [];
-  const urunler = [...new Set([...stockUrunler, ...tenderUrunler])].sort();
+  const urunler = [...new Set(data.transactions.map(t => t.productName).filter(Boolean))].sort();
   const secili = select.value;
   const currentHTML = select.innerHTML;
   const yeniHTML = '<option value="">Tüm Ürünler</option>' +
     urunler.map(u => `<option value="${htmlEscape(u).replace(/"/g, '&quot;')}"${u === secili ? ' selected' : ''}>${htmlEscape(u)}</option>`).join('');
   if (yeniHTML !== currentHTML) select.innerHTML = yeniHTML;
 
-  // Birim bul
   let birim = '';
   if (secili) {
     for (const p of Object.values(data.products)) {
@@ -1037,54 +1030,30 @@ function refreshYearCompare() {
         if (t.productName === secili && t.unit) { birim = t.unit; break; }
       }
     }
-    if (!birim && data.tenders) {
-      for (const t of data.tenders) {
-        if (t.product === secili && t.unit) { birim = t.unit; break; }
-      }
-    }
   }
 
-  // Veriyi yıllara göre grupla
-  const yilVal1 = {}, yilVal2 = {}, yilAdet = {};
-  if (isTender) {
-    // İhale modu: anlaşma miktarı (val1) ve teslim alınan (val2)
-    (data.tenders || []).forEach(t => {
-      if (!t.quantity) return;
-      if (secili && t.product !== secili) return;
-      const yil = t.year || new Date().getFullYear();
-      if (!yilVal1[yil]) yilVal1[yil] = 0;
-      if (!yilVal2[yil]) yilVal2[yil] = 0;
-      if (!yilAdet[yil]) yilAdet[yil] = 0;
-      yilVal1[yil] += t.quantity;
-      yilVal2[yil] += (t.delivered || 0);
-      yilAdet[yil]++;
-    });
-  } else {
-    // Stok modu: giriş (val1) ve çıkış (val2)
-    data.transactions.forEach(t => {
-      if (!t.date || !t.amount) return;
-      if (secili && t.productName !== secili) return;
-      const yil = new Date(t.date).getFullYear();
-      if (t.type === 'giris') { if (!yilVal1[yil]) yilVal1[yil] = 0; yilVal1[yil] += t.amount; }
-      else if (t.type === 'cikis') { if (!yilVal2[yil]) yilVal2[yil] = 0; yilVal2[yil] += t.amount; }
-      if (!yilAdet[yil]) yilAdet[yil] = 0;
-      yilAdet[yil]++;
-    });
-  }
+  const yilGiris = {}, yilCikis = {}, yilAdet = {};
+  data.transactions.forEach(t => {
+    if (!t.date || !t.amount) return;
+    if (secili && t.productName !== secili) return;
+    const yil = new Date(t.date).getFullYear();
+    if (t.type === 'giris') { if (!yilGiris[yil]) yilGiris[yil] = 0; yilGiris[yil] += t.amount; }
+    else if (t.type === 'cikis') { if (!yilCikis[yil]) yilCikis[yil] = 0; yilCikis[yil] += t.amount; }
+    if (!yilAdet[yil]) yilAdet[yil] = 0;
+    yilAdet[yil]++;
+  });
 
-  const tumYillar = [...new Set([...Object.keys(yilVal1), ...Object.keys(yilVal2)].map(Number))].sort((a, b) => a - b);
-  const val1DataAll = tumYillar.map(y => yilVal1[y] || 0);
-  const val2DataAll = tumYillar.map(y => yilVal2[y] || 0);
-  const toplam = val1DataAll.reduce((s, v) => s + v, 0) + val2DataAll.reduce((s, v) => s + v, 0);
+  const tumYillar = [...new Set([...Object.keys(yilGiris), ...Object.keys(yilCikis)].map(Number))].sort((a, b) => a - b);
+  const girisDataAll = tumYillar.map(y => yilGiris[y] || 0);
+  const cikisDataAll = tumYillar.map(y => yilCikis[y] || 0);
+  const toplam = girisDataAll.reduce((s, v) => s + v, 0) + cikisDataAll.reduce((s, v) => s + v, 0);
 
-  // Mode
   const activeBtn = document.querySelector('.yc-mode-btn.active');
   const mode = activeBtn ? activeBtn.dataset.mode : 'all';
   const yc = document.querySelector('.yc-year-controls');
   const sep = document.querySelector('.yc-year-sep');
   if (yc) yc.style.display = mode === 'all' ? 'none' : 'flex';
 
-  // Populate year selects
   const y1 = document.getElementById('yc-year1');
   const y2 = document.getElementById('yc-year2');
   if (tumYillar.length) {
@@ -1117,102 +1086,55 @@ function refreshYearCompare() {
 
   if (sep) sep.textContent = mode === 'range' ? '→' : 'vs';
 
-  const val1Data = goster.map(y => yilVal1[y] || 0);
-  const val2Data = goster.map(y => yilVal2[y] || 0);
+  const girisData = goster.map(y => yilGiris[y] || 0);
+  const cikisData = goster.map(y => yilCikis[y] || 0);
 
-  // ---- LABELS & SUBS ----
-  const label1 = isTender ? 'Anlaşma' : 'Giriş';
-  const label2 = isTender ? 'Teslim' : 'Çıkış';
-  const sub1 = isTender ? 'anlaşma miktarı' : 'giriş';
-  const sub2 = isTender ? 'teslim alınan' : 'çıkış';
-  const netLabel = isTender ? 'Kalan' : 'Net Değişim';
-  const countLabel = isTender ? 'Teslimat Oranı' : 'İşlem Sayısı';
-
-  document.getElementById('yc-year1-sub1').textContent = sub1;
-  document.getElementById('yc-year1-sub2').textContent = sub2;
-  document.getElementById('yc-year2-sub1').textContent = sub1;
-  document.getElementById('yc-year2-sub2').textContent = sub2;
-  document.getElementById('yc-net-label').textContent = netLabel;
-  document.getElementById('yc-count-label').textContent = countLabel;
-
-  // Tablo başlıkları
-  document.getElementById('yc-th1').textContent = isTender ? 'Anlaşma' : 'Giriş';
-  document.getElementById('yc-th2').textContent = isTender ? 'Teslim' : 'Çıkış';
-  document.getElementById('yc-th3').textContent = isTender ? 'Kalan' : 'Net';
-  document.getElementById('yc-th4').textContent = isTender ? 'Kalem Sayısı' : 'İşlem Sayısı';
-
-  // Stats
   if (mode === 'all') {
-    const total1 = val1Data.reduce((s, v) => s + v, 0);
-    const total2 = val2Data.reduce((s, v) => s + v, 0);
-    const netChange = total1 - total2;
+    const totalIn = girisData.reduce((s, v) => s + v, 0);
+    const totalOut = cikisData.reduce((s, v) => s + v, 0);
+    const netChange = totalIn - totalOut;
     const totalCount = goster.reduce((s, y) => s + (yilAdet[y] || 0), 0);
     const busiestYear = goster.length ? goster.reduce((a, b) => ((yilAdet[a] || 0) >= (yilAdet[b] || 0)) ? a : b) : null;
 
-    if (isTender) {
-      const netPct = total1 > 0 ? ((netChange / total1) * 100).toFixed(1) : '0';
-      document.getElementById('yc-year1-label').textContent = 'Toplam Anlaşma';
-      document.getElementById('yc-year2-label').textContent = 'Toplam Teslim';
-      document.getElementById('yc-year1-in').textContent = _fmt(total1);
-      document.getElementById('yc-year1-out').textContent = '—';
-      document.getElementById('yc-year2-in').textContent = '—';
-      document.getElementById('yc-year2-out').textContent = _fmt(total2);
-      const netEl = document.getElementById('yc-net-change');
-      netEl.textContent = _fmt(Math.abs(netChange)) + ' ' + birim;
-      netEl.style.color = netChange > 0 ? 'var(--success)' : netChange < 0 ? 'var(--accent)' : 'var(--text-primary)';
-      document.getElementById('yc-net-detail').textContent = `Teslim: %${netPct}`;
-      document.getElementById('yc-year1-count').textContent = goster.length + ' yıl';
-      document.getElementById('yc-year2-count').textContent = _fmt(totalCount);
-      const ccEl = document.getElementById('yc-count-change');
-      ccEl.textContent = 'kalem';
-      ccEl.style.color = 'var(--text-muted)';
-    } else {
-      document.getElementById('yc-year1-label').textContent = 'Toplam Giriş';
-      document.getElementById('yc-year2-label').textContent = 'Toplam Çıkış';
-      document.getElementById('yc-year1-in').textContent = _fmt(total1);
-      document.getElementById('yc-year1-out').textContent = '—';
-      document.getElementById('yc-year2-in').textContent = '—';
-      document.getElementById('yc-year2-out').textContent = _fmt(total2);
-      const netEl = document.getElementById('yc-net-change');
-      netEl.textContent = (netChange >= 0 ? '+' : '') + _fmt(Math.abs(netChange)) + ' ' + birim;
-      netEl.style.color = netChange > 0 ? 'var(--success)' : netChange < 0 ? 'var(--accent)' : 'var(--text-primary)';
-      document.getElementById('yc-net-detail').textContent = `En yoğun: ${busiestYear || '—'}`;
-      document.getElementById('yc-year1-count').textContent = goster.length + ' yıl';
-      document.getElementById('yc-year2-count').textContent = _fmt(totalCount);
-      const ccEl = document.getElementById('yc-count-change');
-      ccEl.textContent = 'işlem';
-      ccEl.style.color = 'var(--text-muted)';
-    }
+    document.getElementById('yc-year1-label').textContent = 'Toplam Giriş';
+    document.getElementById('yc-year2-label').textContent = 'Toplam Çıkış';
+    document.getElementById('yc-year1-in').textContent = _fmt(totalIn);
+    document.getElementById('yc-year1-out').textContent = '—';
+    document.getElementById('yc-year2-in').textContent = '—';
+    document.getElementById('yc-year2-out').textContent = _fmt(totalOut);
+
+    const netEl = document.getElementById('yc-net-change');
+    netEl.textContent = (netChange >= 0 ? '+' : '') + _fmt(Math.abs(netChange)) + ' ' + birim;
+    netEl.style.color = netChange > 0 ? 'var(--success)' : netChange < 0 ? 'var(--accent)' : 'var(--text-primary)';
+    document.getElementById('yc-net-detail').textContent = `En yoğun: ${busiestYear || '—'}`;
+
+    document.getElementById('yc-year1-count').textContent = goster.length + ' yıl';
+    document.getElementById('yc-year2-count').textContent = _fmt(totalCount);
+    const ccEl = document.getElementById('yc-count-change');
+    ccEl.textContent = 'işlem';
+    ccEl.style.color = 'var(--text-muted)';
   } else {
     const yil1 = Number(y1.value) || 0;
     const yil2 = Number(y2.value) || 0;
-    const v1y1 = yilVal1[yil1] || 0, v2y1 = yilVal2[yil1] || 0;
-    const v1y2 = yilVal1[yil2] || 0, v2y2 = yilVal2[yil2] || 0;
-    const net1 = v1y1 - v2y1;
-    const net2 = v1y2 - v2y2;
+    const g1 = yilGiris[yil1] || 0, c1 = yilCikis[yil1] || 0;
+    const g2 = yilGiris[yil2] || 0, c2 = yilCikis[yil2] || 0;
+    const net1 = g1 - c1, net2 = g2 - c2;
     const netChange = net2 - net1;
     const a1 = yilAdet[yil1] || 0, a2 = yilAdet[yil2] || 0;
     const countPct = a1 > 0 ? ((a2 - a1) / a1 * 100).toFixed(1) : (a2 > 0 ? '+100' : '0');
 
     document.getElementById('yc-year1-label').textContent = yil1 || 'Yıl 1';
     document.getElementById('yc-year2-label').textContent = yil2 || 'Yıl 2';
-    document.getElementById('yc-year1-in').textContent = _fmt(v1y1);
-    document.getElementById('yc-year1-out').textContent = _fmt(v2y1);
-    document.getElementById('yc-year2-in').textContent = _fmt(v1y2);
-    document.getElementById('yc-year2-out').textContent = _fmt(v2y2);
+    document.getElementById('yc-year1-in').textContent = _fmt(g1);
+    document.getElementById('yc-year1-out').textContent = _fmt(c1);
+    document.getElementById('yc-year2-in').textContent = _fmt(g2);
+    document.getElementById('yc-year2-out').textContent = _fmt(c2);
 
     const netEl = document.getElementById('yc-net-change');
-    if (isTender) {
-      netEl.textContent = _fmt(Math.abs(netChange)) + ' ' + birim;
-      netEl.style.color = netChange > 0 ? 'var(--success)' : netChange < 0 ? 'var(--accent)' : 'var(--text-primary)';
-      document.getElementById('yc-net-detail').textContent =
-        yil1 && yil2 ? `(${yil2} - ${yil1}) kalan farkı` : '';
-    } else {
-      netEl.textContent = (netChange >= 0 ? '+' : '') + _fmt(Math.abs(netChange)) + ' ' + birim;
-      netEl.style.color = netChange > 0 ? 'var(--success)' : netChange < 0 ? 'var(--accent)' : 'var(--text-primary)';
-      document.getElementById('yc-net-detail').textContent =
-        yil1 && yil2 ? `(${yil2} - ${yil1})` : '';
-    }
+    netEl.textContent = (netChange >= 0 ? '+' : '') + _fmt(Math.abs(netChange)) + ' ' + birim;
+    netEl.style.color = netChange > 0 ? 'var(--success)' : netChange < 0 ? 'var(--accent)' : 'var(--text-primary)';
+    document.getElementById('yc-net-detail').textContent =
+      yil1 && yil2 ? `(${yil2} - ${yil1})` : '';
 
     document.getElementById('yc-year1-count').textContent = a1;
     document.getElementById('yc-year2-count').textContent = a2;
@@ -1222,7 +1144,6 @@ function refreshYearCompare() {
     ccEl.style.color = ccVal > 0 ? 'var(--success)' : ccVal < 0 ? 'var(--accent)' : 'var(--text-primary)';
   }
 
-  // Detail table
   const tbody = document.getElementById('yc-table-body');
   const tempty = document.getElementById('yc-table-empty');
   if (!goster.length) {
@@ -1231,30 +1152,18 @@ function refreshYearCompare() {
   } else {
     tempty.style.display = 'none';
     tbody.innerHTML = goster.map(y => {
-      const v1 = yilVal1[y] || 0;
-      const v2 = yilVal2[y] || 0;
-      const net = v1 - v2;
-      if (isTender) {
-        const netPct = v1 > 0 ? ((v2 / v1) * 100).toFixed(1) : '0';
-        const netRenk = net > 0 ? 'var(--success)' : 'var(--accent)';
-        return `<tr>
-          <td style="font-weight:700;font-size:14px;">${y}</td>
-          <td style="text-align:right;font-weight:700;color:var(--primary);">${_fmt(v1)}</td>
-          <td style="text-align:right;font-weight:700;color:var(--success);">${_fmt(v2)}</td>
-          <td style="text-align:right;font-weight:700;color:${netRenk};">${_fmt(net)}</td>
-          <td style="text-align:right;color:var(--text-secondary);">%${netPct}</td>
-        </tr>`;
-      } else {
-        const netStr = (net >= 0 ? '+' : '') + _fmt(Math.abs(net));
-        const netClass = net > 0 ? 'yc-growth' : net < 0 ? 'yc-decline' : '';
-        return `<tr>
-          <td style="font-weight:700;font-size:14px;">${y}</td>
-          <td style="text-align:right;font-weight:700;color:var(--success);">${_fmt(v1)}</td>
-          <td style="text-align:right;font-weight:700;color:var(--accent);">${_fmt(v2)}</td>
-          <td style="text-align:right;font-weight:700;" class="${netClass}">${netStr}</td>
-          <td style="text-align:right;color:var(--text-secondary);">${yilAdet[y] || 0}</td>
-        </tr>`;
-      }
+      const g = yilGiris[y] || 0;
+      const c = yilCikis[y] || 0;
+      const net = g - c;
+      const netStr = (net >= 0 ? '+' : '') + _fmt(Math.abs(net));
+      const netClass = net > 0 ? 'yc-growth' : net < 0 ? 'yc-decline' : '';
+      return `<tr>
+        <td style="font-weight:700;font-size:14px;">${y}</td>
+        <td style="text-align:right;font-weight:700;color:var(--success);">${_fmt(g)}</td>
+        <td style="text-align:right;font-weight:700;color:var(--accent);">${_fmt(c)}</td>
+        <td style="text-align:right;font-weight:700;" class="${netClass}">${netStr}</td>
+        <td style="text-align:right;color:var(--text-secondary);">${yilAdet[y] || 0}</td>
+      </tr>`;
     }).join('');
   }
 
@@ -1272,19 +1181,14 @@ function refreshYearCompare() {
   const isDark = getTheme() === 'dark';
   const labelColor = isDark ? '#e2e8f0' : '#334155';
 
-  const dataset1Label = isTender ? 'Anlaşma Miktarı' : 'Giriş';
-  const dataset2Label = isTender ? 'Teslim Alınan' : 'Çıkış';
-  const ds1Color = isTender ? '#3b82f6' : '#22c55e';
-  const ds2Color = isTender ? '#22c55e' : '#ef4444';
-
   const ycLabelPlugin = {
     id: 'ycLabel',
     afterDatasetsDraw(chart) {
       const ctx = chart.ctx;
-      const meta0 = chart.getDatasetMeta(0);
-      const meta1 = chart.getDatasetMeta(1);
-      [meta0, meta1].forEach((meta, di) => {
-        const dataArr = di === 0 ? val1Data : val2Data;
+      const girisMeta = chart.getDatasetMeta(0);
+      const cikisMeta = chart.getDatasetMeta(1);
+      [girisMeta, cikisMeta].forEach((meta, di) => {
+        const dataArr = di === 0 ? girisData : cikisData;
         meta.data.forEach((bar, idx) => {
           const val = dataArr[idx];
           if (!val) return;
@@ -1306,34 +1210,34 @@ function refreshYearCompare() {
       labels: goster,
       datasets: [
         {
-          label: dataset1Label,
-          data: val1Data,
+          label: 'Giriş',
+          data: girisData,
           backgroundColor: function(ctx) {
-            if (!ctx.chart?.ctx) return isDark ? `${ds1Color}cc` : ds1Color;
+            if (!ctx.chart?.ctx) return isDark ? 'rgba(34,197,94,0.85)' : '#22c55e';
             const c = ctx.chart.ctx;
             const g = c.createLinearGradient(0, ctx.chart.height, 0, 0);
-            g.addColorStop(0, isDark ? `${ds1Color}33` : `${ds1Color}80`);
-            g.addColorStop(1, isDark ? `${ds1Color}cc` : ds1Color);
+            g.addColorStop(0, isDark ? 'rgba(34,197,94,0.2)' : 'rgba(34,197,94,0.5)');
+            g.addColorStop(1, isDark ? 'rgba(34,197,94,0.85)' : '#22c55e');
             return g;
           },
-          borderColor: isDark ? `${ds1Color}66` : `${ds1Color}4d`,
+          borderColor: isDark ? 'rgba(34,197,94,0.4)' : 'rgba(22,163,74,0.3)',
           borderWidth: 0,
           borderRadius: 6,
           barPercentage: goster.length > 3 ? 0.7 : 0.6,
           categoryPercentage: goster.length > 3 ? 0.8 : 0.7
         },
         {
-          label: dataset2Label,
-          data: val2Data,
+          label: 'Çıkış',
+          data: cikisData,
           backgroundColor: function(ctx) {
-            if (!ctx.chart?.ctx) return isDark ? `${ds2Color}cc` : ds2Color;
+            if (!ctx.chart?.ctx) return isDark ? 'rgba(239,68,68,0.85)' : '#ef4444';
             const c = ctx.chart.ctx;
             const g = c.createLinearGradient(0, ctx.chart.height, 0, 0);
-            g.addColorStop(0, isDark ? `${ds2Color}33` : `${ds2Color}80`);
-            g.addColorStop(1, isDark ? `${ds2Color}cc` : ds2Color);
+            g.addColorStop(0, isDark ? 'rgba(239,68,68,0.2)' : 'rgba(239,68,68,0.5)');
+            g.addColorStop(1, isDark ? 'rgba(239,68,68,0.85)' : '#ef4444');
             return g;
           },
-          borderColor: isDark ? `${ds2Color}66` : `${ds2Color}4d`,
+          borderColor: isDark ? 'rgba(239,68,68,0.4)' : 'rgba(220,38,38,0.3)',
           borderWidth: 0,
           borderRadius: 6,
           barPercentage: goster.length > 3 ? 0.7 : 0.6,
@@ -1401,61 +1305,9 @@ function refreshYearCompare() {
 }
 
 function pdfYearCompare() {
-  const dataTypeBtn = document.querySelector('.yc-data-type-btn.active');
-  const isTender = dataTypeBtn && dataTypeBtn.dataset.type === 'tender';
+  if (!data.transactions.length) { toast('Veri yok.', 'info'); return; }
   const secili = document.getElementById('yc-product')?.value || '';
   const urunAdi = secili || 'Tüm Ürünler';
-
-  if (isTender) {
-    if (!data.tenders || !data.tenders.length) { toast('İhale verisi yok.', 'info'); return; }
-    const yilAnlasma = {}, yilTeslim = {};
-    (data.tenders || []).forEach(t => {
-      if (!t.quantity) return;
-      if (secili && t.product !== secili) return;
-      const yil = t.year || new Date().getFullYear();
-      if (!yilAnlasma[yil]) yilAnlasma[yil] = 0;
-      if (!yilTeslim[yil]) yilTeslim[yil] = 0;
-      yilAnlasma[yil] += t.quantity;
-      yilTeslim[yil] += (t.delivered || 0);
-    });
-    const tumYillar = Object.keys(yilAnlasma).map(Number).sort((a, b) => a - b);
-    const satirlar = tumYillar.map(y => {
-      const a = yilAnlasma[y] || 0, d = yilTeslim[y] || 0;
-      const kalan = a - d;
-      const oran = a > 0 ? ((d / a) * 100).toFixed(1) : '0';
-      return `<tr><td>${y}</td><td style="text-align:right">${_fmt(a)}</td><td style="text-align:right">${_fmt(d)}</td><td style="text-align:right">${_fmt(kalan)}</td><td style="text-align:right">%${oran}</td></tr>`;
-    }).join('');
-    const tAnlasma = tumYillar.reduce((s, y) => s + (yilAnlasma[y] || 0), 0);
-    const tTeslim = tumYillar.reduce((s, y) => s + (yilTeslim[y] || 0), 0);
-    const tOran = tAnlasma > 0 ? ((tTeslim / tAnlasma) * 100).toFixed(1) : '0';
-    const w = window.open('', '_blank');
-    w.document.write(`
-      <html><head><title>Yıllık İhale Karşılaştırma</title>
-      <style>
-        body { font-family:Arial; padding:24px; color:#1e293b; }
-        h2 { margin-bottom:4px; }
-        .sub { color:#64748b; margin-bottom:16px; font-size:13px; }
-        table { width:100%; border-collapse:collapse; font-size:12px; }
-        th, td { border:1px solid #cbd5e1; padding:6px 10px; text-align:left; }
-        th { background:#f1f5f9; text-transform:uppercase; font-size:11px; }
-        .toplam { font-weight:700; background:#f8fafc; }
-      </style></head>
-      <body>
-        <h2>Yıllık İhale Karşılaştırma</h2>
-        <p class="sub">Ürün: ${htmlEscape(urunAdi)} &nbsp;|&nbsp; ${tumYillar.length} yıl</p>
-        <table>
-          <thead><tr><th>Yıl</th><th style="text-align:right">Anlaşma</th><th style="text-align:right">Teslim</th><th style="text-align:right">Kalan</th><th style="text-align:right">Oran</th></tr></thead>
-          <tbody>${satirlar}</tbody>
-          <tfoot><tr class="toplam"><td>Toplam</td><td style="text-align:right">${_fmt(tAnlasma)}</td><td style="text-align:right">${_fmt(tTeslim)}</td><td style="text-align:right">${_fmt(tAnlasma - tTeslim)}</td><td style="text-align:right">%${tOran}</td></tr></tfoot>
-        </table>
-        <script>window.print();<\/script>
-      </body></html>
-    `);
-    w.document.close();
-    return;
-  }
-
-  if (!data.transactions.length) { toast('Veri yok.', 'info'); return; }
   const yilGiris = {}, yilCikis = {};
   data.transactions.forEach(t => {
     if (!t.date || !t.amount) return;
@@ -1473,7 +1325,7 @@ function pdfYearCompare() {
   const tCikis = tumYillar.reduce((s, y) => s + (yilCikis[y] || 0), 0);
   const w = window.open('', '_blank');
   w.document.write(`
-    <html><head><title>Yıllık Karşılaştırma</title>
+    <html><head><title>Yıllık Karşılaştırma (Stok)</title>
     <style>
       body { font-family:Arial; padding:24px; color:#1e293b; }
       h2 { margin-bottom:4px; }
@@ -1484,12 +1336,334 @@ function pdfYearCompare() {
       .toplam { font-weight:700; background:#f8fafc; }
     </style></head>
     <body>
-      <h2>Yıllık Karşılaştırma</h2>
+      <h2>Yıllık Karşılaştırma (Stok)</h2>
       <p class="sub">Ürün: ${htmlEscape(urunAdi)} &nbsp;|&nbsp; ${tumYillar.length} yıl</p>
       <table>
         <thead><tr><th>Yıl</th><th style="text-align:right">Giriş</th><th style="text-align:right">Çıkış</th><th style="text-align:right">Net</th></tr></thead>
         <tbody>${satirlar}</tbody>
         <tfoot><tr class="toplam"><td>Toplam</td><td style="text-align:right">${_fmt(tGiris)}</td><td style="text-align:right">${_fmt(tCikis)}</td><td style="text-align:right">${_fmt(tGiris - tCikis)}</td></tr></tfoot>
+      </table>
+      <script>window.print();<\/script>
+    </body></html>
+  `);
+  w.document.close();
+}
+
+// ----- YILLIK KARSILASTIRMA GRAFIGI (IHALE) -----
+function refreshYearCompareTender() {
+  const select = document.getElementById('tyc-product');
+  const canvas = document.getElementById('tender-year-compare-canvas');
+  const empty = document.getElementById('tender-year-compare-empty');
+  if (!canvas) return;
+
+  const urunler = [...new Set((data.tenders || []).map(t => t.product).filter(Boolean))].sort();
+  const secili = select.value;
+  const currentHTML = select.innerHTML;
+  const yeniHTML = '<option value="">Tüm Ürünler</option>' +
+    urunler.map(u => `<option value="${htmlEscape(u).replace(/"/g, '&quot;')}"${u === secili ? ' selected' : ''}>${htmlEscape(u)}</option>`).join('');
+  if (yeniHTML !== currentHTML) select.innerHTML = yeniHTML;
+
+  const yilAnlasma = {}, yilTeslim = {};
+  (data.tenders || []).forEach(t => {
+    if (!t.quantity) return;
+    if (secili && t.product !== secili) return;
+    const yil = t.year || new Date().getFullYear();
+    if (!yilAnlasma[yil]) yilAnlasma[yil] = 0;
+    if (!yilTeslim[yil]) yilTeslim[yil] = 0;
+    yilAnlasma[yil] += t.quantity;
+    yilTeslim[yil] += (t.delivered || 0);
+  });
+
+  const tumYillar = Object.keys(yilAnlasma).map(Number).sort((a, b) => a - b);
+  const anlasmaDataAll = tumYillar.map(y => yilAnlasma[y] || 0);
+  const teslimDataAll = tumYillar.map(y => yilTeslim[y] || 0);
+  const toplam = anlasmaDataAll.reduce((s, v) => s + v, 0) + teslimDataAll.reduce((s, v) => s + v, 0);
+
+  const activeBtn = document.querySelector('.tyc-mode-btn.active');
+  const mode = activeBtn ? activeBtn.dataset.mode : 'all';
+  const yc = document.querySelector('.tyc-year-controls');
+  const sep = document.querySelector('.tyc-year-sep');
+  if (yc) yc.style.display = mode === 'all' ? 'none' : 'flex';
+
+  const y1 = document.getElementById('tyc-year1');
+  const y2 = document.getElementById('tyc-year2');
+  if (tumYillar.length) {
+    const mevcut1 = y1.value;
+    const mevcut2 = y2.value;
+    const opts = tumYillar.map(y => `<option value="${y}">${y}</option>`).join('');
+    if (y1.innerHTML !== opts) y1.innerHTML = opts;
+    if (y2.innerHTML !== opts) y2.innerHTML = opts;
+    if (!mevcut1 || !tumYillar.includes(Number(mevcut1))) y1.value = tumYillar[tumYillar.length - 2] ?? tumYillar[0];
+    if (!mevcut2 || !tumYillar.includes(Number(mevcut2))) y2.value = tumYillar[tumYillar.length - 1];
+  } else {
+    y1.innerHTML = '<option value="">—</option>';
+    y2.innerHTML = '<option value="">—</option>';
+  }
+
+  let goster;
+  if (mode === 'all') {
+    goster = tumYillar;
+  } else if (mode === 'range') {
+    const yil1 = Number(y1.value) || 0;
+    const yil2 = Number(y2.value) || 0;
+    goster = tumYillar.filter(y => y >= Math.min(yil1, yil2) && y <= Math.max(yil1, yil2));
+  } else {
+    const yil1 = Number(y1.value) || 0;
+    const yil2 = Number(y2.value) || 0;
+    goster = [...new Set([yil1, yil2].filter(Boolean))].sort((a, b) => a - b);
+  }
+
+  if (sep) sep.textContent = mode === 'range' ? '→' : 'vs';
+
+  const anlasmaData = goster.map(y => yilAnlasma[y] || 0);
+  const teslimData = goster.map(y => yilTeslim[y] || 0);
+
+  if (mode === 'all') {
+    const totalAnlasma = anlasmaData.reduce((s, v) => s + v, 0);
+    const totalTeslim = teslimData.reduce((s, v) => s + v, 0);
+    const totalKalan = totalAnlasma - totalTeslim;
+    const totalOran = totalAnlasma > 0 ? ((totalTeslim / totalAnlasma) * 100).toFixed(1) : '0';
+
+    document.getElementById('tyc-year1-label').textContent = 'Toplam Anlaşma';
+    document.getElementById('tyc-year2-label').textContent = 'Toplam Teslim';
+    document.getElementById('tyc-year1-in').textContent = _fmt(totalAnlasma);
+    document.getElementById('tyc-year1-out').textContent = '—';
+    document.getElementById('tyc-year2-in').textContent = '—';
+    document.getElementById('tyc-year2-out').textContent = _fmt(totalTeslim);
+
+    document.getElementById('tyc-kalan').textContent = _fmt(totalKalan);
+    document.getElementById('tyc-kalan').style.color = totalKalan > 0 ? 'var(--accent)' : totalKalan < 0 ? 'var(--success)' : 'var(--text-primary)';
+    document.getElementById('tyc-net-detail').textContent = `Tamamlanma: %${totalOran}`;
+
+    document.getElementById('tyc-toplam-anlasma').textContent = _fmt(totalAnlasma);
+    document.getElementById('tyc-toplam-teslim').textContent = _fmt(totalTeslim);
+    const orEl = document.getElementById('tyc-oran-text');
+    orEl.textContent = `%${totalOran}`;
+    orEl.style.color = 'var(--text-muted)';
+  } else {
+    const yil1 = Number(y1.value) || 0;
+    const yil2 = Number(y2.value) || 0;
+    const a1 = yilAnlasma[yil1] || 0, d1 = yilTeslim[yil1] || 0;
+    const a2 = yilAnlasma[yil2] || 0, d2 = yilTeslim[yil2] || 0;
+    const kalan1 = a1 - d1, kalan2 = a2 - d2;
+    const oran1 = a1 > 0 ? (d1 / a1 * 100).toFixed(1) : '0';
+    const oran2 = a2 > 0 ? (d2 / a2 * 100).toFixed(1) : '0';
+
+    document.getElementById('tyc-year1-label').textContent = yil1 || 'Yıl 1';
+    document.getElementById('tyc-year2-label').textContent = yil2 || 'Yıl 2';
+    document.getElementById('tyc-year1-in').textContent = _fmt(a1);
+    document.getElementById('tyc-year1-out').textContent = _fmt(d1);
+    document.getElementById('tyc-year2-in').textContent = _fmt(a2);
+    document.getElementById('tyc-year2-out').textContent = _fmt(d2);
+
+    document.getElementById('tyc-kalan').textContent = `${_fmt(Math.abs(kalan1))} / ${_fmt(Math.abs(kalan2))}`;
+    document.getElementById('tyc-kalan').style.color = 'var(--text-primary)';
+    document.getElementById('tyc-net-detail').textContent =
+      yil1 && yil2 ? `(%${oran1} → %${oran2})` : '';
+
+    document.getElementById('tyc-toplam-anlasma').textContent = _fmt(a1);
+    document.getElementById('tyc-toplam-teslim').textContent = _fmt(d1);
+    const orEl = document.getElementById('tyc-oran-text');
+    orEl.textContent = `(%${oran1})`;
+    orEl.style.color = 'var(--text-primary)';
+  }
+
+  const tbody = document.getElementById('tyc-table-body');
+  const tempty = document.getElementById('tyc-table-empty');
+  if (!goster.length) {
+    tbody.innerHTML = '';
+    tempty.style.display = 'block';
+  } else {
+    tempty.style.display = 'none';
+    tbody.innerHTML = goster.map(y => {
+      const a = yilAnlasma[y] || 0;
+      const d = yilTeslim[y] || 0;
+      const kalan = a - d;
+      const oran = a > 0 ? ((d / a) * 100).toFixed(1) : '0';
+      return `<tr>
+        <td style="font-weight:700;font-size:14px;">${y}</td>
+        <td style="text-align:right;font-weight:700;color:var(--success);">${_fmt(a)}</td>
+        <td style="text-align:right;font-weight:700;color:var(--accent);">${_fmt(d)}</td>
+        <td style="text-align:right;font-weight:700;color:${kalan > 0 ? 'var(--accent)' : 'var(--success)'};">${_fmt(kalan)}</td>
+        <td style="text-align:right;color:var(--text-secondary);">%${oran}</td>
+      </tr>`;
+    }).join('');
+  }
+
+  if (!toplam) {
+    canvas.style.display = 'none';
+    if (empty) empty.style.display = 'block';
+    if (_tenderYearCompareChart) { _tenderYearCompareChart.destroy(); _tenderYearCompareChart = null; }
+    return;
+  }
+  canvas.style.display = 'block';
+  if (empty) empty.style.display = 'none';
+
+  if (_tenderYearCompareChart) _tenderYearCompareChart.destroy();
+
+  const isDark = getTheme() === 'dark';
+  const labelColor = isDark ? '#e2e8f0' : '#334155';
+
+  const tycLabelPlugin = {
+    id: 'tycLabel',
+    afterDatasetsDraw(chart) {
+      const ctx = chart.ctx;
+      const anlasmaMeta = chart.getDatasetMeta(0);
+      const teslimMeta = chart.getDatasetMeta(1);
+      [anlasmaMeta, teslimMeta].forEach((meta, di) => {
+        const dataArr = di === 0 ? anlasmaData : teslimData;
+        meta.data.forEach((bar, idx) => {
+          const val = dataArr[idx];
+          if (!val) return;
+          ctx.save();
+          ctx.font = 'bold 11px Outfit, Arial, sans-serif';
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'bottom';
+          ctx.fillStyle = isDark ? '#fff' : '#0f172a';
+          ctx.fillText(_fmt(val), bar.x, bar.y - 4);
+          ctx.restore();
+        });
+      });
+    }
+  };
+
+  _tenderYearCompareChart = new Chart(canvas, {
+    type: 'bar',
+    data: {
+      labels: goster,
+      datasets: [
+        {
+          label: 'Anlaşma',
+          data: anlasmaData,
+          backgroundColor: function(ctx) {
+            if (!ctx.chart?.ctx) return isDark ? 'rgba(59,130,246,0.85)' : '#3b82f6';
+            const c = ctx.chart.ctx;
+            const g = c.createLinearGradient(0, ctx.chart.height, 0, 0);
+            g.addColorStop(0, isDark ? 'rgba(59,130,246,0.2)' : 'rgba(59,130,246,0.5)');
+            g.addColorStop(1, isDark ? 'rgba(59,130,246,0.85)' : '#3b82f6');
+            return g;
+          },
+          borderColor: isDark ? 'rgba(59,130,246,0.4)' : 'rgba(37,99,235,0.3)',
+          borderWidth: 0,
+          borderRadius: 6,
+          barPercentage: goster.length > 3 ? 0.7 : 0.6,
+          categoryPercentage: goster.length > 3 ? 0.8 : 0.7
+        },
+        {
+          label: 'Teslim',
+          data: teslimData,
+          backgroundColor: function(ctx) {
+            if (!ctx.chart?.ctx) return isDark ? 'rgba(34,197,94,0.85)' : '#22c55e';
+            const c = ctx.chart.ctx;
+            const g = c.createLinearGradient(0, ctx.chart.height, 0, 0);
+            g.addColorStop(0, isDark ? 'rgba(34,197,94,0.2)' : 'rgba(34,197,94,0.5)');
+            g.addColorStop(1, isDark ? 'rgba(34,197,94,0.85)' : '#22c55e');
+            return g;
+          },
+          borderColor: isDark ? 'rgba(34,197,94,0.4)' : 'rgba(22,163,74,0.3)',
+          borderWidth: 0,
+          borderRadius: 6,
+          barPercentage: goster.length > 3 ? 0.7 : 0.6,
+          categoryPercentage: goster.length > 3 ? 0.8 : 0.7
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      layout: { padding: { top: 32, bottom: 8 } },
+      plugins: {
+        legend: {
+          display: true,
+          position: 'bottom',
+          align: 'center',
+          labels: {
+            color: labelColor,
+            font: { size: 12, weight: '600' },
+            usePointStyle: true,
+            padding: 14
+          }
+        },
+        tooltip: {
+          backgroundColor: isDark ? '#1e293b' : '#fff',
+          titleColor: isDark ? '#e2e8f0' : '#0f172a',
+          bodyColor: isDark ? '#cbd5e1' : '#334155',
+          borderColor: isDark ? 'rgba(148,163,184,0.2)' : 'rgba(0,0,0,0.1)',
+          borderWidth: 1,
+          padding: 10,
+          cornerRadius: 8,
+          callbacks: {
+            label: ctx => ` ${ctx.dataset.label}: ${_fmt(ctx.raw)}`
+          }
+        }
+      },
+      hover: {
+        mode: 'index',
+        intersect: false
+      },
+      scales: {
+        x: {
+          grid: { display: false },
+          ticks: { color: labelColor, font: { size: 13, weight: '700' } }
+        },
+        y: {
+          beginAtZero: true,
+          grid: { color: isDark ? 'rgba(148,163,184,0.2)' : 'rgba(0,0,0,0.1)' },
+          ticks: { color: labelColor, font: { size: 11 } }
+        }
+      },
+      animation: {
+        duration: 800,
+        easing: 'easeOutQuart'
+      }
+    },
+    plugins: [tycLabelPlugin]
+  });
+}
+
+function pdfYearCompareTender() {
+  if (!data.tenders || !data.tenders.length) { toast('İhale verisi yok.', 'info'); return; }
+  const secili = document.getElementById('tyc-product')?.value || '';
+  const urunAdi = secili || 'Tüm Ürünler';
+  const yilAnlasma = {}, yilTeslim = {};
+  (data.tenders || []).forEach(t => {
+    if (!t.quantity) return;
+    if (secili && t.product !== secili) return;
+    const yil = t.year || new Date().getFullYear();
+    if (!yilAnlasma[yil]) yilAnlasma[yil] = 0;
+    if (!yilTeslim[yil]) yilTeslim[yil] = 0;
+    yilAnlasma[yil] += t.quantity;
+    yilTeslim[yil] += (t.delivered || 0);
+  });
+  const tumYillar = Object.keys(yilAnlasma).map(Number).sort((a, b) => a - b);
+  const satirlar = tumYillar.map(y => {
+    const a = yilAnlasma[y] || 0, d = yilTeslim[y] || 0;
+    const kalan = a - d;
+    const oran = a > 0 ? ((d / a) * 100).toFixed(1) : '0';
+    return `<tr><td>${y}</td><td style="text-align:right">${_fmt(a)}</td><td style="text-align:right">${_fmt(d)}</td><td style="text-align:right">${_fmt(kalan)}</td><td style="text-align:right">%${oran}</td></tr>`;
+  }).join('');
+  const tAnlasma = tumYillar.reduce((s, y) => s + (yilAnlasma[y] || 0), 0);
+  const tTeslim = tumYillar.reduce((s, y) => s + (yilTeslim[y] || 0), 0);
+  const tOran = tAnlasma > 0 ? ((tTeslim / tAnlasma) * 100).toFixed(1) : '0';
+  const w = window.open('', '_blank');
+  w.document.write(`
+    <html><head><title>Yıllık Karşılaştırma (İhale)</title>
+    <style>
+      body { font-family:Arial; padding:24px; color:#1e293b; }
+      h2 { margin-bottom:4px; }
+      .sub { color:#64748b; margin-bottom:16px; font-size:13px; }
+      table { width:100%; border-collapse:collapse; font-size:12px; }
+      th, td { border:1px solid #cbd5e1; padding:6px 10px; text-align:left; }
+      th { background:#f1f5f9; text-transform:uppercase; font-size:11px; }
+      .toplam { font-weight:700; background:#f8fafc; }
+    </style></head>
+    <body>
+      <h2>Yıllık Karşılaştırma (İhale)</h2>
+      <p class="sub">Ürün: ${htmlEscape(urunAdi)} &nbsp;|&nbsp; ${tumYillar.length} yıl</p>
+      <table>
+        <thead><tr><th>Yıl</th><th style="text-align:right">Anlaşma</th><th style="text-align:right">Teslim</th><th style="text-align:right">Kalan</th><th style="text-align:right">Oran</th></tr></thead>
+        <tbody>${satirlar}</tbody>
+        <tfoot><tr class="toplam"><td>Toplam</td><td style="text-align:right">${_fmt(tAnlasma)}</td><td style="text-align:right">${_fmt(tTeslim)}</td><td style="text-align:right">${_fmt(tAnlasma - tTeslim)}</td><td style="text-align:right">%${tOran}</td></tr></tfoot>
       </table>
       <script>window.print();<\/script>
     </body></html>
@@ -1514,13 +1688,20 @@ document.addEventListener('DOMContentLoaded', () => {
       refreshYearCompare();
     });
   });
-  document.querySelectorAll('.yc-data-type-btn').forEach(btn => {
+
+  const tsel = document.getElementById('tyc-product');
+  if (tsel) tsel.addEventListener('change', refreshYearCompareTender);
+  const ty1 = document.getElementById('tyc-year1');
+  const ty2 = document.getElementById('tyc-year2');
+  if (ty1) ty1.addEventListener('change', refreshYearCompareTender);
+  if (ty2) ty2.addEventListener('change', refreshYearCompareTender);
+  document.querySelectorAll('.tyc-mode-btn').forEach(btn => {
     btn.addEventListener('click', function() {
-      document.querySelectorAll('.yc-data-type-btn').forEach(b => {
+      document.querySelectorAll('.tyc-mode-btn').forEach(b => {
         b.style.color = 'var(--text-muted)'; b.classList.remove('active');
       });
       this.style.color = 'var(--text-primary)'; this.classList.add('active');
-      refreshYearCompare();
+      refreshYearCompareTender();
     });
   });
 });
@@ -1557,7 +1738,7 @@ function navigateTo(target) {
   const titles = {
     'dashboard': 'Genel Bakış', 'warehouse': 'Anbar Listesi', 'aggregated-stock': 'Depodaki Ürün Miktarları', 'entry': 'Ürün Girişi',
     'exit': 'Ürün Çıkış', 'daily': 'Günlük İşlemler', 'month-view': 'Aylık Rapor',
-    'years-view': 'Yıllık Raporlar', 'year-compare': 'Yıllık Karşılaştırma', 'stt-tracking': 'STT Takibi', 'tender-tracking': 'İhale Takip', 'suppliers': 'Tedarikçiler',     'supplier-report-view': 'Aylık Tedarikçi Raporu', 'critical-stock-view': 'Kritik Stok Listesi', 'user-guide-view': 'Kullanım Kılavuzu', 'settings-view': 'Ayarlar & Bulut', 'daily-cost': 'Günlük Maliyet'
+    'years-view': 'Yıllık Raporlar', 'year-compare': 'Yıllık Karşılaştırma (Stok)', 'tender-year-compare': 'Yıllık Karşılaştırma (İhale)', 'stt-tracking': 'STT Takibi', 'tender-tracking': 'İhale Takip', 'suppliers': 'Tedarikçiler',     'supplier-report-view': 'Aylık Tedarikçi Raporu', 'critical-stock-view': 'Kritik Stok Listesi', 'user-guide-view': 'Kullanım Kılavuzu', 'settings-view': 'Ayarlar & Bulut', 'daily-cost': 'Günlük Maliyet'
   };
   document.getElementById('page-title').textContent = titles[target] || 'STOKDEPO';
 
@@ -1568,6 +1749,7 @@ function navigateTo(target) {
   if (target === 'month-view') _safe(refreshMonthView);
   if (target === 'years-view') requestAnimationFrame(() => _safe(refreshYearsView));
   if (target === 'year-compare') requestAnimationFrame(() => _safe(refreshYearCompare));
+  if (target === 'tender-year-compare') requestAnimationFrame(() => _safe(refreshYearCompareTender));
   if (target === 'stt-tracking') requestAnimationFrame(() => _safe(refreshSttTracking));
   if (target === 'tender-tracking') requestAnimationFrame(() => _safe(refreshTenders));
   if (target === 'suppliers') { _safe(refreshSuppliers); _safe(refreshProductNames); }
@@ -4904,6 +5086,7 @@ function refreshAll() {
     if (id === 'daily-cost') _safe(refreshDailyCost);
     if (id === 'critical-stock-view') _safe(refreshCriticalStock);
     if (id === 'year-compare') _safe(refreshYearCompare);
+    if (id === 'tender-year-compare') _safe(refreshYearCompareTender);
     if (id === 'stt-tracking') _safe(refreshSttTracking);
     if (id === 'tender-tracking') _safe(refreshTenders);
     if (id === 'suppliers') { _safe(refreshSuppliers); _safe(refreshProductNames); }

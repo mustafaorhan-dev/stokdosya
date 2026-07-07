@@ -102,7 +102,11 @@
                     </a>
                     <a href="#year-compare" class="nav-item" data-target="year-compare">
                         <i class="fa-solid fa-chart-line" style="color:#a855f7;"></i>
-                        <span>Yıllık Karşılaştırma</span>
+                        <span>Yıllık Karşılaştırma (Stok)</span>
+                    </a>
+                    <a href="#tender-year-compare" class="nav-item" data-target="tender-year-compare">
+                        <i class="fa-solid fa-file-signature" style="color:#f97316;"></i>
+                        <span>Yıllık Karşılaştırma (İhale)</span>
                     </a>
                     <select id="months-year-select" class="form-control" style="width:calc(100% - 12px);margin:4px 6px 8px;font-size:13px;"></select>
                     <div id="months-menu" style="display:flex; flex-direction:column; gap:0.25rem;"></div>
@@ -832,13 +836,9 @@
             <div id="year-compare" class="view-section">
                 <div class="panel-container">
                     <div class="panel-header">
-                        <h3><i class="fa-solid fa-chart-line" style="color:var(--primary);"></i> Yıllık Karşılaştırma</h3>
+                        <h3><i class="fa-solid fa-chart-line" style="color:var(--primary);"></i> Yıllık Karşılaştırma (Stok)</h3>
                         <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
                             <button class="btn-ui btn-primary" style="font-size:13px;padding:6px 14px;" onclick="pdfYearCompare()"><i class="fa-solid fa-print"></i> Çıktı Al</button>
-                            <div class="yc-data-type-group" style="display:flex;border:1px solid var(--border-color);border-radius:6px;overflow:hidden;">
-                                <button class="yc-data-type-btn active" data-type="stock" style="padding:4px 12px;font-size:12px;font-weight:600;border:none;background:none;cursor:pointer;color:var(--text-primary);">Stok</button>
-                                <button class="yc-data-type-btn" data-type="tender" style="padding:4px 12px;font-size:12px;font-weight:600;border:none;background:none;cursor:pointer;color:var(--text-muted);">İhale</button>
-                            </div>
                             <select id="yc-product" class="form-control" style="width:200px;font-size:13px;">
                                 <option value="">Tüm Ürünler</option>
                             </select>
@@ -857,24 +857,24 @@
                         <div class="yc-stat-card">
                             <span class="yc-stat-label" id="yc-year1-label">Yıl 1</span>
                             <span class="yc-stat-value yc-green" id="yc-year1-in">0</span>
-                            <span style="font-size:12px;color:var(--text-muted);" id="yc-year1-sub1">giriş</span>
+                            <span style="font-size:12px;color:var(--text-muted);">giriş</span>
                             <span class="yc-stat-value yc-red" id="yc-year1-out" style="font-size:18px;">0</span>
-                            <span style="font-size:12px;color:var(--text-muted);" id="yc-year1-sub2">çıkış</span>
+                            <span style="font-size:12px;color:var(--text-muted);">çıkış</span>
                         </div>
                         <div class="yc-stat-card">
                             <span class="yc-stat-label" id="yc-year2-label">Yıl 2</span>
                             <span class="yc-stat-value yc-green" id="yc-year2-in">0</span>
-                            <span style="font-size:12px;color:var(--text-muted);" id="yc-year2-sub1">giriş</span>
+                            <span style="font-size:12px;color:var(--text-muted);">giriş</span>
                             <span class="yc-stat-value yc-red" id="yc-year2-out" style="font-size:18px;">0</span>
-                            <span style="font-size:12px;color:var(--text-muted);" id="yc-year2-sub2">çıkış</span>
+                            <span style="font-size:12px;color:var(--text-muted);">çıkış</span>
                         </div>
                         <div class="yc-stat-card">
-                            <span class="yc-stat-label" id="yc-net-label">Net Değişim</span>
+                            <span class="yc-stat-label">Net Değişim</span>
                             <span class="yc-stat-value" id="yc-net-change">0</span>
                             <span style="font-size:12px;color:var(--text-muted);" id="yc-net-detail">(Yıl 2 - Yıl 1)</span>
                         </div>
                         <div class="yc-stat-card">
-                            <span class="yc-stat-label" id="yc-count-label">İşlem Sayısı</span>
+                            <span class="yc-stat-label">İşlem Sayısı</span>
                             <span class="yc-stat-value" id="yc-year1-count" style="font-size:18px;">0</span>
                             <span style="font-size:12px;color:var(--text-muted);">→</span>
                             <span class="yc-stat-value" id="yc-year2-count" style="font-size:18px;">0</span>
@@ -893,17 +893,93 @@
                     <div style="padding:0 1.25rem 1.25rem;" id="yc-table-section">
                         <table class="minimal-table" id="yc-table">
                             <thead>
-                                <tr id="yc-table-headers">
+                                <tr>
                                     <th>Yıl</th>
-                                    <th style="text-align:right" id="yc-th1">Giriş</th>
-                                    <th style="text-align:right" id="yc-th2">Çıkış</th>
-                                    <th style="text-align:right" id="yc-th3">Net</th>
-                                    <th style="text-align:right" id="yc-th4">İşlem Sayısı</th>
+                                    <th style="text-align:right">Giriş</th>
+                                    <th style="text-align:right">Çıkış</th>
+                                    <th style="text-align:right">Net</th>
+                                    <th style="text-align:right">İşlem Sayısı</th>
                                 </tr>
                             </thead>
                             <tbody id="yc-table-body"></tbody>
                         </table>
                         <div id="yc-table-empty" style="display:none;color:var(--text-secondary);text-align:center;padding:30px 0;">Henüz veri bulunamadı.</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- YILLIK KARSILASTIRMA (IHALE) -->
+            <div id="tender-year-compare" class="view-section">
+                <div class="panel-container">
+                    <div class="panel-header">
+                        <h3><i class="fa-solid fa-file-signature" style="color:var(--primary);"></i> Yıllık Karşılaştırma (İhale)</h3>
+                        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+                            <button class="btn-ui btn-primary" style="font-size:13px;padding:6px 14px;" onclick="pdfYearCompareTender()"><i class="fa-solid fa-print"></i> Çıktı Al</button>
+                            <select id="tyc-product" class="form-control" style="width:200px;font-size:13px;">
+                                <option value="">Tüm Ürünler</option>
+                            </select>
+                            <div class="tyc-mode-group" style="display:flex;border:1px solid var(--border-color);border-radius:6px;overflow:hidden;">
+                                <button class="tyc-mode-btn active" data-mode="all" style="padding:4px 12px;font-size:12px;font-weight:600;border:none;background:none;cursor:pointer;color:var(--text-primary);">Tümü</button>
+                                <button class="tyc-mode-btn" data-mode="range" style="padding:4px 12px;font-size:12px;font-weight:600;border:none;background:none;cursor:pointer;color:var(--text-muted);">Aralık</button>
+                            </div>
+                            <div class="tyc-year-controls" style="display:flex;gap:8px;align-items:center;">
+                                <select id="tyc-year1" class="form-control" style="width:110px;font-size:13px;font-weight:700;"></select>
+                                <span class="tyc-year-sep" style="color:var(--text-muted);font-size:13px;font-weight:600;">vs</span>
+                                <select id="tyc-year2" class="form-control" style="width:110px;font-size:13px;font-weight:700;"></select>
+                            </div>
+                        </div>
+                    </div>
+                    <div style="padding:1rem 1.25rem;display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;border-bottom:1px solid var(--border-color);" id="tyc-stats">
+                        <div class="yc-stat-card">
+                            <span class="yc-stat-label" id="tyc-year1-label">Yıl 1</span>
+                            <span class="yc-stat-value yc-green" id="tyc-year1-in">0</span>
+                            <span style="font-size:12px;color:var(--text-muted);">anlaşma</span>
+                            <span class="yc-stat-value yc-red" id="tyc-year1-out" style="font-size:18px;">0</span>
+                            <span style="font-size:12px;color:var(--text-muted);">teslim</span>
+                        </div>
+                        <div class="yc-stat-card">
+                            <span class="yc-stat-label" id="tyc-year2-label">Yıl 2</span>
+                            <span class="yc-stat-value yc-green" id="tyc-year2-in">0</span>
+                            <span style="font-size:12px;color:var(--text-muted);">anlaşma</span>
+                            <span class="yc-stat-value yc-red" id="tyc-year2-out" style="font-size:18px;">0</span>
+                            <span style="font-size:12px;color:var(--text-muted);">teslim</span>
+                        </div>
+                        <div class="yc-stat-card">
+                            <span class="yc-stat-label">Kalan / Oran</span>
+                            <span class="yc-stat-value" id="tyc-kalan">0</span>
+                            <span style="font-size:12px;color:var(--text-muted);" id="tyc-net-detail">(Teslim / Anlaşma)</span>
+                        </div>
+                        <div class="yc-stat-card">
+                            <span class="yc-stat-label">Toplam Anlaşma</span>
+                            <span class="yc-stat-value" id="tyc-toplam-anlasma" style="font-size:18px;">0</span>
+                            <span style="font-size:12px;color:var(--text-muted);">→</span>
+                            <span class="yc-stat-value" id="tyc-toplam-teslim" style="font-size:18px;">0</span>
+                            <span style="font-size:12px;color:var(--text-muted);" id="tyc-oran-text">(%0)</span>
+                        </div>
+                    </div>
+                    <div style="padding:1rem;">
+                        <div class="year-compare-chart-wrap">
+                            <canvas id="tender-year-compare-canvas"></canvas>
+                            <div id="tender-year-compare-empty" style="color:var(--text-secondary);text-align:center;font-size:0.9rem;padding:60px 0;display:none;">
+                                <i class="fa-solid fa-chart-simple" style="font-size:2rem;display:block;margin-bottom:8px;"></i>
+                                Henüz veri bulunamadı.
+                            </div>
+                        </div>
+                    </div>
+                    <div style="padding:0 1.25rem 1.25rem;" id="tyc-table-section">
+                        <table class="minimal-table" id="tyc-table">
+                            <thead>
+                                <tr>
+                                    <th>Yıl</th>
+                                    <th style="text-align:right">Anlaşma</th>
+                                    <th style="text-align:right">Teslim</th>
+                                    <th style="text-align:right">Kalan</th>
+                                    <th style="text-align:right">Oran</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tyc-table-body"></tbody>
+                        </table>
+                        <div id="tyc-table-empty" style="display:none;color:var(--text-secondary);text-align:center;padding:30px 0;">Henüz veri bulunamadı.</div>
                     </div>
                 </div>
             </div>
