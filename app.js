@@ -3725,8 +3725,8 @@ function refreshTenderChart() {
         borderColor: barColors,
         borderWidth: 0,
         borderRadius: 6,
-        barPercentage: 0.9,
-        categoryPercentage: 0.95
+        barPercentage: 0.8,
+        categoryPercentage: 0.9
       }]
     },
     options: {
@@ -3734,7 +3734,7 @@ function refreshTenderChart() {
       responsive: true,
       maintainAspectRatio: false,
       layout: { padding: { top: 8, bottom: 8 } },
-      devicePixelRatio: window.devicePixelRatio || 2,
+      devicePixelRatio: 2,
       plugins: {
         legend: { display: false },
         tooltip: {
