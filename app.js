@@ -3763,6 +3763,7 @@ function refreshTenderChart() {
     },
     plugins: [barLabelPlugin]
   });
+  window._tenderPageChart.resize();
 }
 function importTenderCSV(event) {
   const file = event.target.files[0];
