@@ -1388,7 +1388,7 @@ function refreshYearCompareTender() {
   const firma = document.getElementById('tyc-company')?.value || '';
   const urun = document.getElementById('tyc-product')?.value || '';
 
-  if (!firma || !urun) {
+  if (!firma && !urun) {
     canvas.style.display = 'none';
     if (empty) empty.style.display = 'block';
     const tbody = document.getElementById('tyc-table-body');
