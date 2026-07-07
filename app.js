@@ -2180,9 +2180,9 @@ function refreshDashboard() {
             ctx.save();
             ctx.textAlign = 'left';
             ctx.textBaseline = 'middle';
-            ctx.font = 'bold 16px Outfit, Arial, sans-serif';
+            ctx.font = 'bold 11px Outfit, Arial, sans-serif';
             ctx.fillStyle = isDark ? '#fff' : '#0f172a';
-            ctx.fillText('%' + val, bar.x + 8, bar.y);
+            ctx.fillText('%' + val, bar.x + 4, bar.y);
             ctx.restore();
           });
         });
@@ -2200,17 +2200,16 @@ function refreshDashboard() {
           borderColor: barColors,
           borderWidth: 0,
           borderRadius: 6,
-          barPercentage: 0.85,
-          categoryPercentage: 0.9
+          barPercentage: 0.9,
+          categoryPercentage: 0.95
         }]
       },
       options: {
         indexAxis: 'y',
         responsive: true,
         maintainAspectRatio: false,
-        devicePixelRatio: window.devicePixelRatio || 2,
         layout: {
-          padding: { top: 8, bottom: 8 }
+          padding: 0
         },
         plugins: {
           legend: { display: false },
@@ -2230,11 +2229,11 @@ function refreshDashboard() {
             beginAtZero: true,
             max: 100,
             grid: { color: isDark ? 'rgba(148,163,184,0.15)' : 'rgba(0,0,0,0.08)' },
-            ticks: { callback: v => v + '%', color: labelColor, font: { size: 13 } }
+            ticks: { callback: v => v + '%', color: labelColor, font: { size: 9 } }
           },
           y: {
             grid: { display: false },
-            ticks: { color: labelColor, font: { size: 14, weight: 'bold' } }
+            ticks: { color: labelColor, font: { size: 10, weight: 'bold' } }
           }
         }
       },
