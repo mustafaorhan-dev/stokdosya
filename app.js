@@ -1421,6 +1421,18 @@ function refreshYearCompareTender() {
   const teslimDataAll = tumYillar.map(y => yilTeslim[y] || 0);
   const toplam = anlasmaDataAll.reduce((s, v) => s + v, 0) + teslimDataAll.reduce((s, v) => s + v, 0);
 
+  let birim = '';
+  if (urun) {
+    for (const t of data.tenders || []) {
+      if (t.product === urun && t.unit) { birim = t.unit; break; }
+    }
+  } else if (firma) {
+    for (const t of data.tenders || []) {
+      if (t.companyName === firma && t.unit) { birim = t.unit; break; }
+    }
+  }
+  const _b = birim ? ' ' + birim : '';
+
   const activeBtn = document.querySelector('.tyc-mode-btn.active');
   const mode = activeBtn ? activeBtn.dataset.mode : 'all';
   const yc = document.querySelector('.tyc-year-controls');
@@ -1468,17 +1480,17 @@ function refreshYearCompareTender() {
 
     document.getElementById('tyc-year1-label').textContent = 'Toplam Anlaşma';
     document.getElementById('tyc-year2-label').textContent = 'Toplam Teslim';
-    document.getElementById('tyc-year1-in').textContent = _fmt(totalAnlasma);
+    document.getElementById('tyc-year1-in').textContent = _fmt(totalAnlasma) + _b;
     document.getElementById('tyc-year1-out').textContent = '—';
     document.getElementById('tyc-year2-in').textContent = '—';
-    document.getElementById('tyc-year2-out').textContent = _fmt(totalTeslim);
+    document.getElementById('tyc-year2-out').textContent = _fmt(totalTeslim) + _b;
 
-    document.getElementById('tyc-kalan').textContent = _fmt(totalKalan);
+    document.getElementById('tyc-kalan').textContent = _fmt(totalKalan) + _b;
     document.getElementById('tyc-kalan').style.color = totalKalan > 0 ? 'var(--accent)' : totalKalan < 0 ? 'var(--success)' : 'var(--text-primary)';
     document.getElementById('tyc-net-detail').textContent = `Tamamlanma: %${totalOran}`;
 
-    document.getElementById('tyc-toplam-anlasma').textContent = _fmt(totalAnlasma);
-    document.getElementById('tyc-toplam-teslim').textContent = _fmt(totalTeslim);
+    document.getElementById('tyc-toplam-anlasma').textContent = _fmt(totalAnlasma) + _b;
+    document.getElementById('tyc-toplam-teslim').textContent = _fmt(totalTeslim) + _b;
     const orEl = document.getElementById('tyc-oran-text');
     orEl.textContent = `%${totalOran}`;
     orEl.style.color = 'var(--text-muted)';
@@ -1493,18 +1505,18 @@ function refreshYearCompareTender() {
 
     document.getElementById('tyc-year1-label').textContent = yil1 || 'Yıl 1';
     document.getElementById('tyc-year2-label').textContent = yil2 || 'Yıl 2';
-    document.getElementById('tyc-year1-in').textContent = _fmt(a1);
-    document.getElementById('tyc-year1-out').textContent = _fmt(d1);
-    document.getElementById('tyc-year2-in').textContent = _fmt(a2);
-    document.getElementById('tyc-year2-out').textContent = _fmt(d2);
+    document.getElementById('tyc-year1-in').textContent = _fmt(a1) + _b;
+    document.getElementById('tyc-year1-out').textContent = _fmt(d1) + _b;
+    document.getElementById('tyc-year2-in').textContent = _fmt(a2) + _b;
+    document.getElementById('tyc-year2-out').textContent = _fmt(d2) + _b;
 
-    document.getElementById('tyc-kalan').textContent = `${_fmt(Math.abs(kalan1))} / ${_fmt(Math.abs(kalan2))}`;
+    document.getElementById('tyc-kalan').textContent = `${_fmt(Math.abs(kalan1))} / ${_fmt(Math.abs(kalan2))}` + _b;
     document.getElementById('tyc-kalan').style.color = 'var(--text-primary)';
     document.getElementById('tyc-net-detail').textContent =
       yil1 && yil2 ? `(%${oran1} → %${oran2})` : '';
 
-    document.getElementById('tyc-toplam-anlasma').textContent = _fmt(a1);
-    document.getElementById('tyc-toplam-teslim').textContent = _fmt(d1);
+    document.getElementById('tyc-toplam-anlasma').textContent = _fmt(a1) + _b;
+    document.getElementById('tyc-toplam-teslim').textContent = _fmt(d1) + _b;
     const orEl = document.getElementById('tyc-oran-text');
     orEl.textContent = `(%${oran1})`;
     orEl.style.color = 'var(--text-primary)';
@@ -1651,7 +1663,13 @@ function refreshYearCompareTender() {
         y: {
           beginAtZero: true,
           grid: { color: isDark ? 'rgba(148,163,184,0.2)' : 'rgba(0,0,0,0.1)' },
-          ticks: { color: labelColor, font: { size: 11 } }
+          ticks: { color: labelColor, font: { size: 11 } },
+          title: {
+            display: !!birim,
+            text: birim,
+            color: isDark ? '#94a3b8' : '#64748b',
+            font: { size: 11, weight: '600' }
+          }
         }
       },
       animation: {
@@ -1668,6 +1686,17 @@ function pdfYearCompareTender() {
   const firma = document.getElementById('tyc-company')?.value || '';
   const urun = document.getElementById('tyc-product')?.value || '';
   const baslik = (firma ? htmlEscape(firma) + ' - ' : '') + (urun || 'Tüm Ürünler');
+  let birim = '';
+  if (urun) {
+    for (const t of data.tenders || []) {
+      if (t.product === urun && t.unit) { birim = t.unit; break; }
+    }
+  } else if (firma) {
+    for (const t of data.tenders || []) {
+      if (t.companyName === firma && t.unit) { birim = t.unit; break; }
+    }
+  }
+  const _bPrint = birim ? ' ' + birim : '';
   const yilAnlasma = {}, yilTeslim = {};
   (data.tenders || []).forEach(t => {
     if (!t.quantity) return;
@@ -1684,7 +1713,7 @@ function pdfYearCompareTender() {
     const a = yilAnlasma[y] || 0, d = yilTeslim[y] || 0;
     const kalan = a - d;
     const oran = a > 0 ? ((d / a) * 100).toFixed(1) : '0';
-    return `<tr><td>${y}</td><td style="text-align:right">${_fmt(a)}</td><td style="text-align:right">${_fmt(d)}</td><td style="text-align:right">${_fmt(kalan)}</td><td style="text-align:right">%${oran}</td></tr>`;
+    return `<tr><td>${y}</td><td style="text-align:right">${_fmt(a)}${_bPrint}</td><td style="text-align:right">${_fmt(d)}${_bPrint}</td><td style="text-align:right">${_fmt(kalan)}${_bPrint}</td><td style="text-align:right">%${oran}</td></tr>`;
   }).join('');
   const tAnlasma = tumYillar.reduce((s, y) => s + (yilAnlasma[y] || 0), 0);
   const tTeslim = tumYillar.reduce((s, y) => s + (yilTeslim[y] || 0), 0);
@@ -1703,7 +1732,7 @@ function pdfYearCompareTender() {
     </style></head>
     <body>
       <h2>Yıllık Karşılaştırma (İhale)</h2>
-      <p class="sub">${baslik} &nbsp;|&nbsp; ${tumYillar.length} yıl</p>
+      <p class="sub">${baslik} ${birim ? '| ' + birim : ''} &nbsp;|&nbsp; ${tumYillar.length} yıl</p>
       <table>
         <thead><tr><th>Yıl</th><th style="text-align:right">Anlaşma</th><th style="text-align:right">Teslim</th><th style="text-align:right">Kalan</th><th style="text-align:right">Oran</th></tr></thead>
         <tbody>${satirlar}</tbody>
