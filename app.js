@@ -3706,7 +3706,7 @@ function refreshTenderChart() {
           ctx.save();
           ctx.textAlign = 'left';
           ctx.textBaseline = 'middle';
-          ctx.font = 'bold 22px Outfit, Arial, sans-serif';
+          ctx.font = 'bold 15px Outfit, Arial, sans-serif';
           ctx.fillStyle = isDark ? '#fff' : '#0f172a';
           ctx.fillText('%' + val, bar.x + 10, bar.y);
           ctx.restore();
@@ -3753,11 +3753,11 @@ function refreshTenderChart() {
           beginAtZero: true,
           max: 100,
           grid: { color: isDark ? 'rgba(148,163,184,0.15)' : 'rgba(0,0,0,0.08)' },
-          ticks: { callback: v => v + '%', color: labelColor, font: { size: 16 } }
+          ticks: { callback: v => v + '%', color: labelColor, font: { size: 13 } }
           },
           y: {
             grid: { display: false },
-            ticks: { color: labelColor, font: { size: 18, weight: 'bold' } }
+            ticks: { color: labelColor, font: { size: 14, weight: 'bold' } }
         }
       }
     },
