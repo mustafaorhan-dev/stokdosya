@@ -915,8 +915,11 @@
                         <h3><i class="fa-solid fa-file-signature" style="color:var(--primary);"></i> Yıllık Karşılaştırma (İhale)</h3>
                         <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
                             <button class="btn-ui btn-primary" style="font-size:13px;padding:6px 14px;" onclick="pdfYearCompareTender()"><i class="fa-solid fa-print"></i> Çıktı Al</button>
+                            <select id="tyc-company" class="form-control" style="width:200px;font-size:13px;">
+                                <option value="">Firma Seçiniz</option>
+                            </select>
                             <select id="tyc-product" class="form-control" style="width:200px;font-size:13px;">
-                                <option value="">Tüm Ürünler</option>
+                                <option value="">Ürün Seçiniz</option>
                             </select>
                             <div class="tyc-mode-group" style="display:flex;border:1px solid var(--border-color);border-radius:6px;overflow:hidden;">
                                 <button class="tyc-mode-btn active" data-mode="all" style="padding:4px 12px;font-size:12px;font-weight:600;border:none;background:none;cursor:pointer;color:var(--text-primary);">Tümü</button>

@@ -1350,23 +1350,49 @@ function pdfYearCompare() {
 }
 
 // ----- YILLIK KARSILASTIRMA GRAFIGI (IHALE) -----
+function _tycPopulateCompany() {
+  const sel = document.getElementById('tyc-company');
+  if (!sel) return;
+  const firmalar = [...new Set((data.tenders || []).map(t => t.companyName).filter(Boolean))].sort((a, b) => a.localeCompare(b));
+  const secili = sel.value;
+  const cur = sel.innerHTML;
+  const yeni = '<option value="">Firma Seçiniz</option>' +
+    firmalar.map(f => `<option value="${htmlEscape(f).replace(/"/g, '&quot;')}"${f === secili ? ' selected' : ''}>${htmlEscape(f)}</option>`).join('');
+  if (yeni !== cur) sel.innerHTML = yeni;
+}
+
+function _tycPopulateProduct() {
+  const companySel = document.getElementById('tyc-company');
+  const prodSel = document.getElementById('tyc-product');
+  if (!prodSel) return;
+  const firma = companySel?.value || '';
+  let urunler = [...new Set((data.tenders || []).map(t => t.product).filter(Boolean))].sort();
+  if (firma) {
+    urunler = [...new Set((data.tenders || []).filter(t => t.companyName === firma).map(t => t.product).filter(Boolean))].sort();
+  }
+  const secili = prodSel.value;
+  const cur = prodSel.innerHTML;
+  const yeni = '<option value="">Ürün Seçiniz</option>' +
+    urunler.map(u => `<option value="${htmlEscape(u).replace(/"/g, '&quot;')}"${u === secili ? ' selected' : ''}>${htmlEscape(u)}</option>`).join('');
+  if (yeni !== cur) prodSel.innerHTML = yeni;
+}
+
 function refreshYearCompareTender() {
-  const select = document.getElementById('tyc-product');
+  _tycPopulateCompany();
+  _tycPopulateProduct();
+
   const canvas = document.getElementById('tender-year-compare-canvas');
   const empty = document.getElementById('tender-year-compare-empty');
   if (!canvas) return;
 
-  const urunler = [...new Set((data.tenders || []).map(t => t.product).filter(Boolean))].sort();
-  const secili = select.value;
-  const currentHTML = select.innerHTML;
-  const yeniHTML = '<option value="">Tüm Ürünler</option>' +
-    urunler.map(u => `<option value="${htmlEscape(u).replace(/"/g, '&quot;')}"${u === secili ? ' selected' : ''}>${htmlEscape(u)}</option>`).join('');
-  if (yeniHTML !== currentHTML) select.innerHTML = yeniHTML;
+  const firma = document.getElementById('tyc-company')?.value || '';
+  const urun = document.getElementById('tyc-product')?.value || '';
 
   const yilAnlasma = {}, yilTeslim = {};
   (data.tenders || []).forEach(t => {
     if (!t.quantity) return;
-    if (secili && t.product !== secili) return;
+    if (firma && t.companyName !== firma) return;
+    if (urun && t.product !== urun) return;
     const yil = t.year || new Date().getFullYear();
     if (!yilAnlasma[yil]) yilAnlasma[yil] = 0;
     if (!yilTeslim[yil]) yilTeslim[yil] = 0;
@@ -1623,12 +1649,14 @@ function refreshYearCompareTender() {
 
 function pdfYearCompareTender() {
   if (!data.tenders || !data.tenders.length) { toast('İhale verisi yok.', 'info'); return; }
-  const secili = document.getElementById('tyc-product')?.value || '';
-  const urunAdi = secili || 'Tüm Ürünler';
+  const firma = document.getElementById('tyc-company')?.value || '';
+  const urun = document.getElementById('tyc-product')?.value || '';
+  const baslik = (firma ? htmlEscape(firma) + ' - ' : '') + (urun || 'Tüm Ürünler');
   const yilAnlasma = {}, yilTeslim = {};
   (data.tenders || []).forEach(t => {
     if (!t.quantity) return;
-    if (secili && t.product !== secili) return;
+    if (firma && t.companyName !== firma) return;
+    if (urun && t.product !== urun) return;
     const yil = t.year || new Date().getFullYear();
     if (!yilAnlasma[yil]) yilAnlasma[yil] = 0;
     if (!yilTeslim[yil]) yilTeslim[yil] = 0;
@@ -1659,7 +1687,7 @@ function pdfYearCompareTender() {
     </style></head>
     <body>
       <h2>Yıllık Karşılaştırma (İhale)</h2>
-      <p class="sub">Ürün: ${htmlEscape(urunAdi)} &nbsp;|&nbsp; ${tumYillar.length} yıl</p>
+      <p class="sub">${baslik} &nbsp;|&nbsp; ${tumYillar.length} yıl</p>
       <table>
         <thead><tr><th>Yıl</th><th style="text-align:right">Anlaşma</th><th style="text-align:right">Teslim</th><th style="text-align:right">Kalan</th><th style="text-align:right">Oran</th></tr></thead>
         <tbody>${satirlar}</tbody>
@@ -1689,6 +1717,11 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
+  const tcompany = document.getElementById('tyc-company');
+  if (tcompany) tcompany.addEventListener('change', function() {
+    _tycPopulateProduct();
+    refreshYearCompareTender();
+  });
   const tsel = document.getElementById('tyc-product');
   if (tsel) tsel.addEventListener('change', refreshYearCompareTender);
   const ty1 = document.getElementById('tyc-year1');
