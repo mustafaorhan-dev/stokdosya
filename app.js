@@ -1388,6 +1388,22 @@ function refreshYearCompareTender() {
   const firma = document.getElementById('tyc-company')?.value || '';
   const urun = document.getElementById('tyc-product')?.value || '';
 
+  if (!firma || !urun) {
+    canvas.style.display = 'none';
+    if (empty) empty.style.display = 'block';
+    const tbody = document.getElementById('tyc-table-body');
+    if (tbody) tbody.innerHTML = '';
+    const tempty = document.getElementById('tyc-table-empty');
+    if (tempty) tempty.style.display = 'block';
+    if (_tenderYearCompareChart) { _tenderYearCompareChart.destroy(); _tenderYearCompareChart = null; }
+    ['tyc-year1-label','tyc-year2-label','tyc-year1-in','tyc-year1-out','tyc-year2-in','tyc-year2-out',
+     'tyc-kalan','tyc-net-detail','tyc-toplam-anlasma','tyc-toplam-teslim','tyc-oran-text'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.textContent = '—';
+    });
+    return;
+  }
+
   const yilAnlasma = {}, yilTeslim = {};
   (data.tenders || []).forEach(t => {
     if (!t.quantity) return;
