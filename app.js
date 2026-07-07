@@ -1397,7 +1397,7 @@ function refreshYearCompareTender() {
     if (tempty) tempty.style.display = 'block';
     if (_tenderYearCompareChart) { _tenderYearCompareChart.destroy(); _tenderYearCompareChart = null; }
     ['tyc-year1-label','tyc-year2-label','tyc-year1-in','tyc-year1-out','tyc-year2-in','tyc-year2-out',
-     'tyc-kalan','tyc-net-detail','tyc-toplam-anlasma','tyc-toplam-teslim','tyc-oran-text'].forEach(id => {
+     'tyc-kalan','tyc-net-detail','tyc-en-yuksek-yil','tyc-en-yuksek-detay'].forEach(id => {
       const el = document.getElementById(id);
       if (el) el.textContent = '—';
     });
@@ -1489,11 +1489,10 @@ function refreshYearCompareTender() {
     document.getElementById('tyc-kalan').style.color = totalKalan > 0 ? 'var(--accent)' : totalKalan < 0 ? 'var(--success)' : 'var(--text-primary)';
     document.getElementById('tyc-net-detail').textContent = `Tamamlanma: %${totalOran}`;
 
-    document.getElementById('tyc-toplam-anlasma').textContent = _fmt(totalAnlasma) + _b;
-    document.getElementById('tyc-toplam-teslim').textContent = _fmt(totalTeslim) + _b;
-    const orEl = document.getElementById('tyc-oran-text');
-    orEl.textContent = `%${totalOran}`;
-    orEl.style.color = 'var(--text-muted)';
+    const enYuksekYil = goster.reduce((a, b) => (yilAnlasma[a] || 0) >= (yilAnlasma[b] || 0) ? a : b, goster[0]);
+    const enYuksekDeger = yilAnlasma[enYuksekYil] || 0;
+    document.getElementById('tyc-en-yuksek-yil').textContent = enYuksekYil || '—';
+    document.getElementById('tyc-en-yuksek-detay').textContent = enYuksekDeger ? `${_fmt(enYuksekDeger)}${_b} anlaşma` : '(veri yok)';
   } else {
     const yil1 = Number(y1.value) || 0;
     const yil2 = Number(y2.value) || 0;
@@ -1515,11 +1514,10 @@ function refreshYearCompareTender() {
     document.getElementById('tyc-net-detail').textContent =
       yil1 && yil2 ? `(%${oran1} → %${oran2})` : '';
 
-    document.getElementById('tyc-toplam-anlasma').textContent = _fmt(a1) + _b;
-    document.getElementById('tyc-toplam-teslim').textContent = _fmt(d1) + _b;
-    const orEl = document.getElementById('tyc-oran-text');
-    orEl.textContent = `(%${oran1})`;
-    orEl.style.color = 'var(--text-primary)';
+    const enYuksekYil = goster.reduce((a, b) => (yilAnlasma[a] || 0) >= (yilAnlasma[b] || 0) ? a : b, goster[0]);
+    const enYuksekDeger = yilAnlasma[enYuksekYil] || 0;
+    document.getElementById('tyc-en-yuksek-yil').textContent = enYuksekYil || '—';
+    document.getElementById('tyc-en-yuksek-detay').textContent = enYuksekDeger ? `${_fmt(enYuksekDeger)}${_b} anlaşma` : '(veri yok)';
   }
 
   const tbody = document.getElementById('tyc-table-body');
