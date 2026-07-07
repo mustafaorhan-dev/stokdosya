@@ -4011,9 +4011,15 @@ function openTenderModal(editId) {
   modal.classList.add('show');
   _csRefresh('tender-company');
   _csRefresh('tender-year');
-  // Ürün isim datalist'ini güncelle
-  const dl = document.getElementById('product-name-datalist');
-  if (dl) dl.innerHTML = (data.productNames || []).map(n => `<option value="${htmlEscape(n)}">`).join('');
+  // Ürün isim listesini güncelle
+  const sl = document.getElementById('tender-product');
+  if (sl) {
+    const secili = sl.value;
+    const cur = sl.innerHTML;
+    const yeni = '<option value="">Ürün Seçin</option>' +
+      (data.productNames || []).map(n => `<option value="${htmlEscape(n)}"${n === secili ? ' selected' : ''}>${htmlEscape(n)}</option>`).join('');
+    if (yeni !== cur) sl.innerHTML = yeni;
+  }
 }
 function editTender(id) { openTenderModal(id); }
 
@@ -4245,10 +4251,14 @@ function refreshProductNames() {
       data.productNames.map(n => `<option value="${htmlEscape(n)}"${n === secili ? ' selected' : ''}>${htmlEscape(n)}</option>`).join('');
     _csRefresh('np-name');
   }
-  // tender-product için datalist'i güncelle
-  const datalist = document.getElementById('product-name-datalist');
-  if (datalist) {
-    datalist.innerHTML = data.productNames.map(n => `<option value="${htmlEscape(n)}">`).join('');
+  // tender-product için select'i güncelle
+  const ts = document.getElementById('tender-product');
+  if (ts) {
+    const secili = ts.value;
+    const cur = ts.innerHTML;
+    const yeni = '<option value="">Ürün Seçin</option>' +
+      data.productNames.map(n => `<option value="${htmlEscape(n)}"${n === secili ? ' selected' : ''}>${htmlEscape(n)}</option>`).join('');
+    if (yeni !== cur) ts.innerHTML = yeni;
   }
 }
 
