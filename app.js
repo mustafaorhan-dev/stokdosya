@@ -3725,8 +3725,8 @@ function refreshTenderChart() {
         borderColor: barColors,
         borderWidth: 0,
         borderRadius: 6,
-        barPercentage: 0.75,
-        categoryPercentage: 0.9
+        barPercentage: 0.9,
+        categoryPercentage: 0.95
       }]
     },
     options: {
