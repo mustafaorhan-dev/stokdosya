@@ -4492,6 +4492,17 @@ document.getElementById('upload-names-input').addEventListener('change', (e) => 
 document.getElementById('upload-suppliers-btn').addEventListener('click', () => {
   document.getElementById('upload-suppliers-input').click();
 });
+
+document.getElementById('download-suppliers-btn').addEventListener('click', () => {
+  const content = (data.companies || []).map(c => c).join('\r\n');
+  const blob = new Blob([content], { type: 'text/plain;charset=utf-8;' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `tedarikciler_${todayStr()}.txt`;
+  a.click();
+  URL.revokeObjectURL(a.href);
+  toast('✅ Tedarikçi listesi indirildi!', 'success');
+});
 document.getElementById('upload-suppliers-input').addEventListener('change', (e) => {
   const file = e.target.files[0];
   if (!file) return;
