@@ -508,6 +508,7 @@ async function loadData() {
       initData();
       return;
     }
+    setTimeout(() => toast('⚠️ Supabase bağlantı hatası. Veriler yüklenemedi.', 'error'), 1000);
   }
   initData();
 }
