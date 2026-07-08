@@ -1397,7 +1397,8 @@ function refreshYearCompareTender() {
     if (tempty) tempty.style.display = 'block';
     if (_tenderYearCompareChart) { _tenderYearCompareChart.destroy(); _tenderYearCompareChart = null; }
     ['tyc-year1-label','tyc-year2-label','tyc-year1-in','tyc-year1-out','tyc-year2-in','tyc-year2-out',
-     'tyc-kalan','tyc-net-detail','tyc-en-yuksek-yil','tyc-en-yuksek-detay'].forEach(id => {
+     'tyc-kalan','tyc-net-detail','tyc-en-yuksek-yil','tyc-en-yuksek-detay',
+     'tyc-fark-anlasma','tyc-fark-teslim'].forEach(id => {
       const el = document.getElementById(id);
       if (el) el.textContent = '—';
     });
@@ -1493,6 +1494,19 @@ function refreshYearCompareTender() {
     const enYuksekDeger = yilAnlasma[enYuksekYil] || 0;
     document.getElementById('tyc-en-yuksek-yil').textContent = enYuksekYil || '—';
     document.getElementById('tyc-en-yuksek-detay').textContent = enYuksekDeger ? `${_fmt(enYuksekDeger)}${_b} anlaşma` : '(veri yok)';
+
+    if (goster.length >= 2) {
+      const ilk = goster[0], son = goster[goster.length - 1];
+      const farkA = (yilAnlasma[son] || 0) - (yilAnlasma[ilk] || 0);
+      const farkT = (yilTeslim[son] || 0) - (yilTeslim[ilk] || 0);
+      document.getElementById('tyc-fark-anlasma').textContent = (farkA >= 0 ? '+' : '') + _fmt(farkA) + _b;
+      document.getElementById('tyc-fark-anlasma').style.color = farkA >= 0 ? 'var(--success)' : 'var(--accent)';
+      document.getElementById('tyc-fark-teslim').textContent = (farkT >= 0 ? '+' : '') + _fmt(farkT) + _b;
+      document.getElementById('tyc-fark-teslim').style.color = farkT >= 0 ? 'var(--success)' : 'var(--accent)';
+    } else {
+      document.getElementById('tyc-fark-anlasma').textContent = '—';
+      document.getElementById('tyc-fark-teslim').textContent = '—';
+    }
   } else {
     const yil1 = Number(y1.value) || 0;
     const yil2 = Number(y2.value) || 0;
@@ -1518,6 +1532,15 @@ function refreshYearCompareTender() {
     const enYuksekDeger = yilAnlasma[enYuksekYil] || 0;
     document.getElementById('tyc-en-yuksek-yil').textContent = enYuksekYil || '—';
     document.getElementById('tyc-en-yuksek-detay').textContent = enYuksekDeger ? `${_fmt(enYuksekDeger)}${_b} anlaşma` : '(veri yok)';
+
+    if (yil1 && yil2) {
+      const farkA = a2 - a1;
+      const farkT = d2 - d1;
+      document.getElementById('tyc-fark-anlasma').textContent = (farkA >= 0 ? '+' : '') + _fmt(farkA) + _b;
+      document.getElementById('tyc-fark-anlasma').style.color = farkA >= 0 ? 'var(--success)' : 'var(--accent)';
+      document.getElementById('tyc-fark-teslim').textContent = (farkT >= 0 ? '+' : '') + _fmt(farkT) + _b;
+      document.getElementById('tyc-fark-teslim').style.color = farkT >= 0 ? 'var(--success)' : 'var(--accent)';
+    }
   }
 
   const tbody = document.getElementById('tyc-table-body');
