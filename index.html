@@ -1424,6 +1424,15 @@
                                                 <input type="file" id="restore-file" accept=".json" class="form-control">
                                                 <button type="button" id="restore-btn" class="btn-ui btn-primary"><i class="fa-solid fa-upload"></i> Yükle</button>
                                             </div>
+                                            <div style="margin-top:10px;padding-top:10px;border-top:1px solid var(--border-color);">
+                                                <label style="display:block; font-size: 0.8rem; font-weight:700; margin-bottom:0.5rem; color: var(--text-secondary);">CSV İçe/Dışa Aktar (Supabase)</label>
+                                                <div style="display:flex; gap:8px; flex-wrap:wrap;">
+                                                    <button type="button" id="csv-export-btn" class="btn-ui btn-outline"><i class="fa-solid fa-file-csv"></i> CSV İndir</button>
+                                                    <input type="file" id="csv-import-file" accept=".csv" style="display:none;">
+                                                    <button type="button" id="csv-import-btn" class="btn-ui btn-primary"><i class="fa-solid fa-file-import"></i> CSV Yükle</button>
+                                                </div>
+                                                <small style="display:block;margin-top:6px;font-size:11px;color:var(--text-muted);">Supabase'den dışa aktardığınız CSV dosyasını yükleyin. Ürünler, işlemler, tedarikçiler ve ürün isimleri aktarılır.</small>
+                                            </div>
                                             <button type="button" id="list-backups-btn" class="btn-ui btn-outline" style="margin-top:10px;width:100%;">
                                                 <i class="fa-solid fa-clock-rotate-left"></i> Supabase Yedeklerini Listele
                                             </button>

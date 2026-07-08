@@ -4623,6 +4623,215 @@ document.getElementById('restore-btn').addEventListener('click', () => {
   reader.readAsText(file);
 });
 
+// ----- CSV DIŞA/İÇE AKTAR -----
+function csvEscape(val) {
+  if (val == null) return '';
+  const s = String(val);
+  if (s.includes(',') || s.includes('"') || s.includes('\n')) return '"' + s.replace(/"/g, '""') + '"';
+  return s;
+}
+
+function csvLine(row) {
+  return row.map(csvEscape).join(',') + '\r\n';
+}
+
+function downloadCsv(filename, content) {
+  const blob = new Blob([content], { type: 'text/csv;charset=utf-8;' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = filename;
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+
+document.getElementById('csv-export-btn').addEventListener('click', () => {
+  let csv = '';
+
+  // Ürünler
+  csv += '===ÜRÜNLER===\r\n';
+  csv += csvLine(['parti_no','name','category','unit','stock','critical_level','stt','company_name','active']);
+  Object.entries(data.products || {}).forEach(([pid, p]) => {
+    csv += csvLine([pid, p.name, p.category, p.unit, p.stock, p.criticalLevel, p.stt, p.companyName, p.active !== false ? 'true' : 'false']);
+  });
+
+  // İşlemler
+  csv += '\r\n===İŞLEMLER===\r\n';
+  csv += csvLine(['id','type','parti_no','product_name','amount','unit','date','note','stt','created_by']);
+  (data.transactions || []).forEach(t => {
+    csv += csvLine([t.id, t.type, t.partiNo, t.productName, t.amount, t.unit, t.date, t.note, t.stt, t.createdBy]);
+  });
+
+  // Tedarikçiler
+  csv += '\r\n===TEDARİKÇİLER===\r\n';
+  csv += csvLine(['name']);
+  (data.companies || []).forEach(c => csv += csvLine([c]));
+
+  // Ürün İsimleri
+  csv += '\r\n===ÜRÜN İSİMLERİ===\r\n';
+  csv += csvLine(['name','unit']);
+  (data.productNames || []).forEach(n => csv += csvLine([n, (data.productUnits || {})[n] || '']));
+
+  // İhaleler
+  csv += '\r\n===İHALELER===\r\n';
+  csv += csvLine(['id','company_name','product','quantity','unit','delivered','price','year']);
+  (data.tenders || []).forEach(t => {
+    csv += csvLine([t.id, t.companyName, t.product, t.quantity, t.unit, t.delivered, t.price, t.year]);
+  });
+
+  downloadCsv(`stokdepo_veri_${todayStr()}.csv`, csv);
+  toast('✅ CSV dışa aktarıldı!', 'success');
+});
+
+function parseSupabaseCsv(text) {
+  const lines = text.replace(/\r\n/g, '\n').split('\n').filter(l => l.trim());
+  if (!lines.length) return null;
+
+  const headers = parseCsvLine(lines[0]);
+  const rows = lines.slice(1).map(l => {
+    const vals = parseCsvLine(l);
+    const obj = {};
+    headers.forEach((h, i) => { obj[h.trim()] = (vals[i] || '').trim(); });
+    return obj;
+  });
+  return rows;
+}
+
+function parseCsvLine(line) {
+  const result = [];
+  let current = '', inQuotes = false;
+  for (let i = 0; i < line.length; i++) {
+    const ch = line[i];
+    if (inQuotes) {
+      if (ch === '"' && line[i + 1] === '"') { current += '"'; i++; }
+      else if (ch === '"') { inQuotes = false; }
+      else { current += ch; }
+    } else {
+      if (ch === '"') { inQuotes = true; }
+      else if (ch === ',') { result.push(current); current = ''; }
+      else { current += ch; }
+    }
+  }
+  result.push(current);
+  return result;
+}
+
+document.getElementById('csv-import-btn').addEventListener('click', () => {
+  document.getElementById('csv-import-file').click();
+});
+
+document.getElementById('csv-import-file').addEventListener('change', (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = (ev) => {
+    try {
+      const text = ev.target.result;
+      const lines = text.replace(/\r\n/g, '\n').split('\n');
+      const sectionHeaders = ['===ÜRÜNLER===','===İŞLEMLER===','===TEDARİKÇİLER===','===ÜRÜN İSİMLERİ===','===İHALELER==='];
+      let section = null, sectionData = {};
+
+      for (let i = 0; i < lines.length; i++) {
+        const l = lines[i].trim();
+        if (sectionHeaders.includes(l)) {
+          section = l;
+          sectionData[section] = [];
+          continue;
+        }
+        if (!section || !l) continue;
+        sectionData[section].push(l);
+      }
+
+      // Ürünleri içe aktar
+      if (sectionData['===ÜRÜNLER==='] && sectionData['===ÜRÜNLER==='].length) {
+        const rows = parseSupabaseCsv(sectionData['===ÜRÜNLER==='].join('\n'));
+        (rows || []).forEach(r => {
+          const pid = r.parti_no || r['parti_no'] || '';
+          if (!pid) return;
+          data.products[pid] = {
+            partiNo: pid, name: r.name || r['name'] || '',
+            category: r.category || r['category'] || '',
+            unit: r.unit || r['unit'] || 'kg',
+            stock: Number(r.stock || r['stock'] || 0),
+            criticalLevel: Number(r.critical_level || r['critical_level'] || 0),
+            stt: r.stt || r['stt'] || '',
+            companyName: r.company_name || r['company_name'] || '',
+            active: (r.active || r['active'] || 'true') !== 'false',
+            createdAt: new Date().toISOString(), createdBy: ''
+          };
+        });
+      }
+
+      // İşlemleri içe aktar
+      if (sectionData['===İŞLEMLER==='] && sectionData['===İŞLEMLER==='].length) {
+        const rows = parseSupabaseCsv(sectionData['===İŞLEMLER==='].join('\n'));
+        (rows || []).forEach(r => {
+          data.transactions.push({
+            id: Number(r.id || r['id'] || 0), type: r.type || r['type'] || '',
+            partiNo: r.parti_no || r['parti_no'] || '',
+            productName: r.product_name || r['product_name'] || '',
+            amount: Number(r.amount || r['amount'] || 0),
+            unit: r.unit || r['unit'] || '',
+            date: r.date || r['date'] || '',
+            note: r.note || r['note'] || '',
+            stt: r.stt || r['stt'] || '',
+            timestamp: new Date().toISOString(),
+            createdBy: r.created_by || r['created_by'] || '',
+            personCount: 0, unitPrice: 0, totalCost: 0, costPerPerson: 0
+          });
+        });
+      }
+
+      // Tedarikçileri içe aktar
+      if (sectionData['===TEDARİKÇİLER==='] && sectionData['===TEDARİKÇİLER==='].length) {
+        const rows = parseSupabaseCsv(sectionData['===TEDARİKÇİLER==='].join('\n'));
+        (rows || []).forEach(r => {
+          const name = (r.name || r['name'] || '').trim().toUpperCase();
+          if (name && !data.companies.includes(name)) data.companies.push(name);
+        });
+      }
+
+      // Ürün isimlerini içe aktar
+      if (sectionData['===ÜRÜN İSİMLERİ==='] && sectionData['===ÜRÜN İSİMLERİ==='].length) {
+        const rows = parseSupabaseCsv(sectionData['===ÜRÜN İSİMLERİ==='].join('\n'));
+        (rows || []).forEach(r => {
+          const name = (r.name || r['name'] || '').trim();
+          if (name && !data.productNames.includes(name)) {
+            data.productNames.push(name);
+            if (r.unit || r['unit']) data.productUnits[name] = r.unit || r['unit'];
+          }
+        });
+      }
+
+      // İhaleleri içe aktar
+      if (sectionData['===İHALELER==='] && sectionData['===İHALELER==='].length) {
+        const rows = parseSupabaseCsv(sectionData['===İHALELER==='].join('\n'));
+        (rows || []).forEach(r => {
+          data.tenders.push({
+            id: Number(r.id || r['id'] || Date.now()),
+            companyName: r.company_name || r['company_name'] || '',
+            product: r.product || r['product'] || '',
+            quantity: Number(r.quantity || r['quantity'] || 0),
+            unit: r.unit || r['unit'] || '',
+            delivered: Number(r.delivered || r['delivered'] || 0),
+            price: Number(r.price || r['price'] || 0),
+            year: Number(r.year || r['year'] || new Date().getFullYear())
+          });
+        });
+      }
+
+      initData();
+      saveData();
+      toast('✅ CSV verisi başarıyla yüklendi!', 'success');
+      e.target.value = '';
+      refreshAll();
+    } catch (err) {
+      toast('❌ CSV okuma hatası: ' + err.message, 'error');
+      console.error('CSV import error:', err);
+    }
+  };
+  reader.readAsText(file);
+});
+
 document.getElementById('list-backups-btn')?.addEventListener('click', async () => {
   const container = document.getElementById('backup-list-container');
   if (!container) return;
