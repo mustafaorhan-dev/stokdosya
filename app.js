@@ -4489,6 +4489,33 @@ document.getElementById('upload-names-input').addEventListener('change', (e) => 
   e.target.value = '';
 });
 
+document.getElementById('upload-suppliers-btn').addEventListener('click', () => {
+  document.getElementById('upload-suppliers-input').click();
+});
+document.getElementById('upload-suppliers-input').addEventListener('change', (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = (ev) => {
+    const text = ev.target.result;
+    const lines = text.split(/\r?\n/).map(s => s.trim().toUpperCase()).filter(s => s.length > 0);
+    if (!lines.length) { toast('Dosyada tedarikçi bulunamadı.', 'error'); return; }
+    let added = 0;
+    lines.forEach(name => {
+      if (!data.companies.includes(name)) { data.companies.push(name); added++; }
+    });
+    if (!added) { toast('Tüm tedarikçiler zaten listede.', 'info'); } else {
+      data.companies.sort((a, b) => a.localeCompare(b));
+      saveData();
+      refreshSuppliers();
+      refreshEntryForm();
+      toast(`${added} yeni tedarikçi eklendi.`, 'success');
+    }
+  };
+  reader.readAsText(file);
+  e.target.value = '';
+});
+
 // Toplu ürün ismi silme (bulk delete)
 document.getElementById('product-name-list').addEventListener('change', (e) => {
   if (e.target.classList.contains('bulk-product-cb')) {
@@ -5370,6 +5397,7 @@ function refreshAll() {
   if (_el('np-add-supplier')) _el('np-add-supplier').style.display = isAdmin() ? '' : 'none';
   if (_el('add-product-name-btn')) _el('add-product-name-btn').style.display = isAdmin() ? '' : 'none';
   if (_el('upload-names-btn')) _el('upload-names-btn').style.display = isAdmin() ? '' : 'none';
+  if (_el('upload-suppliers-btn')) _el('upload-suppliers-btn').style.display = isAdmin() ? '' : 'none';
   if (_el('new-product-name-input')) _el('new-product-name-input').style.display = isAdmin() ? '' : 'none';
   if (_el('add-product-name-from-modal')) _el('add-product-name-from-modal').style.display = isAdmin() ? '' : 'none';
   if (_el('entry-form')) _el('entry-form').style.display = vo ? 'none' : '';
