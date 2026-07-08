@@ -174,12 +174,13 @@ async function supabaseSave() {
 async function supabaseLoad() {
   if (!isSupabaseReady()) return null;
   try {
-    const [products, transactions, users, tenders] = await Promise.all([
+    const results = await Promise.allSettled([
       supabaseFetch('GET', 'products', { order: 'parti_no.asc' }),
       supabaseFetch('GET', 'transactions', { order: 'id.asc' }),
       supabaseFetch('GET', 'stok_users', { order: 'name.asc' }),
       supabaseFetch('GET', 'tenders', { order: 'id.asc' })
     ]);
+    const [products, transactions, users, tenders] = results.map(r => r.status === 'fulfilled' ? r.value : []);
     // companies ve product_names tabloları olmayabilir (opsiyonel)
     let companies = [], productNames = [], settings = [], costs = [];
     try { companies = await supabaseFetch('GET', 'companies', { order: 'name.asc' }); } catch(e) {}
