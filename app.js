@@ -5993,7 +5993,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // ----- 10 DAKİKA İŞLEMSİZ KALINCA OTOMATİK KİLİT -----
-  const INACTIVITY_TIMEOUT = 3 * 60 * 1000;
+  const INACTIVITY_TIMEOUT = 5 * 60 * 1000;
   let inactivityTimer = null;
 
   function resetInactivityTimer() {
