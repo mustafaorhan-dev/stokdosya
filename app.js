@@ -4489,6 +4489,20 @@ document.getElementById('upload-names-input').addEventListener('change', (e) => 
   e.target.value = '';
 });
 
+document.getElementById('download-names-btn').addEventListener('click', () => {
+  const lines = (data.productNames || []).map(n => {
+    const unit = (data.productUnits || {})[n] || '';
+    return unit ? `${n},${unit}` : n;
+  });
+  const blob = new Blob([lines.join('\r\n')], { type: 'text/plain;charset=utf-8;' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `urun_isimleri_${todayStr()}.txt`;
+  a.click();
+  URL.revokeObjectURL(a.href);
+  toast('✅ Ürün isim listesi indirildi!', 'success');
+});
+
 document.getElementById('upload-suppliers-btn').addEventListener('click', () => {
   document.getElementById('upload-suppliers-input').click();
 });
