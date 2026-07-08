@@ -3003,6 +3003,9 @@ async function deleteSupplier(enc) {
   if (!isAdmin()) { toast('Tedarikçi silme için yönetici yetkisi gerekli.', 'error'); return; }
   if (!confirm(`"${name}" tedarikçisini silmek istediğinize emin misiniz?`)) return;
   data.companies = (data.companies || []).filter(c => c !== name);
+  if (isSupabaseReady()) {
+    try { await supabaseFetch('DELETE', 'companies', { name: `eq.${name}` }); } catch(e) { console.warn('companies Supabase silme hatası:', e); }
+  }
   await saveData();
   refreshSuppliers();
   refreshEntryForm();
@@ -4397,6 +4400,9 @@ async function deleteProductName(enc) {
   if (!confirm(`"${name}" ürün ismini listeden kaldırmak istediğinize emin misiniz?`)) return;
   data.productNames = data.productNames.filter(n => n !== name);
   if (data.productUnits) delete data.productUnits[name];
+  if (isSupabaseReady()) {
+    try { await supabaseFetch('DELETE', 'product_names', { name: `eq.${name}` }); } catch(e) { console.warn('product_names Supabase silme hatası:', e); }
+  }
   await saveData();
   refreshProductNames();
   toast(`"${name}" listeden kaldırıldı.`, 'success');
@@ -4569,6 +4575,9 @@ document.addEventListener('click', (e) => {
     names.forEach(name => {
       data.productNames = data.productNames.filter(n => n !== name);
       if (data.productUnits) delete data.productUnits[name];
+      if (isSupabaseReady()) {
+        try { supabaseFetch('DELETE', 'product_names', { name: `eq.${name}` }); } catch(e) { console.warn('product_names Supabase silme hatası:', e); }
+      }
     });
     saveData();
     refreshProductNames();
