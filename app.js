@@ -3185,7 +3185,10 @@ document.getElementById('entry-form').addEventListener('submit', async (e) => {
   let ihaleMsg = '';
   const mevcutYil = new Date().getFullYear();
   if (data.tenders && data.tenders.length && companyName) {
-    const eslesen = data.tenders.filter(t => t.companyName === companyName && t.product === name && (!t.year || t.year == mevcutYil));
+    const _co = companyName.toLowerCase();
+    const _pr = name.toLowerCase();
+    const eslesen = data.tenders.filter(t => t.companyName.toLowerCase() === _co && t.product.toLowerCase() === _pr && (!t.year || t.year == mevcutYil));
+    console.log('[İhale Eşleşme]', { aranan: {firma: _co, urun: _pr, yil: mevcutYil}, ihaleler: data.tenders.filter(t => t.companyName.toLowerCase() === _co && t.product.toLowerCase() === _pr), eslesen: eslesen.length });
     if (eslesen.length) {
       const kalan = eslesen[0].quantity - eslesen[0].delivered;
       if (amount > kalan) {
