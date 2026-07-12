@@ -2867,7 +2867,7 @@ document.getElementById('new-product-form').addEventListener('submit', async (e)
       if (fark !== 0 && p.companyName && data.tenders && data.tenders.length) {
         const _yil = new Date().getFullYear();
         const eslesen = data.tenders.filter(t =>
-          t.companyName === p.companyName && t.product === p.name && t.year == _yil
+          t.companyName === p.companyName && t.product === p.name && (!t.year || t.year == _yil)
         );
         eslesen.forEach(t => { t.delivered = Math.max(0, t.delivered + fark); });
         if (eslesen.length) {
@@ -2952,7 +2952,7 @@ function deleteProduct(partiNo) {
       if (p.companyName && data.tenders && data.tenders.length) {
         const _yil = new Date().getFullYear();
         const eslesen = data.tenders.filter(t =>
-          t.companyName === p.companyName && t.product === p.name && t.year == _yil
+          t.companyName === p.companyName && t.product === p.name && (!t.year || t.year == _yil)
         );
         eslesen.forEach(t => { t.delivered = Math.max(0, t.delivered - p.stock); });
       }
@@ -3185,7 +3185,7 @@ document.getElementById('entry-form').addEventListener('submit', async (e) => {
   let ihaleMsg = '';
   const mevcutYil = new Date().getFullYear();
   if (data.tenders && data.tenders.length && companyName) {
-    const eslesen = data.tenders.filter(t => t.companyName === companyName && t.product === name && t.year == mevcutYil);
+    const eslesen = data.tenders.filter(t => t.companyName === companyName && t.product === name && (!t.year || t.year == mevcutYil));
     if (eslesen.length) {
       const kalan = eslesen[0].quantity - eslesen[0].delivered;
       if (amount > kalan) {
