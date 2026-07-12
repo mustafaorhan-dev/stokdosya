@@ -4150,9 +4150,26 @@ document.getElementById('tender-form').addEventListener('submit', (e) => {
     }
     toast('İhale güncellendi.', 'success');
   } else {
-    _stokGuncelle(0, delivered);
-    data.tenders.push({ id: Math.floor(Date.now() + Math.random() * 1000), companyName, product, quantity, unit, delivered, price, year });
-    toast('İhale eklendi.', 'success');
+    // Aynı firma+ürün+yıl kaydı varsa güncelle, yoksa yeni ekle
+    const mevcut = data.tenders.find(x => {
+      const xc = (x.companyName || '').toLowerCase().replace(/\s+/g, ' ').trim();
+      const xp = (x.product || '').toLowerCase().replace(/\s+/g, ' ').trim();
+      return xc === companyName.toLowerCase().replace(/\s+/g, ' ').trim() && xp === product.toLowerCase().replace(/\s+/g, ' ').trim() && x.year == year;
+    });
+    if (mevcut) {
+      if (confirm(`"${companyName}" firmasının "${product}" ürünü için ${year} yılında zaten bir ihale kaydı var. Mevcut kaydı güncellemek istiyor musunuz?\n\nMevcut: Miktar=${mevcut.quantity}, Teslim=${mevcut.delivered}, Fiyat=${mevcut.price}₺\nYeni: Miktar=${quantity}, Teslim=${delivered}, Fiyat=${price}₺`)) {
+        const oldDelivered = mevcut.delivered || 0;
+        _stokGuncelle(oldDelivered, delivered);
+        mevcut.quantity = quantity; mevcut.unit = unit; mevcut.delivered = delivered; mevcut.price = price;
+        toast('İhale güncellendi.', 'success');
+      } else {
+        return;
+      }
+    } else {
+      _stokGuncelle(0, delivered);
+      data.tenders.push({ id: Math.floor(Date.now() + Math.random() * 1000), companyName, product, quantity, unit, delivered, price, year });
+      toast('İhale eklendi.', 'success');
+    }
   }
   saveData();
   document.getElementById('tender-modal').classList.remove('show');
