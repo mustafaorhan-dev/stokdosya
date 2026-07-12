@@ -3179,6 +3179,9 @@ document.getElementById('entry-form').addEventListener('submit', async (e) => {
     timestamp: new Date().toISOString(), createdBy: data.activeUser || ''
   });
 
+  // İhale kontrolü (debug)
+  console.log('[DEBUG] companyName:', companyName, 'name:', name, 'data.tenders:', data.tenders?.length, 'tenders:', JSON.stringify(data.tenders?.map(t => ({co: t.companyName, pr: t.product, yr: t.year, dl: t.delivered}))));
+
   await saveData();
 
   // İhale teslimatına otomatik ekle (sadece aynı yıl)
