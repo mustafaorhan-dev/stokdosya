@@ -3180,7 +3180,9 @@ document.getElementById('entry-form').addEventListener('submit', async (e) => {
   });
 
   // İhale kontrolü (debug)
-  console.log('[DEBUG] companyName:', companyName, 'name:', name, 'data.tenders:', data.tenders?.length, 'tenders:', JSON.stringify(data.tenders?.map(t => ({co: t.companyName, pr: t.product, yr: t.year, dl: t.delivered}))));
+  console.log('[DEBUG] Firma:', companyName, '| Ürün:', name);
+  console.log('[DEBUG] Toplam ihale:', data.tenders?.length);
+  (data.tenders || []).forEach((t, i) => console.log('[DEBUG] İhale', i, ':', t.companyName, '|', t.product, '|', t.year, '|', t.delivered));
 
   await saveData();
 
