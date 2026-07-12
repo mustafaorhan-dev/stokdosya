@@ -235,7 +235,7 @@ async function supabaseLoad() {
     const userList = Array.from(userMap.values());
 
     const tenderList = (tenders || []).map(t => ({
-      id: t.id, companyName: t.company_name, product: t.product,
+      id: t.id, companyName: (t.company_name || '').replace(/\s+/g, ' ').trim(), product: t.product,
       quantity: t.quantity, unit: t.unit || '', delivered: t.delivered || 0,
       price: t.price || 0, year: t.year || new Date().getFullYear()
     }));
@@ -470,6 +470,10 @@ function initData() {
   if (!data.companies) data.companies = [];
   if (!data.productNames) data.productNames = [];
   if (!data.productUnits) data.productUnits = {};
+  // Tüm companyName'leri normalize et (çift boşluk sorunu)
+  data.tenders.forEach(t => { if (t.companyName) t.companyName = t.companyName.replace(/\s+/g, ' ').trim(); });
+  data.companies = [...new Set(data.companies.map(c => c.replace(/\s+/g, ' ').trim()))];
+  Object.values(data.products).forEach(p => { if (p.companyName) p.companyName = p.companyName.replace(/\s+/g, ' ').trim(); });
   // Soft-delete migration: tüm mevcut ürünlere active:true ekle
   if (data.products) {
     Object.values(data.products).forEach(p => {
@@ -3867,7 +3871,7 @@ function importTenderCSV(event) {
         const r = rows[i];
         const maxIdx = Math.max(...Object.values(colMap).filter(v => v !== undefined));
         if (r.length <= maxIdx) { atlanan++; continue; }
-        const companyName = colMap.companyName !== undefined ? r[colMap.companyName] || '' : '';
+        const companyName = colMap.companyName !== undefined ? (r[colMap.companyName] || '').replace(/\s+/g, ' ').trim().toUpperCase() : '';
         const year = colMap.year !== undefined ? parseInt(r[colMap.year]) || cyil : cyil;
         const product = colMap.product !== undefined ? r[colMap.product] || '' : '';
         const quantity = colMap.quantity !== undefined ? _parseAmount(r[colMap.quantity] || '0') : 0;
@@ -4038,8 +4042,9 @@ function openTenderModal(editId) {
   // Firma seçimini doldur
   const companySelect = document.getElementById('tender-company');
   const secili = editId ? data.tenders.find(x => x.id === editId)?.companyName || '' : '';
+  const seciliNorm = secili.toLowerCase().replace(/\s+/g, ' ').trim();
   companySelect.innerHTML = '<option value="">Firma Seçin</option>' +
-    (data.companies || []).map(c => `<option value="${htmlEscape(c)}"${c === secili ? ' selected' : ''}>${htmlEscape(c)}</option>`).join('');
+    (data.companies || []).map(c => `<option value="${htmlEscape(c)}"${c.toLowerCase().replace(/\s+/g, ' ').trim() === seciliNorm ? ' selected' : ''}>${htmlEscape(c)}</option>`).join('');
 
   // Yıl seçimini doldur
   const yearSelect = document.getElementById('tender-year');
@@ -4108,7 +4113,7 @@ document.getElementById('tender-form').addEventListener('submit', (e) => {
   e.preventDefault();
   if (!isAdmin()) { toast('Bu işlem için yönetici yetkisi gerekli.', 'error'); return; }
   const editId = document.getElementById('tender-edit-id').value;
-  const companyName = document.getElementById('tender-company').value.trim().toUpperCase();
+  const companyName = document.getElementById('tender-company').value.trim().replace(/\s+/g, ' ').toUpperCase();
   const product = document.getElementById('tender-product').value.trim();
   const quantity = _parseAmount(document.getElementById('tender-quantity').value);
   const unit = document.getElementById('tender-unit').value.trim();
