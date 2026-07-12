@@ -2339,7 +2339,7 @@ function refreshWarehouse() {
     const kritik = p.criticalLevel > 0 && p.stock <= p.criticalLevel;
     const stokClass = kritik ? 'color:var(--accent);font-weight:800;' : '';
     const stt = sttDurum(p.stt);
-    const eslesenIhale = (data.tenders || []).filter(t => t.companyName === p.companyName && t.product === p.name);
+    const eslesenIhale = (data.tenders || []).filter(t => t.companyName.toLowerCase().replace(/\s+/g,' ').trim() === (p.companyName||'').toLowerCase().replace(/\s+/g,' ').trim() && t.product.toLowerCase() === p.name.toLowerCase());
     const ihaleKalan = eslesenIhale.reduce((top, t) => top + (t.quantity - t.delivered), 0);
     const ihaleGoster = ihaleKalan > 0 ? `<span style="color:var(--primary);font-weight:600;">${_fmt(ihaleKalan)} ${htmlEscape(p.unit)}</span>` : '<span style="color:var(--text-muted);font-size:12px;">—</span>';
     return `<tr>
@@ -2529,7 +2529,7 @@ function _exportData() {
     const fark = p.stt ? Math.ceil((new Date(p.stt+'T00:00:00') - now) / (1000*60*60*24)) : '';
     const sttDurum = fark !== '' ? (fark < 0 ? 'GEÇTİ' : fark + ' gün') : '—';
     const stokBitti = p.stock <= 0 ? ' STOKTA BİTTİ' : '';
-    const eslesenIhale = (data.tenders || []).filter(t => t.companyName === p.companyName && t.product === p.name);
+    const eslesenIhale = (data.tenders || []).filter(t => t.companyName.toLowerCase().replace(/\s+/g,' ').trim() === (p.companyName||'').toLowerCase().replace(/\s+/g,' ').trim() && t.product.toLowerCase() === p.name.toLowerCase());
     const ihaleKalan = eslesenIhale.reduce((top, t) => top + (t.quantity - t.delivered), 0);
     return { ...p, sttDurum, stokBitti, ihaleKalan };
   });
@@ -2866,9 +2866,11 @@ document.getElementById('new-product-form').addEventListener('submit', async (e)
       // Stok değişimini ihaleye işle (artış/azalış) - sadece aynı yıl
       if (fark !== 0 && p.companyName && data.tenders && data.tenders.length) {
         const _yil = new Date().getFullYear();
-        const eslesen = data.tenders.filter(t =>
-          t.companyName === p.companyName && t.product === p.name && (!t.year || t.year == _yil)
-        );
+        const eslesen = data.tenders.filter(t => {
+          const tc = (t.companyName || '').toLowerCase().replace(/\s+/g, ' ').trim();
+          const tp = (t.product || '').toLowerCase().replace(/\s+/g, ' ').trim();
+          return tc === p.companyName.toLowerCase().replace(/\s+/g, ' ').trim() && tp === p.name.toLowerCase().replace(/\s+/g, ' ').trim() && (!t.year || t.year == _yil);
+        });
         eslesen.forEach(t => { t.delivered = Math.max(0, t.delivered + fark); });
         if (eslesen.length) {
           await saveData();
@@ -2907,9 +2909,11 @@ document.getElementById('new-product-form').addEventListener('submit', async (e)
       });
       // Yeni ürün başlangıç stoğunu ihaleye işle
       if (companyName && data.tenders && data.tenders.length) {
-        const eslesen = data.tenders.filter(t =>
-          t.companyName === companyName && t.product === name
-        );
+        const eslesen = data.tenders.filter(t => {
+          const tc = (t.companyName || '').toLowerCase().replace(/\s+/g,' ').trim();
+          const tp = (t.product || '').toLowerCase().replace(/\s+/g,' ').trim();
+          return tc === companyName.toLowerCase().replace(/\s+/g,' ').trim() && tp === name.toLowerCase().replace(/\s+/g,' ').trim();
+        });
         eslesen.forEach(t => { t.delivered += stock; });
         if (eslesen.length) {
           await saveData();
@@ -2951,9 +2955,11 @@ function deleteProduct(partiNo) {
     if (p.stock > 0) {
       if (p.companyName && data.tenders && data.tenders.length) {
         const _yil = new Date().getFullYear();
-        const eslesen = data.tenders.filter(t =>
-          t.companyName === p.companyName && t.product === p.name && (!t.year || t.year == _yil)
-        );
+        const eslesen = data.tenders.filter(t => {
+          const tc = (t.companyName || '').toLowerCase().replace(/\s+/g, ' ').trim();
+          const tp = (t.product || '').toLowerCase().replace(/\s+/g, ' ').trim();
+          return tc === p.companyName.toLowerCase().replace(/\s+/g, ' ').trim() && tp === p.name.toLowerCase().replace(/\s+/g, ' ').trim() && (!t.year || t.year == _yil);
+        });
         eslesen.forEach(t => { t.delivered = Math.max(0, t.delivered - p.stock); });
       }
       data.transactions.push({
@@ -3180,30 +3186,30 @@ document.getElementById('entry-form').addEventListener('submit', async (e) => {
   });
 
   // İhale otomatik ekle
-  let ihaleMsg = 'HATA-YAKALANDI';
+  let ihaleMsg = '';
   try {
     const mevcutYil = new Date().getFullYear();
     const tumIhaleler = data.tenders || [];
-    const _co = companyName.toLowerCase().trim();
-    const _pr = name.toLowerCase().trim();
-    ihaleMsg = `[firma:${companyName}|urun:${name}|toplam:${tumIhaleler.length}]`;
+    const _co = companyName.toLowerCase().replace(/\s+/g, ' ').trim();
+    const _pr = name.toLowerCase().replace(/\s+/g, ' ').trim();
     if (tumIhaleler.length) {
       const eslesen = tumIhaleler.filter(t => {
-        const tc = (t.companyName || '').toLowerCase().trim();
-        const tp = (t.product || '').toLowerCase().trim();
+        const tc = (t.companyName || '').toLowerCase().replace(/\s+/g, ' ').trim();
+        const tp = (t.product || '').toLowerCase().replace(/\s+/g, ' ').trim();
         return tc === _co && tp === _pr && (!t.year || t.year == mevcutYil);
       });
-      ihaleMsg += `[eslesen:${eslesen.length}]`;
       if (eslesen.length) {
+        const kalan = eslesen[0].quantity - eslesen[0].delivered;
+        if (amount > kalan) {
+          if (!confirm(`⚠️ Bu giriş ihale miktarını aşıyor! İhale: ${eslesen[0].quantity}, Teslim: ${eslesen[0].delivered}, Kalan: ${kalan}, Gireceğiniz: ${amount}. Devam etmek istiyor musunuz?`)) return;
+          if (!confirm(`❗ Son onay: ${amount} girişi ihale toplamını aşacak. Yine de kaydetmek istediğinize emin misiniz?`)) return;
+        }
         eslesen.forEach(t => { t.delivered += amount; });
-        ihaleMsg += ` ✅ ${companyName} ihaleye eklendi`;
-      } else {
-        const list = tumIhaleler.map(t => `${t.companyName}(${t.product})`).join(',');
-        ihaleMsg += ` ❌ eşleşmedi. Mevcut: ${list}`;
+        ihaleMsg = ` | ✅ "${companyName}" ihaleye işlendi`;
       }
     }
   } catch(err) {
-    ihaleMsg = ` ❗ HATA: ${err.message}`;
+    console.error('İhale ekleme hatası:', err);
   }
 
   await saveData();
@@ -3328,11 +3334,13 @@ document.getElementById('exit-form').addEventListener('submit', async (e) => {
 
 function lookupTenderPrice(productName, companyName) {
   if (!data.tenders || !data.tenders.length) return 0;
-  const pLow = productName.toLowerCase();
-  const cLow = (companyName || '').toLowerCase();
-  const eslesen = data.tenders.filter(t =>
-    t.product.toLowerCase() === pLow && (!cLow || t.companyName.toLowerCase() === cLow)
-  );
+  const pLow = productName.toLowerCase().replace(/\s+/g, ' ').trim();
+  const cLow = (companyName || '').toLowerCase().replace(/\s+/g, ' ').trim();
+  const eslesen = data.tenders.filter(t => {
+    const tp = t.product.toLowerCase().replace(/\s+/g, ' ').trim();
+    const tc = t.companyName.toLowerCase().replace(/\s+/g, ' ').trim();
+    return tp === pLow && (!cLow || tc === cLow);
+  });
   if (!eslesen.length) return 0;
   eslesen.sort((a, b) => (b.year || 0) - (a.year || 0));
   return eslesen[0].price || 0;
@@ -4076,10 +4084,10 @@ async function deleteTender(id) {
   const silinen = data.tenders.find(t => t.id === id);
   if (silinen && data.products) {
     const miktar = silinen.delivered || 0;
-    const co = silinen.companyName.toLowerCase();
-    const pr = silinen.product.toLowerCase();
+    const co = silinen.companyName.toLowerCase().replace(/\s+/g,' ').trim();
+    const pr = silinen.product.toLowerCase().replace(/\s+/g,' ').trim();
     Object.entries(data.products).forEach(([partiNo, p]) => {
-      if (p.companyName.toLowerCase() === co && p.name.toLowerCase() === pr) {
+      if (p.companyName.toLowerCase().replace(/\s+/g,' ').trim() === co && p.name.toLowerCase().replace(/\s+/g,' ').trim() === pr) {
         p.stock = (p.stock || 0) - miktar;
       }
     });
@@ -4119,10 +4127,10 @@ document.getElementById('tender-form').addEventListener('submit', (e) => {
     if (!data.products) return;
     const fark = yeni - eski;
     if (fark === 0) return;
-    const co = companyName.toLowerCase();
-    const pr = product.toLowerCase();
+    const co = companyName.toLowerCase().replace(/\s+/g,' ').trim();
+    const pr = product.toLowerCase().replace(/\s+/g,' ').trim();
     Object.entries(data.products).forEach(([partiNo, p]) => {
-      if (p.companyName.toLowerCase() === co && p.name.toLowerCase() === pr) {
+      if (p.companyName.toLowerCase().replace(/\s+/g,' ').trim() === co && p.name.toLowerCase().replace(/\s+/g,' ').trim() === pr) {
         p.stock = (p.stock || 0) + fark;
       }
     });
