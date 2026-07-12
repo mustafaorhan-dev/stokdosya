@@ -3179,38 +3179,34 @@ document.getElementById('entry-form').addEventListener('submit', async (e) => {
     timestamp: new Date().toISOString(), createdBy: data.activeUser || ''
   });
 
-  await saveData();
-
-  // İhale teslimatına otomatik ekle
-  let ihaleMsg = '';
-  const mevcutYil = new Date().getFullYear();
-  const tumIhaleler = data.tenders || [];
-  const _co = companyName.toLowerCase().trim();
-  const _pr = name.toLowerCase().trim();
-  const eslesen = tumIhaleler.filter(t => {
-    const tc = (t.companyName || '').toLowerCase().trim();
-    const tp = (t.product || '').toLowerCase().trim();
-    const ty = t.year;
-    return tc === _co && tp === _pr && (!ty || ty == mevcutYil);
-  });
-
-  if (!tumIhaleler.length) {
-    ihaleMsg = ' | ⚠️ İhale kaydı bulunamadı (toplam: 0)';
-  } else if (!eslesen.length) {
-    const tumFirmalar = tumIhaleler.map(t => (t.companyName||'') + '/' + (t.product||'')).join(', ');
-    ihaleMsg = ` | ⚠️ İhale eşleşmedi (aranan: ${companyName}/${name}, mevcut: ${tumFirmalar})`;
-  }
-
-  if (eslesen.length) {
-    const kalan = eslesen[0].quantity - eslesen[0].delivered;
-    if (amount > kalan) {
-      if (!confirm(`⚠️ Bu giriş ihale miktarını aşıyor! İhale: ${eslesen[0].quantity}, Teslim: ${eslesen[0].delivered}, Kalan: ${kalan}, Gireceğiniz: ${amount}. Devam etmek istiyor musunuz?`)) return;
-      if (!confirm(`❗ Son onay: ${amount} girişi ihale toplamını aşacak. Yine de kaydetmek istediğinize emin misiniz?`)) return;
+  // İhale otomatik ekle
+  let ihaleMsg = 'HATA-YAKALANDI';
+  try {
+    const mevcutYil = new Date().getFullYear();
+    const tumIhaleler = data.tenders || [];
+    const _co = companyName.toLowerCase().trim();
+    const _pr = name.toLowerCase().trim();
+    ihaleMsg = `[firma:${companyName}|urun:${name}|toplam:${tumIhaleler.length}]`;
+    if (tumIhaleler.length) {
+      const eslesen = tumIhaleler.filter(t => {
+        const tc = (t.companyName || '').toLowerCase().trim();
+        const tp = (t.product || '').toLowerCase().trim();
+        return tc === _co && tp === _pr && (!t.year || t.year == mevcutYil);
+      });
+      ihaleMsg += `[eslesen:${eslesen.length}]`;
+      if (eslesen.length) {
+        eslesen.forEach(t => { t.delivered += amount; });
+        ihaleMsg += ` ✅ ${companyName} ihaleye eklendi`;
+      } else {
+        const list = tumIhaleler.map(t => `${t.companyName}(${t.product})`).join(',');
+        ihaleMsg += ` ❌ eşleşmedi. Mevcut: ${list}`;
+      }
     }
-    eslesen.forEach(t => { t.delivered += amount; });
-    await saveData();
-    ihaleMsg = ` | ✅ "${companyName}" ihaleye işlendi`;
+  } catch(err) {
+    ihaleMsg = ` ❗ HATA: ${err.message}`;
   }
+
+  await saveData();
 
   // Yeni firma adını hafızaya ekle
   if (companyName && !data.companies.includes(companyName)) {
