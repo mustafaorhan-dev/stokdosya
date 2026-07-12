@@ -3179,30 +3179,37 @@ document.getElementById('entry-form').addEventListener('submit', async (e) => {
     timestamp: new Date().toISOString(), createdBy: data.activeUser || ''
   });
 
-  // İhale kontrolü (debug)
-  console.log('[DEBUG] Firma:', companyName, '| Ürün:', name);
-  console.log('[DEBUG] Toplam ihale:', data.tenders?.length);
-  (data.tenders || []).forEach((t, i) => console.log('[DEBUG] İhale', i, ':', t.companyName, '|', t.product, '|', t.year, '|', t.delivered));
-
   await saveData();
 
-  // İhale teslimatına otomatik ekle (sadece aynı yıl)
+  // İhale teslimatına otomatik ekle
   let ihaleMsg = '';
   const mevcutYil = new Date().getFullYear();
-  if (data.tenders && data.tenders.length && companyName) {
-    const _co = companyName.toLowerCase();
-    const _pr = name.toLowerCase();
-    const eslesen = data.tenders.filter(t => t.companyName.toLowerCase() === _co && t.product.toLowerCase() === _pr && (!t.year || t.year == mevcutYil));
-    console.log('[İhale Eşleşme]', { aranan: {firma: _co, urun: _pr, yil: mevcutYil}, ihaleler: data.tenders.filter(t => t.companyName.toLowerCase() === _co && t.product.toLowerCase() === _pr), eslesen: eslesen.length });
-    if (eslesen.length) {
-      const kalan = eslesen[0].quantity - eslesen[0].delivered;
-      if (amount > kalan) {
-        if (!confirm(`⚠️ Bu giriş ihale miktarını aşıyor! İhale: ${eslesen[0].quantity} kg, Teslim: ${eslesen[0].delivered} kg, Kalan: ${kalan} kg, Gireceğiniz: ${amount} kg. Devam etmek istiyor musunuz?`)) return;
-        if (!confirm(`❗ Son onay: ${amount} kg girişi ihale toplamını aşacak. Yine de kaydetmek istediğinize emin misiniz?`)) return;
-      }
-      eslesen.forEach(t => { t.delivered += amount; });
+  const tumIhaleler = data.tenders || [];
+  const _co = companyName.toLowerCase().trim();
+  const _pr = name.toLowerCase().trim();
+  const eslesen = tumIhaleler.filter(t => {
+    const tc = (t.companyName || '').toLowerCase().trim();
+    const tp = (t.product || '').toLowerCase().trim();
+    const ty = t.year;
+    return tc === _co && tp === _pr && (!ty || ty == mevcutYil);
+  });
+
+  if (!tumIhaleler.length) {
+    ihaleMsg = ' | ⚠️ İhale kaydı bulunamadı (toplam: 0)';
+  } else if (!eslesen.length) {
+    const tumFirmalar = tumIhaleler.map(t => (t.companyName||'') + '/' + (t.product||'')).join(', ');
+    ihaleMsg = ` | ⚠️ İhale eşleşmedi (aranan: ${companyName}/${name}, mevcut: ${tumFirmalar})`;
+  }
+
+  if (eslesen.length) {
+    const kalan = eslesen[0].quantity - eslesen[0].delivered;
+    if (amount > kalan) {
+      if (!confirm(`⚠️ Bu giriş ihale miktarını aşıyor! İhale: ${eslesen[0].quantity}, Teslim: ${eslesen[0].delivered}, Kalan: ${kalan}, Gireceğiniz: ${amount}. Devam etmek istiyor musunuz?`)) return;
+      if (!confirm(`❗ Son onay: ${amount} girişi ihale toplamını aşacak. Yine de kaydetmek istediğinize emin misiniz?`)) return;
     }
-    if (eslesen.length) { await saveData(); ihaleMsg = ` | ✅ "${companyName}" ihaleye işlendi`; }
+    eslesen.forEach(t => { t.delivered += amount; });
+    await saveData();
+    ihaleMsg = ` | ✅ "${companyName}" ihaleye işlendi`;
   }
 
   // Yeni firma adını hafızaya ekle
