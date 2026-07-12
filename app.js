@@ -2863,10 +2863,11 @@ document.getElementById('new-product-form').addEventListener('submit', async (e)
       p.name = name; p.category = category; p.unit = unit;
       p.stock = stock; p.criticalLevel = critical; p.stt = stt; p.companyName = companyName;
 
-      // Stok değişimini ihaleye işle (artış/azalış)
+      // Stok değişimini ihaleye işle (artış/azalış) - sadece aynı yıl
       if (fark !== 0 && p.companyName && data.tenders && data.tenders.length) {
+        const _yil = new Date().getFullYear();
         const eslesen = data.tenders.filter(t =>
-          t.companyName === p.companyName && t.product === p.name
+          t.companyName === p.companyName && t.product === p.name && t.year == _yil
         );
         eslesen.forEach(t => { t.delivered = Math.max(0, t.delivered + fark); });
         if (eslesen.length) {
@@ -2949,8 +2950,9 @@ function deleteProduct(partiNo) {
     // Stok varsa ihalelerden düş ve çıkış hareketi kaydet
     if (p.stock > 0) {
       if (p.companyName && data.tenders && data.tenders.length) {
+        const _yil = new Date().getFullYear();
         const eslesen = data.tenders.filter(t =>
-          t.companyName === p.companyName && t.product === p.name
+          t.companyName === p.companyName && t.product === p.name && t.year == _yil
         );
         eslesen.forEach(t => { t.delivered = Math.max(0, t.delivered - p.stock); });
       }
@@ -3179,10 +3181,11 @@ document.getElementById('entry-form').addEventListener('submit', async (e) => {
 
   await saveData();
 
-  // İhale teslimatına otomatik ekle
+  // İhale teslimatına otomatik ekle (sadece aynı yıl)
   let ihaleMsg = '';
+  const mevcutYil = new Date().getFullYear();
   if (data.tenders && data.tenders.length && companyName) {
-    const eslesen = data.tenders.filter(t => t.companyName === companyName && t.product === name);
+    const eslesen = data.tenders.filter(t => t.companyName === companyName && t.product === name && t.year == mevcutYil);
     if (eslesen.length) {
       const kalan = eslesen[0].quantity - eslesen[0].delivered;
       if (amount > kalan) {
