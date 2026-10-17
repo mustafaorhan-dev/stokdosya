@@ -7,7 +7,7 @@
     <title>STOKDEPO</title>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="icon" type="image/svg+xml" href="favicon.svg">
-    <link rel="stylesheet" href="style.css?v=20260712c">
+    <link rel="stylesheet" href="style.css?v=20260712e">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
 </head>
@@ -112,7 +112,7 @@
                         <i class="fa-solid fa-file-signature" style="color:#f97316;"></i>
                         <span>Yıllık Karşılaştırma (İhale)</span>
                     </a>
-                    <select id="months-year-select" class="form-control" style="width:calc(100% - 12px);margin:4px 6px 8px;font-size:12px;"></select>
+                    <select id="months-year-select" class="form-control" style="width:calc(100% - 10px);margin:3px 5px 6px;font-size:11px;padding:4px 8px;"></select>
                     <div id="months-menu" style="display:flex; flex-direction:column; gap:0.25rem;"></div>
                 </div>
 
@@ -172,10 +172,8 @@
                     <h2 id="page-title">Genel Bakış</h2>
                 </div>
                 <div class="info-cards">
-                    <div class="info-badge" id="cloud-status-badge" style="cursor:pointer;" title="Supabase durumu">
-                        <i class="fa-solid fa-cloud"></i>
-                        <span id="cloud-status-text">Bağlı Değil</span>
-                        <span id="cloud-user-text" style="margin-left:6px;font-weight:600;font-size:0.75rem;color:var(--primary);display:none;"></span>
+                    <div class="info-badge" id="cloud-status-badge" title="Supabase durumu">
+                        <span id="cloud-status-dot" style="width:10px;height:10px;border-radius:50%;background:#ef4444;display:inline-block;box-shadow:0 0 6px rgba(239,68,68,0.7);"></span>
                     </div>
                     <div class="info-badge">
                         <i class="fa-regular fa-calendar"></i>
@@ -512,9 +510,9 @@
                         <h3 style="margin:0;font-size:1.3rem;">Günlük İşlemler</h3>
                     </div>
                     <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
-                        <input type="date" id="daily-date" class="form-control" style="width:150px;">
-                        <select id="daily-year-select" class="form-control" style="width:110px;"></select>
-                        <select id="daily-person-filter" class="form-control" style="width:130px;">
+                <input type="date" id="daily-date" class="form-control" style="width:132px;">
+                <select id="daily-year-select" class="form-control" style="width:92px;"></select>
+                <select id="daily-person-filter" class="form-control" style="width:112px;">
                             <option value="">Tümü</option>
                             <option value="giris">Giriş</option>
                             <option value="cikis">Çıkış</option>
@@ -593,7 +591,7 @@
                         </div>
                     </div>
                     <div style="padding: clamp(6px, 1vh, 12px) clamp(8px, 1vw, 14px);">
-                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;">
+                        <div style="display: grid; grid-template-columns: 1fr; gap: 2rem;">
                             <div>
                                 <h4 style="color: var(--success); margin-bottom: 1rem; font-weight:700;"><i class="fa-solid fa-circle-down"></i> Girişler (Toplam: <span
                                         id="month-in-total">0</span>)</h4>
@@ -1359,39 +1357,13 @@
                         </div>
                     </div>
 
-                     <!-- Supabase Bağlantısı -->
-                     <div class="panel-container">
-                         <div class="panel-header">
-                             <h3><i class="fa-solid fa-database"></i> Supabase Bağlantısı</h3>
-                         </div>
-                         <div style="padding: clamp(6px, 1vh, 12px) clamp(8px, 1vw, 14px);">
-                             <div style="display:flex; align-items:center; gap:12px; padding:12px; background:var(--bg-primary); border-radius:var(--border-radius-sm); border:1px solid var(--border-color); margin-bottom:12px;">
-                                 <i class="fa-solid fa-cloud" style="font-size:20px; color:var(--primary);"></i>
-                                 <div style="flex:1; overflow:hidden;">
-                                     <strong style="display:block;">Supabase Bulut Veritabanı</strong>
-                                     <span id="github-url-display" style="font-size:12px; color:var(--text-secondary); word-break:break-all;">https://jarnxfhviniqfdeptifb.supabase.co</span>
-                                 </div>
-                             </div>
-                              <div style="display:flex; gap:8px; flex-wrap:wrap;">
-                                  <button id="sheets-test-btn" class="btn-ui btn-primary"><i class="fa-solid fa-plug"></i> Bağlantıyı Test Et</button>
-                                  <button id="sheets-sync-btn" class="btn-ui btn-outline"><i class="fa-solid fa-arrow-up"></i> Supabase'e Gönder</button>
-                                  <button id="sheets-pull-btn" class="btn-ui btn-outline"><i class="fa-solid fa-arrow-down"></i> Supabase'den Çek</button>
-                                  <button id="cache-clear-btn" class="btn-ui btn-outline" style="border-color:var(--accent);color:var(--accent);"><i class="fa-solid fa-cloud-arrow-down"></i> Supabase'ten Yeniden Yükle</button>
-                              </div>
-                             <small style="display:block; margin-top:10px; font-weight:600; color: var(--text-secondary);">
-                                 <i class="fa-solid fa-circle-info" style="color:var(--primary);"></i> 
-                                 Tüm veriler Supabase bulut veritabanında saklanır. Bağlantı bilgileri <code>app.js</code> içinde tanımlıdır.
-                             </small>
-                         </div>
-                     </div>
-
                      <!-- Yedekleme -->
                     <div class="panel-container full-width">
                         <div class="panel-header">
                             <h3><i class="fa-solid fa-database"></i> Veri Yedekleme ve Kurtarma</h3>
                         </div>
                         <div style="padding: clamp(6px, 1vh, 12px) clamp(8px, 1vw, 14px);">
-                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;">
+                            <div style="display: grid; grid-template-columns: 1fr; gap: 2rem;">
                                 <div>
                                     <h4 style="margin-bottom: 0.5rem; font-weight:700;"><i class="fa-solid fa-clock"></i> Otomatik Zamanlı Yedek</h4>
                                     <p style="font-size: 0.9rem; color: var(--text-secondary); margin-bottom: 1rem; line-height: 1.4;">
@@ -1410,44 +1382,6 @@
                                     </div>
                                     <span id="backup-status-msg" style="display:block; margin-top: 10px; font-size: 0.85rem; font-weight:600; color: var(--success);"></span>
                                 </div>
-
-                                <div>
-                                    <h4 style="margin-bottom: 0.5rem; font-weight:700;"><i class="fa-solid fa-file-export"></i> Manuel İşlemler</h4>
-                                    <p style="font-size: 0.9rem; color: var(--text-secondary); margin-bottom: 1.25rem;">
-                                        Verilerinizi istediğiniz zaman bilgisayarınıza yedek olarak kaydedebilir veya indirdiğiniz bir yedeği sisteme yükleyebilirsiniz.
-                                    </p>
-
-                                    <div style="display:flex; flex-direction:column; gap:1.25rem;">
-                                        <button type="button" id="backup-btn" class="btn-ui btn-outline" style="align-self: flex-start;">
-                                            <i class="fa-solid fa-download"></i> Veri Tabanını JSON Olarak İndir
-                                        </button>
-
-                                         <button type="button" id="manual-sync-btn" class="btn-ui btn-primary" style="align-self: flex-start;">
-                                              <i class="fa-solid fa-cloud-upload-alt"></i> Verileri Supabase'e Eşitle
-                                          </button>
-
-                                        <div style="border-top: 1px solid var(--border-color); padding-top: 1.25rem;">
-                                            <label style="display:block; font-size: 0.8rem; font-weight:700; margin-bottom:0.5rem; color: var(--text-secondary);">Yedekten Geri Yükle</label>
-                                            <div style="display: flex; gap: 10px;">
-                                                <input type="file" id="restore-file" accept=".json" class="form-control">
-                                                <button type="button" id="restore-btn" class="btn-ui btn-primary"><i class="fa-solid fa-upload"></i> Yükle</button>
-                                            </div>
-                                            <div style="margin-top:10px;padding-top:10px;border-top:1px solid var(--border-color);">
-                                                <label style="display:block; font-size: 0.8rem; font-weight:700; margin-bottom:0.5rem; color: var(--text-secondary);">CSV İçe/Dışa Aktar (Supabase)</label>
-                                                <div style="display:flex; gap:8px; flex-wrap:wrap;">
-                                                    <button type="button" id="csv-export-btn" class="btn-ui btn-outline"><i class="fa-solid fa-file-csv"></i> CSV İndir</button>
-                                                    <input type="file" id="csv-import-file" accept=".csv" style="display:none;">
-                                                    <button type="button" id="csv-import-btn" class="btn-ui btn-primary"><i class="fa-solid fa-file-import"></i> CSV Yükle</button>
-                                                </div>
-                                                <small style="display:block;margin-top:6px;font-size:11px;color:var(--text-muted);">Supabase'den dışa aktardığınız CSV dosyasını yükleyin. Ürünler, işlemler, tedarikçiler ve ürün isimleri aktarılır.</small>
-                                            </div>
-                                            <button type="button" id="list-backups-btn" class="btn-ui btn-outline" style="margin-top:10px;width:100%;">
-                                                <i class="fa-solid fa-clock-rotate-left"></i> Supabase Yedeklerini Listele
-                                            </button>
-                                            <div id="backup-list-container" style="margin-top:8px;display:none;max-height:200px;overflow-y:auto;"></div>
-                                        </div>
-                                    </div>
-                                </div>
                             </div>
                         </div>
                     </div>
@@ -1465,21 +1399,6 @@
                             <button type="button" id="reset-all-btn" class="btn-ui" style="background: var(--accent); color: #fff; border: none;">
                                 <i class="fa-solid fa-bomb"></i> Depoyu Sıfırla & Baştan Başla
                             </button>
-                        </div>
-                    </div>
-
-                    <!-- Aktif Kullanıcılar -->
-                    <div class="panel-container full-width">
-                        <div class="panel-header">
-                            <h3><i class="fa-regular fa-users"></i> Aktif Kullanıcılar</h3>
-                        </div>
-                        <div style="padding:0.75rem 1rem;">
-                            <div id="dashboard-active-user-box">
-                                <div style="display:flex;align-items:center;gap:5px;margin-bottom:6px;">
-                                    <span id="settings-active-count" style="font-size:12px;font-weight:600;color:var(--text-primary);"></span>
-                                </div>
-                                <div id="settings-user-list" style="display:flex;flex-wrap:wrap;gap:4px;"></div>
-                            </div>
                         </div>
                     </div>
 
@@ -1608,7 +1527,7 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="app.js?t=20260712g" charset="UTF-8"></script>
+    <script src="app.js?t=20260712i" charset="UTF-8"></script>
 </body>
 
 </html>

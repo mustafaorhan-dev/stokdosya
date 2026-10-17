@@ -25,7 +25,7 @@
   --border-radius-lg: 16px;
   --shadow: 0 4px 24px rgba(0,0,0,0.3);
   --transition: 0.2s ease;
-  --sidebar-w: clamp(56px, 18vw, 260px);
+  --sidebar-w: clamp(56px, 13vw, 210px);
   --topbar-h: clamp(48px, 6vh, 64px);
   --font-sm: clamp(0.625rem, 0.35vw + 0.42rem, 0.75rem);
   --font-base: clamp(0.72rem, 0.4vw + 0.5rem, 0.9rem);
@@ -93,27 +93,28 @@ body {
   padding: clamp(12px, 2vh, 20px) clamp(12px, 2vw, 24px);
   border-bottom: 1px solid var(--border-color);
 }
-.logo-icon { font-size: clamp(18px, 2vw, 24px); color: var(--primary); }
-.brand h1 { font-size: clamp(13px, 1.2vw, 17px); font-weight: 800; letter-spacing: -0.5px; color: var(--text-primary); }
-.nav-menu { display: flex; flex-direction: column; padding: clamp(8px, 1.5vh, 16px) clamp(6px, 1vw, 12px); flex: 1; }
+.logo-icon { font-size: clamp(16px, 1.6vw, 20px); color: var(--primary); }
+.brand h1 { font-size: clamp(12px, 1vw, 15px); font-weight: 800; letter-spacing: -0.5px; color: var(--text-primary); }
+.nav-menu { display: flex; flex-direction: column; padding: clamp(8px, 1.5vh, 14px) clamp(5px, 0.8vw, 9px); flex: 1; }
 .nav-group { margin-bottom: clamp(4px, 0.5vh, 8px); }
 .nav-group h4 {
-  font-size: clamp(8px, 0.6vw, 10px); text-transform: uppercase; letter-spacing: 1.3px;
+  font-size: clamp(7.5px, 0.55vw, 9.5px); text-transform: uppercase; letter-spacing: 1px;
   color: var(--primary); padding: clamp(6px, 0.6vh, 10px) clamp(8px, 1vw, 12px) clamp(3px, 0.3vh, 5px); font-weight: 800;
   border-bottom: 1px solid var(--border-color); margin: 0 clamp(8px, 1vw, 12px) clamp(4px, 0.4vh, 6px);
 }
 .nav-item {
-  display: flex; align-items: center; gap: clamp(6px, 1vw, 12px);
-  padding: clamp(6px, 0.9vh, 9px) clamp(8px, 1vw, 12px);
+  display: flex; align-items: center; gap: clamp(6px, 0.7vw, 9px);
+  padding: clamp(5px, 0.8vh, 8px) clamp(7px, 0.8vw, 10px);
   border-radius: var(--border-radius-sm);
   color: var(--text-secondary); text-decoration: none;
-  font-size: clamp(10px, 0.7vw, 12.5px); font-weight: 500; transition: var(--transition);
-  cursor: pointer;
+  font-size: clamp(9.5px, 0.6vw, 11px); font-weight: 500; transition: var(--transition);
+  cursor: pointer; white-space: nowrap; overflow: hidden;
 }
+.nav-item > span { overflow: hidden; text-overflow: ellipsis; }
 .nav-item:hover { background: var(--bg-hover); color: var(--text-primary); }
 .nav-item.active { background: var(--primary-light); color: var(--primary); font-weight: 700; border-left: 3px solid var(--primary); position: relative; }
 .nav-item.active .month-badge { background: var(--primary); color: #fff; }
-.nav-item i { width: 18px; text-align: center; font-size: clamp(10px, 0.75vw, 12px); }
+.nav-item i { width: 15px; text-align: center; font-size: clamp(9.5px, 0.6vw, 11px); }
 .nav-item .month-badge {
   margin-left: auto; background: var(--bg-card); padding: 1px 8px;
   border-radius: 999px; font-size: clamp(8px, 0.6vw, 10px); color: var(--text-muted);
@@ -231,10 +232,10 @@ body {
   letter-spacing: 0.5px;
 }
 .form-control {
-  width: 95%; padding: clamp(7px, 0.9vh, 11px) clamp(10px, 1.2vw, 14px);
+  width: 95%; padding: clamp(5px, 0.7vh, 8px) clamp(8px, 1vw, 11px);
   border: 1px solid var(--border-color);
   border-radius: var(--border-radius-sm); background: var(--bg-primary);
-  color: var(--text-primary); font-size: clamp(11px, 0.8vw, 12.5px); font-family: inherit;
+  color: var(--text-primary); font-size: clamp(10px, 0.62vw, 11px); font-family: inherit;
   outline: none; transition: var(--transition);
 }
 .form-control:focus { border-color: var(--primary); box-shadow: 0 0 0 3px var(--primary-light); }
@@ -244,9 +245,9 @@ input[type="file"].form-control { padding: 8px; }
 /* BUTTONS */
 .btn-ui {
   display: inline-flex; align-items: center; gap: clamp(4px, 0.5vw, 8px);
-  padding: clamp(6px, 0.75vh, 9px) clamp(11px, 1.3vw, 18px);
+  padding: clamp(5px, 0.65vh, 8px) clamp(9px, 1vw, 14px);
   border: none; border-radius: var(--border-radius-sm);
-  font-size: clamp(10.5px, 0.75vw, 12.5px); font-weight: 600; font-family: inherit;
+  font-size: clamp(9.5px, 0.62vw, 11px); font-weight: 600; font-family: inherit;
   cursor: pointer; transition: var(--transition); white-space: nowrap;
 }
 .btn-primary { background: var(--primary); color: #fff; }
@@ -257,7 +258,7 @@ input[type="file"].form-control { padding: 8px; }
 }
 .btn-outline:hover { border-color: var(--primary); color: var(--text-primary); }
 .btn-outline.active { border-color: var(--primary); background: var(--primary-light); color: var(--primary); }
-.btn-sm { padding: clamp(4px, 0.5vh, 6px) clamp(8px, 0.8vw, 12px); font-size: clamp(9px, 0.65vw, 11px); }
+.btn-sm { padding: clamp(3px, 0.4vh, 5px) clamp(6px, 0.6vw, 9px); font-size: clamp(8px, 0.55vw, 9.5px); }
 .export-option:hover { background: var(--primary-light) !important; }
 .stt-export-option:hover { background: var(--primary-light) !important; }
 /* SEARCH */
@@ -323,6 +324,11 @@ input[type="file"].form-control { padding: 8px; }
 @keyframes mtIn { from { opacity: 0; transform: translateX(48px) scale(.9); } to { opacity: 1; transform: translateX(0) scale(1); } }
 @keyframes mtOut { from { opacity: 1; transform: translateX(0) scale(1); } to { opacity: 0; transform: translateX(48px) scale(.9); } }
 @keyframes mtBar { from { width: 100%; } to { width: 0; } }
+/* EKSİK ALAN İŞARETİ */
+.input-error .form-control, .input-error .cs-btn {
+  border-color: #ef4444 !important;
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.22) !important;
+}
 /* HELP BOX */
 .help-box {
   background: var(--bg-primary); border: 1px solid var(--border-color);
@@ -672,12 +678,12 @@ input[type="file"].form-control { padding: 8px; }
   align-items: center;
   justify-content: space-between;
   gap: 8px;
-  padding: clamp(6px, 0.7vh, 9px) clamp(10px, 1.2vw, 14px);
+  padding: clamp(5px, 0.65vh, 8px) clamp(8px, 1vw, 11px);
   border: 1px solid var(--border-color);
   border-radius: var(--border-radius-sm);
   background: var(--bg-primary);
   color: var(--text-primary);
-  font-size: var(--font-sm);
+  font-size: clamp(10px, 0.6vw, 11px);
   font-family: inherit;
   cursor: pointer;
   transition: var(--transition);
@@ -704,7 +710,7 @@ input[type="file"].form-control { padding: 8px; }
 .cs-group.show .cs-dd { display: block; }
 .cs-search {
   display: flex; align-items: center; gap: 8px;
-  padding: clamp(6px, 0.8vh, 10px) clamp(8px, 1vw, 12px);
+  padding: clamp(4px, 0.6vh, 7px) clamp(7px, 0.8vw, 10px);
   border-bottom: 1px solid var(--border-color);
   background: var(--bg-secondary);
 }
@@ -718,8 +724,8 @@ input[type="file"].form-control { padding: 8px; }
 .cs-options::-webkit-scrollbar { width: 4px; }
 .cs-options::-webkit-scrollbar-thumb { background: var(--border-color); border-radius: 4px; }
 .cs-option {
-  padding: clamp(6px, 0.7vh, 9px) clamp(10px, 1.2vw, 14px);
-  font-size: var(--font-sm);
+  padding: clamp(4px, 0.6vh, 7px) clamp(8px, 1vw, 11px);
+  font-size: clamp(10px, 0.6vw, 11px);
   color: var(--text-secondary);
   cursor: pointer;
   transition: background 0.15s ease;
@@ -729,22 +735,22 @@ input[type="file"].form-control { padding: 8px; }
 .cs-option:hover { background: var(--primary-light); color: var(--primary); }
 .cs-option.active { background: var(--primary-light); color: var(--primary); font-weight: 700; }
 /* ===== YIL FILTRELEME DROPDOWN ===== */
-.year-filter-group { position: relative; width: clamp(160px, 18vw, 220px); }
+.year-filter-group { position: relative; width: clamp(130px, 14vw, 175px); }
 .year-filter-btn {
   width: 100%;
   display: flex; align-items: center; justify-content: space-between; gap: 8px;
-  padding: clamp(6px, 0.7vh, 9px) clamp(10px, 1.2vw, 14px);
+  padding: clamp(5px, 0.65vh, 8px) clamp(8px, 1vw, 11px);
   border: 1px solid var(--border-color);
   border-radius: var(--border-radius-sm);
   background: var(--bg-primary);
   color: var(--text-primary);
-  font-size: var(--font-sm);
+  font-size: clamp(10px, 0.6vw, 11px);
   font-family: inherit;
   cursor: pointer;
   transition: var(--transition);
 }
 .year-filter-btn:hover { border-color: var(--primary); }
-.year-filter-btn i { font-size: clamp(10px, 0.8vw, 12px); color: var(--text-muted); transition: transform 0.2s ease; }
+.year-filter-btn i { font-size: clamp(10px, 0.65vw, 11px); color: var(--text-muted); transition: transform 0.2s ease; }
 .year-filter-group.show .year-filter-btn i { transform: rotate(180deg); }
 .year-filter-dropdown {
   display: none;
@@ -804,7 +810,7 @@ input[type="file"].form-control { padding: 8px; }
 /* ===== RESPONSIVE BREAKPOINTS ===== */
 /* LARGE SCREENS (2560px+ / 32" 4K) */
 @media (min-width: 2000px) {
-  :root { --sidebar-w: clamp(260px, 12vw, 320px); }
+  :root { --sidebar-w: clamp(196px, 9vw, 216px); }
   .view-section { padding: clamp(24px, 2.5vw, 48px); }
   .stats-grid { grid-template-columns: repeat(auto-fill, minmax(min(240px, 100%), 1fr)); }
   .dashboard-grid-3 { grid-template-columns: repeat(3, 1fr); }
@@ -812,13 +818,13 @@ input[type="file"].form-control { padding: 8px; }
 }
 /* MEDIUM-LARGE SCREENS (1920px+ / 27") */
 @media (min-width: 1600px) and (max-width: 1999px) {
-  :root { --sidebar-w: clamp(240px, 15vw, 280px); }
+  :root { --sidebar-w: clamp(190px, 11.5vw, 214px); }
   .stats-grid { grid-template-columns: repeat(4, 1fr); }
   .dashboard-grid-3 { grid-template-columns: repeat(3, 1fr); }
 }
 /* MEDIUM SCREENS (1366px–1600px / 15"–24") */
 @media (min-width: 1025px) and (max-width: 1599px) {
-  :root { --sidebar-w: clamp(200px, 18vw, 240px); }
+  :root { --sidebar-w: clamp(172px, 14vw, 208px); }
   .stats-grid { grid-template-columns: repeat(auto-fill, minmax(min(200px, 100%), 1fr)); }
   .dashboard-grid-3 { grid-template-columns: repeat(3, 1fr); }
 }

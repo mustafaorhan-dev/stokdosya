@@ -68,6 +68,14 @@ function isViewOnly() {
 
 // ===== SUPABASE VERİ KATMANI =====
 
+// Üst bardaki durum noktası: bağlıysa yeşil, değilse kırmızı
+function setCloudDot(ok) {
+  const dot = document.getElementById('cloud-status-dot');
+  if (!dot) return;
+  dot.style.background = ok ? '#22c55e' : '#ef4444';
+  dot.style.boxShadow = ok ? '0 0 6px rgba(34,197,94,0.7)' : '0 0 6px rgba(239,68,68,0.7)';
+}
+
 async function supabaseSave() {
   if (!isSupabaseReady()) return false;
   if (_syncLock) { toast('Eşitleme zaten devam ediyor.', 'warning'); return false; }
@@ -75,8 +83,7 @@ async function supabaseSave() {
   try {
     // Her kayıt öncesi float ID'leri tam sayıya çevir
     (data.transactions || []).forEach(function(t) { if (t.id && !Number.isInteger(t.id)) t.id = Math.floor(t.id); });
-    const statusEl = document.getElementById('cloud-status-text');
-    if (statusEl) statusEl.textContent = '☁️ Supabase\'e yazılıyor...';
+    setCloudDot(true);
 
     // Products toplu upsert
     const productArray = Object.entries(data.products).map(([pid, p]) => ({
@@ -169,12 +176,11 @@ async function supabaseSave() {
       try { await supabaseFetch('POST', 'product_names', { on_conflict: 'name' }, pnArray); } catch(e) { console.warn('⚠️ product_names tablosuna yazılamadı:', e); }
     }
 
-    if (statusEl) statusEl.textContent = 'Sunucuya Bağlı';
+    setCloudDot(true);
     return true;
   } catch (e) {
     console.error('Supabase kayıt hatası:', e);
-    const statusEl = document.getElementById('cloud-status-text');
-    if (statusEl) statusEl.textContent = '☁️ Supabase hatası';
+    setCloudDot(false);
     return false;
   } finally {
     _syncLock = false;
@@ -420,7 +426,7 @@ async function sheetsTest() {
     const result = await supabaseFetch('GET', 'products', { select: 'parti_no', limit: '1' });
     if (Array.isArray(result)) {
       toast('☁️ Supabase bağlantısı başarılı!', 'success');
-      document.getElementById('cloud-status-text').textContent = 'Sunucuya Bağlı';
+      setCloudDot(true);
       refreshSettings();
     } else {
       toast('⚠️ Beklenmeyen yanıt.', 'error');
@@ -1912,6 +1918,23 @@ function showMovementToast(type, name, qty, unit, newQty, note) {
   el.addEventListener('click', remove);
 }
 
+// Eksik alan uyarısı: ilgili alanı işaretler, odaklar ve uyarı gösterir
+function _fieldWarn(el, msg) {
+  if (el) {
+    const group = (el.closest && el.closest('.form-group')) || el;
+    group.classList.add('input-error');
+    const clear = () => {
+      group.classList.remove('input-error');
+      el.removeEventListener('input', clear);
+      el.removeEventListener('change', clear);
+    };
+    el.addEventListener('input', clear);
+    el.addEventListener('change', clear);
+    try { el.focus(); } catch (e) {}
+  }
+  toast(msg, 'warning');
+}
+
 // ----- NAVIGASYON -----
 function navigateTo(target) {
   // Admin değilse ayarlara gidemez
@@ -3248,10 +3271,11 @@ document.getElementById('entry-form').addEventListener('submit', async (e) => {
   const date = document.getElementById('entry-date').value;
   const note = document.getElementById('entry-note').value.trim();
 
-  if (!name || !companyName || !amount || amount <= 0 || !date) {
-    toast('Ürün adı, tedarikçi, miktar ve tarih gerekli!', 'error');
-    return;
-  }
+  if (!name) { _fieldWarn(document.getElementById('entry-name'), '⚠️ Ürün adı seçin!'); return; }
+  if (!companyName) { _fieldWarn(document.getElementById('entry-company'), '⚠️ Tedarikçi seçin!'); return; }
+  if (!amount || isNaN(amount)) { _fieldWarn(document.getElementById('entry-amount'), '⚠️ Miktar girin!'); return; }
+  if (amount <= 0) { _fieldWarn(document.getElementById('entry-amount'), '⚠️ Miktar 0\'dan büyük olmalı!'); return; }
+  if (!date) { _fieldWarn(document.getElementById('entry-date'), '⚠️ Giriş tarihi girin!'); return; }
   if (!isValidDate(date)) { toast('Geçersiz giriş tarihi!', 'error'); return; }
   if (stt && !isValidDate(stt)) { toast('Geçersiz STT tarihi!', 'error'); return; }
 
@@ -3377,7 +3401,10 @@ document.getElementById('exit-form').addEventListener('submit', async (e) => {
   const date = document.getElementById('exit-date').value;
   const note = document.getElementById('exit-note').value.trim();
 
-  if (!productName || !amount || amount <= 0 || !date) { toast('Tüm alanları doldurun.', 'error'); return; }
+  if (!productName) { _fieldWarn(document.getElementById('exit-product'), '⚠️ Ürün / parti seçin!'); return; }
+  if (!amount || isNaN(amount)) { _fieldWarn(document.getElementById('exit-amount'), '⚠️ Miktar girin!'); return; }
+  if (amount <= 0) { _fieldWarn(document.getElementById('exit-amount'), '⚠️ Miktar 0\'dan büyük olmalı!'); return; }
+  if (!date) { _fieldWarn(document.getElementById('exit-date'), '⚠️ Çıkış tarihi girin!'); return; }
   if (!isValidDate(date)) { toast('Geçersiz çıkış tarihi!', 'error'); return; }
   if (!personCount && !confirm('⚠️ Kişi sayısı girilmedi! Günlük Maliyet hesaplamaları eksik olabilir. Devam etmek istiyor musunuz?')) { return; }
 
@@ -4295,7 +4322,7 @@ function refreshSettings() {
       <span style="font-size:13px;color:var(--text-muted);font-family:monospace;">${'•'.repeat(8)}</span>
       ${canEditPass ? `<button class="btn-ui btn-sm btn-outline" onclick="editUserPassword('${u.name.replace(/'/g, '&#39;')}')" title="Şifre Değiştir" style="padding:4px 8px;font-size:12px;"><i class="fa-solid fa-key"></i></button>` : ''}
       ${admin && u.name !== 'MUSTAFA ORHAN' ? `<button class="btn-ui btn-sm ${aktifMi ? 'btn-outline' : ''}" onclick="toggleUserActive('${u.name.replace(/'/g, '&#39;')}')" style="color:${aktifMi ? 'var(--accent)' : 'var(--success)'};padding:4px 10px;font-size:12px;border:1px solid currentColor;border-radius:var(--border-radius-sm);background:transparent;cursor:pointer;">${aktifMi ? 'Pasif Yap' : 'Aktifleştir'}</button>
-      <button class="btn-ui btn-sm btn-outline" onclick="deleteUserPermanently('${u.name.replace(/'/g, '&#39;')}')" title="Kullanıcıyı Sil" style="color:var(--accent);padding:4px 8px;font-size:12px;margin-left:4px;"><i class="fa-solid fa-trash-can"></i></button>` : ''}
+      <button class="btn-ui btn-sm btn-outline" onclick="deleteUserPermanently('${u.name.replace(/'/g, '&#39;')}')" title="Kullanıcıyı Sil" style="color:var(--accent);padding:2px 7px;font-size:10px;margin-left:4px;"><i class="fa-solid fa-trash-can"></i></button>` : ''}
     </li>`;
   }).join('');
 
@@ -4330,14 +4357,6 @@ function refreshSettings() {
    const githubTitle = document.getElementById('github-status-title');
    const githubDesc = document.getElementById('github-status-desc');
    const githubUrlDisplay = document.getElementById('github-url-display');
-   const statusEl = document.getElementById('cloud-status-text');
-   const cloudUser = document.getElementById('cloud-user-text');
-
-   if (statusEl) {
-     statusEl.textContent = sbReady ? 'Sunucuya Bağlı' : 'Bağlı Değil';
-   }
-   if (cloudUser && data.activeUser) { cloudUser.textContent = '• ' + data.activeUser; cloudUser.style.display = ''; }
-
    if (githubUrlDisplay) githubUrlDisplay.textContent = SUPABASE_URL;
    if (githubStatusBox) githubStatusBox.style.borderColor = sbReady ? 'var(--success)' : 'var(--warning)';
    if (githubTitle) {
@@ -4350,17 +4369,8 @@ function refreshSettings() {
        : 'Supabase client oluşturulamadı. index.html\'deki SDK script\'ini kontrol edin.';
    }
 
-  // Cloud status badge
-  const badge = document.getElementById('cloud-status-badge');
-  if (badge) {
-    if (sbReady) {
-      badge.style.borderColor = 'var(--success)';
-      badge.style.color = 'var(--success)';
-    } else {
-      badge.style.borderColor = 'var(--text-muted)';
-      badge.style.color = 'var(--text-muted)';
-    }
-  }
+  // Cloud status dot
+  setCloudDot(sbReady);
 
   // Yedekleme
   const abt = document.getElementById('auto-backup-time');
@@ -4783,7 +4793,7 @@ function editUserPassword(name) {
 }
 
 // ----- YEDEKLEME -----
-document.getElementById('backup-btn').addEventListener('click', async () => {
+document.getElementById('backup-btn')?.addEventListener('click', async () => {
   const bakOk = await supabaseBackup('manuel');
   if (bakOk) toast('✅ Yedek Supabase\'e kaydedildi!', 'success');
   else toast('⚠️ Supabase yedekleme başarısız, yerel indiriliyor...', 'warning');
@@ -4796,7 +4806,7 @@ document.getElementById('backup-btn').addEventListener('click', async () => {
   URL.revokeObjectURL(a.href);
 });
 
-document.getElementById('restore-btn').addEventListener('click', () => {
+document.getElementById('restore-btn')?.addEventListener('click', () => {
   const fileInput = document.getElementById('restore-file');
   const file = fileInput.files[0];
   if (!file) { toast('Önce bir .json dosyası seçin.', 'error'); return; }
@@ -4916,11 +4926,11 @@ function parseCsvLine(line) {
   return result;
 }
 
-document.getElementById('csv-import-btn').addEventListener('click', () => {
-  document.getElementById('csv-import-file').click();
+document.getElementById('csv-import-btn')?.addEventListener('click', () => {
+  document.getElementById('csv-import-file')?.click();
 });
 
-document.getElementById('csv-import-file').addEventListener('change', (e) => {
+document.getElementById('csv-import-file')?.addEventListener('change', (e) => {
   const file = e.target.files[0];
   if (!file) return;
   const reader = new FileReader();
@@ -5582,10 +5592,7 @@ function refreshAll() {
   if (settingsNav) settingsNav.style.display = isAdmin() ? '' : 'none';
   const themeBtn = _el('theme-toggle');
   if (themeBtn) themeBtn.style.display = isAdmin() ? '' : 'none';
-  const statusEl = _el('cloud-status-text');
-  if (statusEl) statusEl.textContent = isSupabaseReady() ? 'Sunucuya Bağlı' : 'Yerel Bellek';
-  const cloudUser = _el('cloud-user-text');
-  if (cloudUser && data.activeUser) { cloudUser.textContent = '• ' + data.activeUser; cloudUser.style.display = ''; }
+  setCloudDot(isSupabaseReady());
 
 
   _safe(buildMonthMenu);
@@ -5669,10 +5676,10 @@ function refreshDailyView() {
     const birim = t.unit || (data.products[t.partiNo] && data.products[t.partiNo].unit) || '';
     const adminUser = isAdmin();
     const duzeltBtn = adminUser && t.type === 'cikis'
-      ? `<button class="btn-ui btn-sm btn-outline" onclick="openExitEdit(${t.id})" style="padding:2px 8px;font-size:11px;" title="Düzelt"><i class="fa-solid fa-pen"></i></button>`
+      ? `<button class="btn-ui btn-sm btn-outline" onclick="openExitEdit(${t.id})" style="padding:2px 6px;font-size:10px;" title="Düzelt"><i class="fa-solid fa-pen"></i></button>`
       : '';
     const silBtn = adminUser
-      ? `<button class="btn-ui btn-sm btn-outline" onclick="deleteTransaction(${t.id})" style="padding:2px 8px;font-size:11px;color:var(--accent);margin-left:4px;" title="Sil"><i class="fa-solid fa-trash-can"></i></button>`
+      ? `<button class="btn-ui btn-sm btn-outline" onclick="deleteTransaction(${t.id})" style="padding:2px 6px;font-size:10px;color:var(--accent);margin-left:4px;" title="Sil"><i class="fa-solid fa-trash-can"></i></button>`
       : '';
     const silindiNotu = silindi ? ' <span style="color:var(--accent);font-weight:700;">[SİLİNDİ]</span>' : '';
     return `<tr><td>${i+1}</td><td>${tip}</td><td style="font-weight:600;">${htmlEscape(t.partiNo)}${silindiNotu}</td><td>${htmlEscape(t.productName)}</td><td>${_fmt(t.amount)}</td><td>${htmlEscape(birim)}</td><td style="font-weight:600;color:var(--primary);font-size:13px;">${htmlEscape(t.createdBy) || '-'}</td><td style="color:var(--text-secondary);">${htmlEscape(t.note) || '-'}</td><td style="white-space:nowrap;">${duzeltBtn}${silBtn}</td></tr>`;
@@ -6308,8 +6315,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       'sheets-test-btn': sheetsTest,
       'sheets-sync-btn': async () => { await saveData(); toast('✅ Veriler Supabase\'e gönderildi!', 'success'); },
       'sheets-pull-btn': sheetsPull,
-      'cache-clear-btn': clearCacheAndReload,
-      'cloud-status-badge': sheetsPull
+      'cache-clear-btn': clearCacheAndReload
     };
     Object.entries(btnMap).forEach(([id, fn]) => {
       const btn = document.getElementById(id);
