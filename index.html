@@ -7,7 +7,7 @@
     <title>STOKDEPO</title>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="icon" type="image/svg+xml" href="favicon.svg">
-    <link rel="stylesheet" href="style.css?v=20260712a">
+    <link rel="stylesheet" href="style.css?v=20260712b">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
 </head>
@@ -32,7 +32,7 @@
         <div style="position:relative;background:var(--bg-secondary);border-radius:var(--border-radius-lg);padding:3rem;width:420px;max-width:92vw;box-shadow:0 25px 60px rgba(0,0,0,0.3);border:1px solid var(--border-color);text-align:center;">
             <i class="fa-solid fa-boxes-packing" style="font-size:3rem;color:var(--primary);margin-bottom:0.75rem;"></i>
             <h2 style="margin:0 0 0.25rem;font-size:1.6rem;">STOKDEPO</h2>
-            <p style="color:var(--text-secondary);font-size:0.9rem;margin-bottom:1.75rem;">Stok Yönetim Sistemi</p>
+            <p style="color:var(--text-secondary);font-size:0.85rem;margin-bottom:1.75rem;">Stok Yönetim Sistemi</p>
             <div style="display:flex;flex-direction:column;gap:14px;">
                 <input type="email" id="login-username" class="form-control" placeholder="E-posta" style="padding:14px 16px;font-size:16px;width:100%;" autocomplete="username">
                 <input type="password" id="login-password" class="form-control" placeholder="Şifre" style="padding:14px 16px;font-size:16px;width:100%;" autocomplete="off">
@@ -224,7 +224,7 @@
                         </div>
                         <div style="padding:0;display:flex;flex-direction:column;flex:1;min-height:0;">
                             <canvas id="tender-chart-canvas" style="width:100%;flex:1;min-height:0;"></canvas>
-                            <div id="tender-chart-empty" style="color:var(--text-secondary);text-align:center;font-size:0.9rem;padding:40px 0;display:none;">Henüz ihale kaydı bulunamadı.</div>
+                            <div id="tender-chart-empty" style="color:var(--text-secondary);text-align:center;font-size:0.85rem;padding:40px 0;display:none;">Henüz ihale kaydı bulunamadı.</div>
                         </div>
                     </div>
                     <div class="panel-container" style="margin-bottom:0;display:flex;flex-direction:column;">
@@ -233,7 +233,7 @@
                         </div>
                         <div style="padding:0.5rem 0.75rem;display:flex;flex-direction:column;align-items:center;">
                             <canvas id="category-chart-canvas" style="width:100%;"></canvas>
-                            <p id="category-chart-empty" style="color:var(--text-secondary);text-align:center;font-size:0.9rem;padding:40px 0;display:none;">Henüz ürün yok.</p>
+                            <p id="category-chart-empty" style="color:var(--text-secondary);text-align:center;font-size:0.85rem;padding:40px 0;display:none;">Henüz ürün yok.</p>
                             <div id="category-chart-legend" style="display:flex;justify-content:center;gap:6px;flex-wrap:wrap;margin-top:0;"></div>
                         </div>
                     </div>
@@ -242,7 +242,7 @@
                             <h3><i class="fa-solid fa-circle-info"></i> Hızlı Bilgiler</h3>
                         </div>
                         <div style="padding:0;display:flex;flex-direction:column;flex:1;min-height:0;" id="quick-info-list">
-                            <p style="color:var(--text-secondary); text-align:center; font-size:0.9rem;">Yükleniyor...</p>
+                            <p style="color:var(--text-secondary); text-align:center; font-size:0.85rem;">Yükleniyor...</p>
                         </div>
                     </div>
                 </div>
@@ -277,7 +277,7 @@
                         <h3><i class="fa-regular fa-clock"></i> Tarihi Yaklaşan / Geçen Ürünler (STT)</h3>
                     </div>
                     <div style="padding: 0.75rem; display: flex; flex-direction: column; gap: 0.5rem;" id="expiring-products-list">
-                        <p style="color:var(--text-secondary); text-align:center; font-size:0.9rem;">✅ STT girilmiş ürün bulunmuyor.</p>
+                        <p style="color:var(--text-secondary); text-align:center; font-size:0.85rem;">✅ STT girilmiş ürün bulunmuyor.</p>
                     </div>
                 </div>
 
@@ -859,14 +859,14 @@
                             <span class="yc-stat-label" id="yc-year1-label">Yıl 1</span>
                             <span class="yc-stat-value yc-green" id="yc-year1-in">0</span>
                             <span style="font-size:12px;color:var(--text-muted);">giriş</span>
-                            <span class="yc-stat-value yc-red" id="yc-year1-out" style="font-size:18px;">0</span>
+                            <span class="yc-stat-value yc-red" id="yc-year1-out" style="font-size:15px;">0</span>
                             <span style="font-size:12px;color:var(--text-muted);">çıkış</span>
                         </div>
                         <div class="yc-stat-card">
                             <span class="yc-stat-label" id="yc-year2-label">Yıl 2</span>
                             <span class="yc-stat-value yc-green" id="yc-year2-in">0</span>
                             <span style="font-size:12px;color:var(--text-muted);">giriş</span>
-                            <span class="yc-stat-value yc-red" id="yc-year2-out" style="font-size:18px;">0</span>
+                            <span class="yc-stat-value yc-red" id="yc-year2-out" style="font-size:15px;">0</span>
                             <span style="font-size:12px;color:var(--text-muted);">çıkış</span>
                         </div>
                         <div class="yc-stat-card">
@@ -876,16 +876,16 @@
                         </div>
                         <div class="yc-stat-card">
                             <span class="yc-stat-label">İşlem Sayısı</span>
-                            <span class="yc-stat-value" id="yc-year1-count" style="font-size:18px;">0</span>
+                            <span class="yc-stat-value" id="yc-year1-count" style="font-size:15px;">0</span>
                             <span style="font-size:12px;color:var(--text-muted);">→</span>
-                            <span class="yc-stat-value" id="yc-year2-count" style="font-size:18px;">0</span>
+                            <span class="yc-stat-value" id="yc-year2-count" style="font-size:15px;">0</span>
                             <span style="font-size:12px;color:var(--text-muted);" id="yc-count-change">(%0)</span>
                         </div>
                     </div>
                     <div style="padding:1rem;">
                         <div class="year-compare-chart-wrap">
                             <canvas id="year-compare-canvas"></canvas>
-                            <div id="year-compare-empty" style="color:var(--text-secondary);text-align:center;font-size:0.9rem;padding:60px 0;display:none;">
+                            <div id="year-compare-empty" style="color:var(--text-secondary);text-align:center;font-size:0.85rem;padding:60px 0;display:none;">
                                 <i class="fa-solid fa-chart-simple" style="font-size:2rem;display:block;margin-bottom:8px;"></i>
                                 Henüz veri bulunamadı.
                             </div>
@@ -938,14 +938,14 @@
                             <span class="yc-stat-label" id="tyc-year1-label">Yıl 1</span>
                             <span class="yc-stat-value yc-green" id="tyc-year1-in">0</span>
                             <span style="font-size:12px;color:var(--text-muted);">anlaşma</span>
-                            <span class="yc-stat-value yc-red" id="tyc-year1-out" style="font-size:18px;">0</span>
+                            <span class="yc-stat-value yc-red" id="tyc-year1-out" style="font-size:15px;">0</span>
                             <span style="font-size:12px;color:var(--text-muted);">teslim</span>
                         </div>
                         <div class="yc-stat-card">
                             <span class="yc-stat-label" id="tyc-year2-label">Yıl 2</span>
                             <span class="yc-stat-value yc-green" id="tyc-year2-in">0</span>
                             <span style="font-size:12px;color:var(--text-muted);">anlaşma</span>
-                            <span class="yc-stat-value yc-red" id="tyc-year2-out" style="font-size:18px;">0</span>
+                            <span class="yc-stat-value yc-red" id="tyc-year2-out" style="font-size:15px;">0</span>
                             <span style="font-size:12px;color:var(--text-muted);">teslim</span>
                         </div>
                         <div class="yc-stat-card">
@@ -960,16 +960,16 @@
                         </div>
                         <div class="yc-stat-card">
                             <span class="yc-stat-label">Fark (Yıl 2 - Yıl 1)</span>
-                            <span class="yc-stat-value" id="tyc-fark-anlasma" style="font-size:18px;">—</span>
+                            <span class="yc-stat-value" id="tyc-fark-anlasma" style="font-size:15px;">—</span>
                             <span style="font-size:12px;color:var(--text-muted);">anlaşma</span>
-                            <span class="yc-stat-value" id="tyc-fark-teslim" style="font-size:18px;">—</span>
+                            <span class="yc-stat-value" id="tyc-fark-teslim" style="font-size:15px;">—</span>
                             <span style="font-size:12px;color:var(--text-muted);">teslim</span>
                         </div>
                     </div>
                     <div style="padding:1rem;">
                         <div class="year-compare-chart-wrap">
                             <canvas id="tender-year-compare-canvas"></canvas>
-                            <div id="tender-year-compare-empty" style="color:var(--text-secondary);text-align:center;font-size:0.9rem;padding:60px 0;display:none;">
+                            <div id="tender-year-compare-empty" style="color:var(--text-secondary);text-align:center;font-size:0.85rem;padding:60px 0;display:none;">
                                 <i class="fa-solid fa-chart-simple" style="font-size:2rem;display:block;margin-bottom:8px;"></i>
                                 Henüz veri bulunamadı.
                             </div>
@@ -1043,7 +1043,7 @@
                     </div>
                     <div style="padding:1rem;">
                         <canvas id="tender-page-chart-canvas" style="width:100%;height:500px;"></canvas>
-                        <div id="tender-page-chart-empty" style="color:var(--text-secondary);text-align:center;font-size:0.9rem;padding:40px 0;display:none;">Henüz ihale kaydı bulunamadı.</div>
+                        <div id="tender-page-chart-empty" style="color:var(--text-secondary);text-align:center;font-size:0.85rem;padding:40px 0;display:none;">Henüz ihale kaydı bulunamadı.</div>
                     </div>
                 </div>
                 <div class="panel-container">
@@ -1186,7 +1186,7 @@
                         </div>
                     </div>
                     <div style="padding:1rem; display:flex; flex-direction:column; gap:0.5rem;" id="critical-stock-full-list">
-                        <p style="color:var(--text-secondary);text-align:center;font-size:0.9rem;padding:30px 0;">Yükleniyor...</p>
+                        <p style="color:var(--text-secondary);text-align:center;font-size:0.85rem;padding:30px 0;">Yükleniyor...</p>
                     </div>
                 </div>
             </div>
@@ -1201,7 +1201,7 @@
                     <div id="user-guide-content" style="padding:2rem;max-width:800px;margin:0 auto;line-height:1.8;font-size:15px;color:var(--text-primary);">
 
                         <h2 style="margin-bottom:0.25rem;">STOKDEPO — Stok Yönetim Sistemi</h2>
-                        <p style="color:var(--text-secondary);margin-bottom:2rem;font-size:0.9rem;">Versiyon 2.2 — Kullanım Kılavuzu</p>
+                        <p style="color:var(--text-secondary);margin-bottom:2rem;font-size:0.85rem;">Versiyon 2.2 — Kullanım Kılavuzu</p>
 
                         <h3>1. Genel Bakış (Dashboard)</h3>
                         <p>Uygulamaya giriş yaptığınızda ilk olarak <strong>Genel Bakış</strong> sayfası açılır. Bu sayfada şunlar bulunur:</p>
@@ -1314,7 +1314,7 @@
                         </div>
                         <div style="padding: clamp(6px, 1vh, 12px) clamp(8px, 1vw, 14px); display: flex; flex-direction: column; gap: 1.5rem;">
                             <form id="profile-form" style="border-bottom: 1px solid var(--border-color); padding-bottom: 1.5rem;">
-                                <h4 style="font-size:0.9rem; font-weight:700; margin-bottom:1rem; color:var(--primary);"><i class="fa-solid fa-user-gear"></i> Profil Ayarları</h4>
+                                <h4 style="font-size:0.85rem; font-weight:700; margin-bottom:1rem; color:var(--primary);"><i class="fa-solid fa-user-gear"></i> Profil Ayarları</h4>
                                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
                                     <div class="form-group" style="margin-bottom:0;">
                                         <label>Görünen İsim</label>
@@ -1335,7 +1335,7 @@
                             </form>
 
                             <div>
-                                <h4 style="font-size:0.9rem; font-weight:700; margin-bottom:0.75rem; color:var(--primary);"><i class="fa-solid fa-users-gear"></i> Sistem Kullanıcı Listesi</h4>
+                                <h4 style="font-size:0.85rem; font-weight:700; margin-bottom:0.75rem; color:var(--primary);"><i class="fa-solid fa-users-gear"></i> Sistem Kullanıcı Listesi</h4>
                                 <p style="font-size:0.8rem; color:var(--text-secondary); margin-bottom:1rem;">Yeni personel hesapları ekleyin. Giriş, Supabase'de tanımlı e-posta ve şifre ile yapılır.</p>
                                 <div id="add-user-section">
                                 <div style="display: flex; gap: 8px; margin-bottom: 0.5rem;flex-wrap:wrap;">
@@ -1605,7 +1605,7 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="app.js?t=20260712d" charset="UTF-8"></script>
+    <script src="app.js?t=20260712e" charset="UTF-8"></script>
 </body>
 
 </html>

@@ -879,7 +879,7 @@ const barValuePlugin = {
         const val = dataset.data[index];
         if (val === 0) return;
         ctx.fillStyle = isDark ? '#fff' : '#0f172a';
-        ctx.font = 'bold 11px Outfit, sans-serif';
+        ctx.font = 'bold 10px Outfit, sans-serif';
         ctx.textAlign = 'center';
         ctx.textBaseline = 'bottom';
         ctx.fillText(val + (birim ? ' ' + birim : ''), bar.x, bar.y - 3);
@@ -1027,7 +1027,7 @@ function renderYearChart(yil) {
       plugins: {
         legend: {
           position: 'bottom',
-          labels: { color: labelColor, font: { size: 12, weight: '600' }, usePointStyle: true, padding: 16 }
+          labels: { color: labelColor, font: { size: 11, weight: '600' }, usePointStyle: true, padding: 16 }
         },
         tooltip: {
           enabled: true,
@@ -1056,12 +1056,12 @@ function renderYearChart(yil) {
       },
       scales: {
         x: {
-          ticks: { color: labelColor, font: { size: 11 } },
+          ticks: { color: labelColor, font: { size: 10 } },
           grid: { color: gridColor }
         },
         y: {
           beginAtZero: true,
-          ticks: { color: labelColor, font: { size: 11 } },
+          ticks: { color: labelColor, font: { size: 10 } },
           grid: { color: gridColor }
         }
       }
@@ -1225,7 +1225,7 @@ function refreshYearCompare() {
       const netStr = (net >= 0 ? '+' : '') + _fmt(Math.abs(net));
       const netClass = net > 0 ? 'yc-growth' : net < 0 ? 'yc-decline' : '';
       return `<tr>
-        <td style="font-weight:700;font-size:14px;">${y}</td>
+        <td style="font-weight:700;font-size:12px;">${y}</td>
         <td style="text-align:right;font-weight:700;color:var(--success);">${_fmt(g)}</td>
         <td style="text-align:right;font-weight:700;color:var(--accent);">${_fmt(c)}</td>
         <td style="text-align:right;font-weight:700;" class="${netClass}">${netStr}</td>
@@ -1260,7 +1260,7 @@ function refreshYearCompare() {
           const val = dataArr[idx];
           if (!val) return;
           ctx.save();
-          ctx.font = 'bold 11px Outfit, Arial, sans-serif';
+          ctx.font = 'bold 10px Outfit, Arial, sans-serif';
           ctx.textAlign = 'center';
           ctx.textBaseline = 'bottom';
           ctx.fillStyle = isDark ? '#fff' : '#0f172a';
@@ -1323,7 +1323,7 @@ function refreshYearCompare() {
           align: 'center',
           labels: {
             color: labelColor,
-            font: { size: 12, weight: '600' },
+            font: { size: 11, weight: '600' },
             usePointStyle: true,
             padding: 14
           }
@@ -1348,17 +1348,17 @@ function refreshYearCompare() {
       scales: {
         x: {
           grid: { display: false },
-          ticks: { color: labelColor, font: { size: 13, weight: '700' } }
+          ticks: { color: labelColor, font: { size: 12, weight: '700' } }
         },
         y: {
           beginAtZero: true,
           grid: { color: isDark ? 'rgba(148,163,184,0.2)' : 'rgba(0,0,0,0.1)' },
-          ticks: { color: labelColor, font: { size: 11 } },
+          ticks: { color: labelColor, font: { size: 10 } },
           title: {
             display: !!birim,
             text: birim,
             color: isDark ? '#94a3b8' : '#64748b',
-            font: { size: 11, weight: '600' }
+            font: { size: 10, weight: '600' }
           }
         }
       },
@@ -1623,7 +1623,7 @@ function refreshYearCompareTender() {
       const kalan = a - d;
       const oran = a > 0 ? ((d / a) * 100).toFixed(1) : '0';
       return `<tr>
-        <td style="font-weight:700;font-size:14px;">${y}</td>
+        <td style="font-weight:700;font-size:12px;">${y}</td>
         <td style="text-align:right;font-weight:700;color:var(--success);">${_fmt(a)}</td>
         <td style="text-align:right;font-weight:700;color:var(--accent);">${_fmt(d)}</td>
         <td style="text-align:right;font-weight:700;color:${kalan > 0 ? 'var(--accent)' : 'var(--success)'};">${_fmt(kalan)}</td>
@@ -1658,7 +1658,7 @@ function refreshYearCompareTender() {
           const val = dataArr[idx];
           if (!val) return;
           ctx.save();
-          ctx.font = 'bold 11px Outfit, Arial, sans-serif';
+          ctx.font = 'bold 10px Outfit, Arial, sans-serif';
           ctx.textAlign = 'center';
           ctx.textBaseline = 'bottom';
           ctx.fillStyle = isDark ? '#fff' : '#0f172a';
@@ -1721,7 +1721,7 @@ function refreshYearCompareTender() {
           align: 'center',
           labels: {
             color: labelColor,
-            font: { size: 12, weight: '600' },
+            font: { size: 11, weight: '600' },
             usePointStyle: true,
             padding: 14
           }
@@ -1746,17 +1746,17 @@ function refreshYearCompareTender() {
       scales: {
         x: {
           grid: { display: false },
-          ticks: { color: labelColor, font: { size: 13, weight: '700' } }
+          ticks: { color: labelColor, font: { size: 12, weight: '700' } }
         },
         y: {
           beginAtZero: true,
           grid: { color: isDark ? 'rgba(148,163,184,0.2)' : 'rgba(0,0,0,0.1)' },
-          ticks: { color: labelColor, font: { size: 11 } },
+          ticks: { color: labelColor, font: { size: 10 } },
           title: {
             display: !!birim,
             text: birim,
             color: isDark ? '#94a3b8' : '#64748b',
-            font: { size: 11, weight: '600' }
+            font: { size: 10, weight: '600' }
           }
         }
       },
@@ -2037,7 +2037,7 @@ function refreshDashboard() {
     kritikDiv.innerHTML = kritik.slice(0, 3).map(g => `
       <div style="display:flex;align-items:center;gap:12px;background:var(--warning-light);padding:12px;border-radius:var(--border-radius-sm);border:1px solid rgba(234,179,8,0.2);">
         <i class="fa-solid fa-triangle-exclamation" style="color:var(--warning);font-size:18px;"></i>
-        <div style="flex:1;"><strong>${htmlEscape(g.name)}</strong><br><span style="font-size:13px;color:var(--text-secondary);">Toplam Stok: ${_fmt(g.totalStock)} / Limit: ${g.maxCritical} ${htmlEscape(g.unit)} (${g.batchCount} parti)</span></div>
+        <div style="flex:1;"><strong>${htmlEscape(g.name)}</strong><br><span style="font-size:12px;color:var(--text-secondary);">Toplam Stok: ${_fmt(g.totalStock)} / Limit: ${g.maxCritical} ${htmlEscape(g.unit)} (${g.batchCount} parti)</span></div>
         <span style="background:#422006;color:var(--warning);padding:2px 10px;border-radius:999px;font-size:12px;font-weight:700;">KRİTİK</span>
       </div>
     `).join('');
@@ -2115,8 +2115,8 @@ function refreshDashboard() {
     document.getElementById('category-chart-legend').innerHTML = catLabels.map((l, i) => `
       <div style="display:flex;align-items:center;gap:6px;">
         <div style="width:10px;height:10px;border-radius:50%;background:${catBgColors[i]};flex-shrink:0;"></div>
-        <span style="font-size:12px;font-weight:600;color:${isDark ? '#94a3b8' : '#64748b'};">${l}</span>
-        <span style="font-size:11px;font-weight:700;color:${labelColor};">${catData[i]}</span>
+        <span style="font-size:11px;font-weight:600;color:${isDark ? '#94a3b8' : '#64748b'};">${l}</span>
+        <span style="font-size:10px;font-weight:700;color:${labelColor};">${catData[i]}</span>
       </div>
     `).join('');
 
@@ -2136,7 +2136,7 @@ function refreshDashboard() {
           ctx.save();
           ctx.textAlign = 'center';
           ctx.textBaseline = 'middle';
-          ctx.font = 'bold 15px Outfit, Arial, sans-serif';
+          ctx.font = 'bold 13px Outfit, Arial, sans-serif';
           ctx.fillStyle = '#fff';
           ctx.shadowColor = 'rgba(0,0,0,0.6)';
           ctx.shadowBlur = 5;
@@ -2223,9 +2223,9 @@ function refreshDashboard() {
         <div style="position:absolute;top:0;left:0;width:4px;height:100%;border-radius:0 2px 2px 0;background:${item.gradient};"></div>
         <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
           <i class="${item.icon}" style="font-size:13px;background:${item.gradient};-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;"></i>
-          <span style="font-size:11px;font-weight:600;color:${isDark ? '#94a3b8' : '#64748b'};">${item.label}</span>
+          <span style="font-size:10px;font-weight:600;color:${isDark ? '#94a3b8' : '#64748b'};">${item.label}</span>
         </div>
-        <span style="font-size:22px;font-weight:800;background:${item.gradient};-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;line-height:1.2;">${_fmt(item.value)}</span>
+        <span style="font-size:18px;font-weight:800;background:${item.gradient};-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;line-height:1.2;">${_fmt(item.value)}</span>
       </div>
     `).join('')}
   </div>`;
@@ -2270,7 +2270,7 @@ function refreshDashboard() {
             ctx.save();
             ctx.textAlign = 'left';
             ctx.textBaseline = 'middle';
-            ctx.font = 'bold 12px Outfit, Arial, sans-serif';
+            ctx.font = 'bold 11px Outfit, Arial, sans-serif';
             ctx.fillStyle = isDark ? '#fff' : '#0f172a';
             ctx.fillText('%' + val, bar.x + 4, bar.y);
             ctx.restore();
@@ -2319,11 +2319,11 @@ function refreshDashboard() {
             beginAtZero: true,
             max: 100,
             grid: { color: isDark ? 'rgba(148,163,184,0.15)' : 'rgba(0,0,0,0.08)' },
-            ticks: { callback: v => v + '%', color: labelColor, font: { size: 10 } }
+            ticks: { callback: v => v + '%', color: labelColor, font: { size: 9 } }
           },
           y: {
             grid: { display: false },
-            ticks: { color: labelColor, font: { size: 11, weight: 'bold' } }
+            ticks: { color: labelColor, font: { size: 10, weight: 'bold' } }
           }
         }
       },
@@ -3827,7 +3827,7 @@ function refreshTenderChart() {
           ctx.save();
           ctx.textAlign = 'left';
           ctx.textBaseline = 'middle';
-          ctx.font = 'bold 15px Outfit, Arial, sans-serif';
+          ctx.font = 'bold 13px Outfit, Arial, sans-serif';
           ctx.fillStyle = isDark ? '#fff' : '#0f172a';
           ctx.fillText('%' + val, bar.x + 10, bar.y);
           ctx.restore();
@@ -3874,11 +3874,11 @@ function refreshTenderChart() {
           beginAtZero: true,
           max: 100,
           grid: { color: isDark ? 'rgba(148,163,184,0.15)' : 'rgba(0,0,0,0.08)' },
-          ticks: { callback: v => v + '%', color: labelColor, font: { size: 13 } }
+          ticks: { callback: v => v + '%', color: labelColor, font: { size: 12 } }
           },
           y: {
             grid: { display: false },
-            ticks: { color: labelColor, font: { size: 14, weight: 'bold' } }
+            ticks: { color: labelColor, font: { size: 12, weight: 'bold' } }
         }
       }
     },
@@ -5400,7 +5400,7 @@ function refreshCriticalStock() {
       <div style="flex:1;min-width:0;">
         <strong>${htmlEscape(g.name)}</strong>
         <span style="font-size:12px;color:var(--text-muted);margin-left:8px;">${g.batchCount} parti</span>
-        <br><span style="font-size:13px;color:var(--text-secondary);">Toplam Stok: ${_fmt(g.totalStock)} / Limit: ${g.maxCritical} ${htmlEscape(g.unit)}</span>
+        <br><span style="font-size:12px;color:var(--text-secondary);">Toplam Stok: ${_fmt(g.totalStock)} / Limit: ${g.maxCritical} ${htmlEscape(g.unit)}</span>
       </div>
       <span style="background:#422006;color:var(--warning);padding:2px 10px;border-radius:999px;font-size:12px;font-weight:700;white-space:nowrap;">KRİTİK</span>
     </div>
@@ -5783,7 +5783,7 @@ function refreshDailyCost() {
       <td style="text-align:right;font-weight:700;color:var(--primary);">${tc > 0 ? _fmt(tc) + ' ₺' : '—'}</td>
       <td style="text-align:right;">${t.personCount > 0 ? _fmt(t.personCount) : '—'}</td>
       <td style="text-align:right;font-weight:700;color:var(--success);">${pp > 0 ? _fmt(pp) + ' ₺' : '—'}</td>
-      <td style="color:var(--text-secondary);font-size:13px;">${htmlEscape(t.note) || '-'}</td>
+<td style="color:var(--text-secondary);font-size:12px;">${htmlEscape(t.note) || '-'}</td>
     </tr>`;
   }).join('');
   document.getElementById('dc-total-qty').textContent = _fmt(totalQty);
