@@ -3325,7 +3325,6 @@ document.getElementById('entry-form').addEventListener('submit', async (e) => {
     .filter(p => p.active !== false && p.name === name)
     .reduce((s, p) => s + (p.stock || 0), 0);
   showMovementToast('IN', name, amount, unit, _newStockIn, ihaleMsg ? ihaleMsg.replace(/^\s*\|\s*/, '').trim() : '');
-  navigateTo('dashboard');
   refreshEntryForm();
   refreshDashboard();
   buildMonthMenu();
@@ -3422,7 +3421,6 @@ document.getElementById('exit-form').addEventListener('submit', async (e) => {
   await saveData();
 
   showMovementToast('OUT', productName, amount, parts[0].unit, Math.max(0, totalStock - amount));
-  navigateTo('dashboard');
   refreshExitForm();
   refreshDashboard();
   buildMonthMenu();
