@@ -335,6 +335,19 @@ function ceviriAuthHata(msg) {
   return msg || 'Giriş yapılamadı.';
 }
 
+// Son kullanılan e-postayı hatırla (şifre saklanmaz)
+function stokdosyaSaveLastEmail(email) {
+  try { if (email) localStorage.setItem('stokdosya_last_email', email); } catch (e) {}
+}
+function stokdosyaPrefillLastEmail() {
+  try {
+    const el = document.getElementById('login-username');
+    if (!el || el.value) return;
+    const last = localStorage.getItem('stokdosya_last_email');
+    if (last) el.value = last;
+  } catch (e) {}
+}
+
 // ---------- KULLANICI GİRİŞİ (local veri kontrolü) ----------
 function sheetsLogin(username, password) {
   var user = data.users.find(function(u) {
@@ -6064,6 +6077,9 @@ document.addEventListener('DOMContentLoaded', async () => {
   // Supabase oturumunu geri yükle (geçerliyse access token alınır)
   await authInit();
 
+  // Son kullanılan e-postayı giriş alanına yaz
+  stokdosyaPrefillLastEmail();
+
   // sessionStorage varsa › F5/refresh, oturum devam etsin
   // sessionStorage yoksa › sekme yeni açılmış, şifre sor
   if (sessionStorage.getItem('stokdosya_logged_in')) {
@@ -6160,6 +6176,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         return;
       }
 
+      stokdosyaSaveLastEmail(email);
       data.activeUser = foundUser.name;
       sessionStorage.setItem('stokdosya_logged_in', '1');
       sessionStorage.setItem('stokdosya_activeUser', foundUser.name);
@@ -6211,8 +6228,9 @@ document.addEventListener('DOMContentLoaded', async () => {
       const un = document.getElementById('login-username');
       const err = document.getElementById('login-error');
       if (pw) pw.value = '';
-      if (un) un.value = '';
+      if (un) un.value = localStorage.getItem('stokdosya_last_email') || '';
       if (err) err.style.display = 'none';
+      if (pw) pw.focus();
     });
   });
 
@@ -6414,7 +6432,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         const un = document.getElementById('login-username');
         const err = document.getElementById('login-error');
         if (pw) pw.value = '';
-        if (un) un.value = '';
+        if (un) un.value = localStorage.getItem('stokdosya_last_email') || '';
         if (err) err.style.display = 'none';
       }, INACTIVITY_TIMEOUT);
     }
