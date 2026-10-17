@@ -4866,7 +4866,7 @@ function downloadCsv(filename, content) {
   URL.revokeObjectURL(a.href);
 }
 
-document.getElementById('csv-export-btn').addEventListener('click', () => {
+document.getElementById('csv-export-btn')?.addEventListener('click', () => {
   let csv = '';
 
   // Ürünler
