@@ -396,8 +396,11 @@ input[type="file"].form-control { padding: 8px; }
   min-height: 0;
   display: block;
 }
-#tender-page-chart-canvas {
-  height: clamp(120px, 20vh, 180px) !important;
+#tender-chart-holder canvas,
+#tender-page-chart-holder canvas {
+  width: 100% !important;
+  height: 100% !important;
+  display: block;
 }
 .year-compare-chart-wrap {
   position: relative;

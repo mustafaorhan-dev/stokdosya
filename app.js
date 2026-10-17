@@ -2284,6 +2284,7 @@ function refreshDashboard() {
   // İhale Çekilme Yüzdeleri Grafiği (bar)
   const canvas = document.getElementById('tender-chart-canvas');
   const emptyMsg = document.getElementById('tender-chart-empty');
+  const tenderScroll = document.getElementById('tender-chart-scroll');
   const tenderYil = new Date().getFullYear();
   const firmaToplam = {};
   (data.tenders || []).filter(t => t.quantity > 0 && t.price > 0 && (t.year || new Date().getFullYear()) === tenderYil).forEach(t => {
@@ -2295,13 +2296,14 @@ function refreshDashboard() {
     const { sozlesmeTutar, teslimTutar } = firmaToplam[name];
     const pct = sozlesmeTutar > 0 ? Math.round((teslimTutar / sozlesmeTutar) * 100) : 0;
     return { label: name, pct: Math.min(100, pct) };
-  });
+  }).sort((a, b) => b.pct - a.pct);
   if (!ihaleVeri.length) {
-    canvas.style.display = 'none';
-    emptyMsg.style.display = 'block';
+    if (tenderScroll) tenderScroll.style.display = 'none';
+    if (emptyMsg) emptyMsg.style.display = 'block';
   } else {
-    canvas.style.display = 'block';
-    emptyMsg.style.display = 'none';
+    if (tenderScroll) tenderScroll.style.display = '';
+    if (emptyMsg) emptyMsg.style.display = 'none';
+    sizeTenderChartHolder('tender-chart-holder', ihaleVeri.length);
     if (window._tenderChart) window._tenderChart.destroy();
 
     const isDark = getTheme() === 'dark';
@@ -2406,6 +2408,13 @@ function sttDurum(stt) {
 
 function _el(id) { return document.getElementById(id); }
 function _safe(fn) { try { return fn(); } catch (e) { console.error('Hata:', e); } }
+
+// İhale çekilme grafiğinin yüksekliğini firma sayısına göre ayarla (sıkışma/taşma olmaz)
+function sizeTenderChartHolder(holderId, count) {
+  const holder = document.getElementById(holderId);
+  if (!holder) return;
+  holder.style.height = Math.max(200, count * 34) + 'px';
+}
 
 function refreshWarehouse() {
   const prods = Object.values(data.products).filter(p => _showDeletedProducts ? true : p.active !== false);
@@ -3858,14 +3867,16 @@ function refreshTenderChart() {
     const { sozlesmeTutar, teslimTutar } = firmaToplam[name];
     const pct = sozlesmeTutar > 0 ? Math.round((teslimTutar / sozlesmeTutar) * 100) : 0;
     return { label: name, pct: Math.min(100, pct) };
-  });
+  }).sort((a, b) => b.pct - a.pct);
+  const pageScroll = document.getElementById('tender-page-chart-scroll');
   if (!ihaleVeri.length) {
-    canvas.style.display = 'none';
+    if (pageScroll) pageScroll.style.display = 'none';
     emptyMsg.style.display = 'block';
     return;
   }
-  canvas.style.display = 'block';
+  if (pageScroll) pageScroll.style.display = '';
   emptyMsg.style.display = 'none';
+  sizeTenderChartHolder('tender-page-chart-holder', ihaleVeri.length);
   if (window._tenderPageChart) window._tenderPageChart.destroy();
   const isDark = getTheme() === 'dark';
   const labelColor = isDark ? '#e2e8f0' : '#334155';
