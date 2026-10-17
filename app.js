@@ -8,6 +8,16 @@
 const SUPABASE_URL = 'https://jarnxfhviniqfdeptifb.supabase.co';
 const SUPABASE_ANON = 'sb_publishable_jDi72096C6MNcrcZHmpPFg_ATt5_2SP';
 
+// ----- SUPABASE AUTH (e-posta + şifre ile güvenli giriş) -----
+// supabase-js yüklenemezse null kalır ve program eski (yerel) girişe düşer.
+const _sb = (typeof supabase !== 'undefined' && supabase.createClient)
+  ? supabase.createClient(SUPABASE_URL, SUPABASE_ANON, {
+      auth: { persistSession: true, autoRefreshToken: true, storageKey: 'stokdosya_auth' }
+    })
+  : null;
+let _accessToken = null;   // oturum JWT'si (isteklerde kullanılır)
+let _authUserEmail = '';   // giriş yapan Auth e-postası
+
 let data = { products: {}, transactions: [], users: [], activeUser: '', tenders: [], companies: [], settings: {}, productNames: [], productUnits: {} };
 let nextPartiCounter = 1;
 let _syncLock = false;
@@ -28,7 +38,7 @@ async function supabaseFetch(method, table, params, body) {
   if (params) url += '?' + new URLSearchParams(params);
   const headers = {
     'apikey': SUPABASE_ANON,
-    'Authorization': `Bearer ${SUPABASE_ANON}`,
+    'Authorization': `Bearer ${_accessToken || SUPABASE_ANON}`,
     'Content-Type': 'application/json',
     'Prefer': 'return=representation'
   };
@@ -123,7 +133,7 @@ async function supabaseSave() {
     // Users upsert (benzersiz)
     const seenUsers = new Set();
     const userArray = data.users.filter(u => { if (seenUsers.has(u.name)) return false; seenUsers.add(u.name); return true; }).map(u => ({
-      name: u.name, role: u.role || 'Depo Kullanıcısı', password: u.password,
+      name: u.name, role: u.role || 'Depo Kullanıcısı', email: u.email || '',
       last_login: u.lastLogin || null
     }));
     if (userArray.length > 0) {
@@ -228,7 +238,7 @@ async function supabaseLoad() {
     const userMap = new Map();
     (users || []).forEach(u => {
       userMap.set(u.name, {
-        name: u.name, role: u.role || 'Depo Kullanıcısı',
+        name: u.name, role: u.role || 'Depo Kullanıcısı', email: u.email || '',
         password: u.password, lastLogin: u.last_login, active: u.active !== false
       });
     });
@@ -288,6 +298,43 @@ function recalculateStocks() {
   });
 }
 
+// ---------- SUPABASE AUTH YARDIMCILARI ----------
+async function authInit() {
+  if (!_sb) return false;
+  try {
+    const { data: { session } } = await _sb.auth.getSession();
+    if (session) { _accessToken = session.access_token; _authUserEmail = session.user?.email || ''; }
+    _sb.auth.onAuthStateChange((_ev, s) => {
+      _accessToken = s ? s.access_token : null;
+      _authUserEmail = s?.user?.email || '';
+    });
+    return !!_accessToken;
+  } catch (e) { console.warn('⚠️ Auth init hatası:', e); return false; }
+}
+
+async function authSignIn(email, password) {
+  if (!_sb) throw new Error('Supabase Auth yüklenemedi (internet bağlantısını kontrol edin).');
+  const { data, error } = await _sb.auth.signInWithPassword({ email: email, password: password });
+  if (error) throw new Error(ceviriAuthHata(error.message));
+  _accessToken = data.session.access_token;
+  _authUserEmail = (data.user && data.user.email) || email;
+  return data.user;
+}
+
+async function authSignOut() {
+  if (!_sb) return;
+  try { await _sb.auth.signOut(); } catch (e) {}
+  _accessToken = null; _authUserEmail = '';
+}
+
+function ceviriAuthHata(msg) {
+  const m = (msg || '').toLowerCase();
+  if (m.includes('invalid login')) return 'E-posta veya şifre hatalı.';
+  if (m.includes('email not confirmed')) return 'E-posta adresi henüz doğrulanmamış. Yöneticinize başvurun.';
+  if (m.includes('too many')) return 'Çok fazla deneme. Lütfen biraz sonra tekrar deneyin.';
+  return msg || 'Giriş yapılamadı.';
+}
+
 // ---------- KULLANICI GİRİŞİ (local veri kontrolü) ----------
 function sheetsLogin(username, password) {
   var user = data.users.find(function(u) {
@@ -317,6 +364,7 @@ async function heartbeatActiveSession() {
       const logoutUser = data.users.find(u => u.name === data.activeUser);
       if (logoutUser) logoutUser.active = false;
       supabaseFetch('POST', 'settings', { on_conflict: 'key' }, [{ key: '_forceLogout', value: '' }]).catch(() => {});
+      await authSignOut();
       sessionStorage.removeItem('stokdosya_logged_in');
       sessionStorage.removeItem('stokdosya_activeUser');
       data.activeUser = '';
@@ -4469,18 +4517,17 @@ document.getElementById('profile-form').addEventListener('submit', (e) => {
   e.preventDefault();
   const role = document.getElementById('settings-role').value.trim();
   const yeniSifre = document.getElementById('settings-new-password').value.trim();
+  if (yeniSifre) {
+    toast('Şifre değişikliği artık Supabase üzerinden yapılır (Supabase > Authentication > Users).', 'warning');
+    document.getElementById('settings-new-password').value = '';
+    return;
+  }
   if (data.activeUser) {
     const u = data.users.find(x => x.name === data.activeUser);
     if (u) {
-      if (yeniSifre) {
-        if (yeniSifre.length < 3) { toast('Şifre en az 3 karakter olmalı.', 'error'); return; }
-        u.password = yeniSifre;
-        document.getElementById('settings-new-password').value = '';
-        toast('Şifreniz güncellendi.', 'success');
-      }
       u.role = role;
       saveData();
-      if (!yeniSifre) toast('Unvan güncellendi.', 'success');
+      toast('Unvan güncellendi.', 'success');
       refreshSettings();
     }
   }
@@ -4491,20 +4538,21 @@ document.getElementById('add-user-btn').addEventListener('click', async () => {
   if (!isAdmin()) { toast('Sadece yönetici kullanıcı ekleyebilir.', 'error'); return; }
   const name = document.getElementById('new-username-input').value.trim();
   const role = document.getElementById('new-userrole-input').value.trim() || 'Depo Kullanıcısı';
-  const password = document.getElementById('new-userpassword-input').value.trim();
-  if (!name) { toast('Kullanıcı adı girin.', 'error'); return; }
-  if (!password) { toast('Şifre girin.', 'error'); return; }
+  const email = document.getElementById('new-useremail-input').value.trim();
+  if (!name) { toast('Ad Soyad girin.', 'error'); return; }
+  if (!email) { toast('E-posta girin.', 'error'); return; }
   if (data.users.find(u => u.name === name)) { toast('Bu kullanıcı zaten var.', 'error'); return; }
-  data.users.push({ name, role, password, active: true });
+  if (data.users.find(u => (u.email || '').toLowerCase() === email.toLowerCase())) { toast('Bu e-posta zaten kullanılıyor.', 'error'); return; }
+  data.users.push({ name, role, email, active: true });
   let userFlags = {};
   try { userFlags = JSON.parse(data.settings._userActiveFlags || '{}'); } catch(e) { console.warn('⚠️ _userActiveFlags ayrıştırma hatası:', e); }
   userFlags[name] = true;
   data.settings._userActiveFlags = JSON.stringify(userFlags);
   const ok = await saveData();
-  if (ok) toast(`"${name}" eklendi.`, 'success');
+  if (ok) toast(`"${name}" eklendi. Şifreyi Supabase > Authentication > Users bölümünden oluşturun.`, 'success');
   document.getElementById('new-username-input').value = '';
   document.getElementById('new-userrole-input').value = 'Depo Kullanıcısı';
-  document.getElementById('new-userpassword-input').value = '';
+  document.getElementById('new-useremail-input').value = '';
   refreshSettings();
 });
 
@@ -4688,14 +4736,8 @@ function editUserPassword(name) {
   if (!isAdmin() && data.activeUser !== name) {
     toast('Sadece kendi şifrenizi değiştirebilirsiniz.', 'error'); return;
   }
-  const u = data.users.find(x => x.name === name);
-  if (!u) return;
-  const newPass = prompt(`"${name}" için yeni şifre:`);
-  if (!newPass || newPass.length < 3) { toast('Geçerli bir şifre girin (en az 3 karakter).', 'error'); return; }
-  u.password = newPass;
-  saveData();
-  toast(`"${name}" şifresi güncellendi.`, 'success');
-  refreshSettings();
+  alert('Şifreler artık Supabase üzerinden yönetilir.\n\nŞifre değiştirmek için Supabase > Authentication > Users bölümünden ilgili e-posta hesabının şifresini güncelleyin.');
+  toast('Şifre değişikliği Supabase > Authentication > Users üzerinden yapılır.', 'warning');
 }
 
 // ----- YEDEKLEME -----
@@ -5025,7 +5067,7 @@ function convertBackupFormat(parsed) {
   }
   if (parsed.users && Array.isArray(parsed.users)) {
     parsed.users = parsed.users.map(function(u) {
-      return { name: u.name, role: u.role || 'Depo Kullanıcısı', password: u.password, lastLogin: u.last_login || u.lastLogin || null, active: u.active !== false };
+      return { name: u.name, role: u.role || 'Depo Kullanıcısı', email: u.email || '', lastLogin: u.last_login || u.lastLogin || null, active: u.active !== false };
     });
   }
   if (parsed.tenders && Array.isArray(parsed.tenders)) {
@@ -6015,17 +6057,21 @@ function pdfCikti() {
 }
 
 // ----- EVENT LISTENER'LAR (DOMContentLoaded öncesi tanımlar) -----
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
   const loginScreen = document.getElementById('login-screen');
   const appContainer = document.getElementById('app-container');
+
+  // Supabase oturumunu geri yükle (geçerliyse access token alınır)
+  await authInit();
 
   // sessionStorage varsa › F5/refresh, oturum devam etsin
   // sessionStorage yoksa › sekme yeni açılmış, şifre sor
   if (sessionStorage.getItem('stokdosya_logged_in')) {
     data.activeUser = sessionStorage.getItem('stokdosya_activeUser') || data.users[0]?.name || '';
-    // Pasif kullanıcının oturumunu engelle
+    // Supabase oturumu yoksa veya kullanıcı pasifse giriş ekranına dön
     const sessionUser = data.users.find(u => u.name === data.activeUser);
-    if (sessionUser && sessionUser.active === false) {
+    const _noSupabaseSession = _sb && !_accessToken;
+    if (_noSupabaseSession || (sessionUser && sessionUser.active === false)) {
       sessionStorage.removeItem('stokdosya_logged_in');
       sessionStorage.removeItem('stokdosya_activeUser');
       data.activeUser = '';
@@ -6062,14 +6108,13 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   document.getElementById('login-btn').addEventListener('click', async function() {
-    var user = document.getElementById('login-username').value.trim();
+    var email = document.getElementById('login-username').value.trim();
     var pass = document.getElementById('login-password').value.trim();
     var errEl = document.getElementById('login-error');
     var btn = document.getElementById('login-btn');
 
-    // Veri henüz yüklenmemişse uyar
-    if (!data.users || !data.users.length) {
-      errEl.textContent = 'Veri yükleniyor... Lütfen bekleyin ve tekrar deneyin.';
+    if (!email || !pass) {
+      errEl.textContent = 'E-posta ve şifre girin.';
       errEl.style.display = 'block';
       return;
     }
@@ -6079,43 +6124,60 @@ document.addEventListener('DOMContentLoaded', () => {
       btn.textContent = 'Kontrol ediliyor...';
       errEl.style.display = 'none';
 
-      // 1) Kullanıcıyı doğrula (lokalde ara)
-      var foundUser = data.users.find(function(u) { return u.name === user && u.password === pass; });
+      var foundUser = null;
+      var authErr = null;
 
-      if (foundUser && foundUser.active === false) {
+      // 1) Supabase Auth ile giriş (e-posta + şifre)
+      if (_sb) {
+        try {
+          await authSignIn(email, pass);
+          if (!data.users || !data.users.length) { await loadData(); }
+          foundUser = data.users.find(function(u) { return (u.email || '').toLowerCase() === email.toLowerCase(); });
+          if (!foundUser) {
+            await authSignOut();
+            errEl.textContent = 'Giriş başarılı ancak bu e-posta için kullanıcı tanımı bulunamadı. Yöneticinizden stok_users tablosuna e-posta eklemesini isteyin.';
+            errEl.style.display = 'block';
+            return;
+          }
+        } catch (ae) { authErr = ae; }
+      }
+
+      // 2) Eşleşme yoksa (geçiş dönemi): yerel kullanıcı adı + şifre kontrolü
+      if (!foundUser && data.users && data.users.length) {
+        foundUser = data.users.find(function(u) { return u.name === email && u.password === pass; }) || null;
+      }
+
+      if (!foundUser) {
+        errEl.textContent = authErr ? authErr.message : 'Hatalı e-posta veya şifre.';
+        errEl.style.display = 'block';
+        return;
+      }
+
+      if (foundUser.active === false) {
+        await authSignOut();
         errEl.textContent = 'Bu kullanıcı pasif durumda. Giriş yapılamaz.';
         errEl.style.display = 'block';
-        btn.disabled = false;
-        btn.textContent = 'Giriş';
         return;
       }
 
-      if (foundUser) {
-        data.activeUser = foundUser.name;
-        sessionStorage.setItem('stokdosya_logged_in', '1');
-        sessionStorage.setItem('stokdosya_activeUser', foundUser.name);
-        if (loginScreen) loginScreen.style.display = 'none';
-        if (appContainer) appContainer.style.display = '';
-        const nameEl = document.getElementById('display-username');
-        const roleEl = document.getElementById('display-role');
-        if (nameEl) nameEl.textContent = foundUser.name;
-        if (roleEl) roleEl.textContent = foundUser.role || '';
-        const cloudUser = document.getElementById('cloud-user-text');
-        if (cloudUser) { cloudUser.textContent = '• ' + foundUser.name; cloudUser.style.display = ''; }
-        foundUser.lastLogin = new Date().toISOString();
-        saveData();
-        refreshAll();
-        startHeartbeat();
-        // URL'de hash varsa o sayfaya git, yoksa dashboard
-        var hashTarget = location.hash ? location.hash.slice(1) : 'dashboard';
-        var validViews = ['dashboard','warehouse','aggregated-stock','entry','exit','daily','daily-cost','month-view','years-view','year-compare','stt-tracking','tender-tracking','suppliers','supplier-report-view','critical-stock-view','user-guide-view','settings-view'];
-        navigateTo(validViews.includes(hashTarget) ? hashTarget : 'dashboard');
-        return;
-      }
-
-      // 2) Eşleşme yok
-      errEl.textContent = 'Hatalı kullanıcı adı veya şifre.';
-      errEl.style.display = 'block';
+      data.activeUser = foundUser.name;
+      sessionStorage.setItem('stokdosya_logged_in', '1');
+      sessionStorage.setItem('stokdosya_activeUser', foundUser.name);
+      if (loginScreen) loginScreen.style.display = 'none';
+      if (appContainer) appContainer.style.display = '';
+      const nameEl = document.getElementById('display-username');
+      const roleEl = document.getElementById('display-role');
+      if (nameEl) nameEl.textContent = foundUser.name;
+      if (roleEl) roleEl.textContent = foundUser.role || '';
+      const cloudUser = document.getElementById('cloud-user-text');
+      if (cloudUser) { cloudUser.textContent = '• ' + foundUser.name; cloudUser.style.display = ''; }
+      foundUser.lastLogin = new Date().toISOString();
+      saveData();
+      refreshAll();
+      startHeartbeat();
+      var hashTarget = location.hash ? location.hash.slice(1) : 'dashboard';
+      var validViews = ['dashboard','warehouse','aggregated-stock','entry','exit','daily','daily-cost','month-view','years-view','year-compare','stt-tracking','tender-tracking','suppliers','supplier-report-view','critical-stock-view','user-guide-view','settings-view'];
+      navigateTo(validViews.includes(hashTarget) ? hashTarget : 'dashboard');
     } catch (e) {
       console.error('Login error:', e);
       errEl.textContent = 'Sistem hatası: ' + e.message;
@@ -6136,8 +6198,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Çıkış (sidebar + header)
   [document.getElementById('logout-btn'), document.getElementById('logout-btn-header')].forEach(btn => {
-    if (btn) btn.addEventListener('click', () => {
+    if (btn) btn.addEventListener('click', async () => {
       if (_heartbeatInterval) { clearInterval(_heartbeatInterval); _heartbeatInterval = null; }
+      await authSignOut();
       sessionStorage.removeItem('stokdosya_logged_in');
       sessionStorage.removeItem('stokdosya_activeUser');
       const loginScr = document.getElementById('login-screen');
@@ -6216,6 +6279,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Önce veriyi yükle, bitince arayüzü çiz
   const loadingEl = document.getElementById('loading-overlay');
+  const _authorised = _sb ? !!_accessToken : true;
+  if (!_authorised) {
+    // Giriş yapılmamış: veri çekmeye çalışma, doğrudan giriş ekranını göster
+    if (loadingEl) loadingEl.style.display = 'none';
+    if (loginScreen) loginScreen.style.display = 'flex';
+    if (appContainer) appContainer.style.display = 'none';
+  } else {
   if (loadingEl) loadingEl.style.display = 'flex';
   loadData().then(async () => {
     if (loadingEl) loadingEl.style.display = 'none';
@@ -6256,6 +6326,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (loadingEl) loadingEl.style.display = 'none';
     toast('Veri yüklenirken hata oluştu: ' + e.message, 'error');
   });
+  }
 
   // Supabase otomatik çekme: sayfa görünür olduğunda
   if (isSupabaseReady()) {
