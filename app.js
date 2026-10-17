@@ -1884,6 +1884,34 @@ function toast(msg, type = 'info') {
   setTimeout(() => { el.style.opacity = '0'; el.style.transition = '0.3s'; setTimeout(() => el.remove(), 300); }, 3000);
 }
 
+// Sağ üstte ürün giriş/çıkış bildirimi (ilerleme çubuğu ile)
+function showMovementToast(type, name, qty, unit, newQty, note) {
+  const container = document.getElementById('movement-toast-container');
+  if (!container) { return; }
+  const isIN = type === 'IN';
+  while (container.children.length >= 4) { container.removeChild(container.firstChild); }
+  const el = document.createElement('div');
+  el.className = `movement-toast ${isIN ? 'in' : 'out'}`;
+  const icon = isIN ? 'fa-arrow-down' : 'fa-arrow-up';
+  el.innerHTML = `
+    <div class="mt-body">
+      <div class="mt-icon"><i class="fa-solid ${icon}"></i></div>
+      <div class="mt-text">
+        <p class="mt-name">${htmlEscape(name)}</p>
+        <p class="mt-sub">${isIN ? 'Giriş' : 'Çıkış'} kaydedildi &bull; Yeni stok: <b>${_fmt(newQty)} ${htmlEscape(unit || '')}</b>${note ? ' &bull; ' + note : ''}</p>
+      </div>
+      <span class="mt-qty">${isIN ? '+' : '-'}${_fmt(qty)}</span>
+    </div>
+    <div class="mt-bar"></div>`;
+  container.appendChild(el);
+  const remove = () => {
+    el.classList.add('mt-leave');
+    setTimeout(() => el.remove(), 260);
+  };
+  setTimeout(remove, 3200);
+  el.addEventListener('click', remove);
+}
+
 // ----- NAVIGASYON -----
 function navigateTo(target) {
   // Admin değilse ayarlara gidemez
@@ -3293,7 +3321,10 @@ document.getElementById('entry-form').addEventListener('submit', async (e) => {
     await saveData();
   }
 
-    toast(`✅ ${_fmt(amount)} ${unit} ${name} [${partiNo}] oluşturuldu ve stoğa eklendi.${ihaleMsg}`, 'success');
+  const _newStockIn = Object.values(data.products)
+    .filter(p => p.active !== false && p.name === name)
+    .reduce((s, p) => s + (p.stock || 0), 0);
+  showMovementToast('IN', name, amount, unit, _newStockIn, ihaleMsg ? ihaleMsg.replace(/^\s*\|\s*/, '').trim() : '');
   navigateTo('dashboard');
   refreshEntryForm();
   refreshDashboard();
@@ -3390,7 +3421,7 @@ document.getElementById('exit-form').addEventListener('submit', async (e) => {
   transactions.forEach(t => data.transactions.push(t));
   await saveData();
 
-  toast(`${_fmt(amount)} ${parts[0].unit} ${productName} çıkışı kaydedildi.`, 'success');
+  showMovementToast('OUT', productName, amount, parts[0].unit, Math.max(0, totalStock - amount));
   navigateTo('dashboard');
   refreshExitForm();
   refreshDashboard();
