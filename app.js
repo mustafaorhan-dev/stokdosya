@@ -6073,11 +6073,13 @@ document.addEventListener('DOMContentLoaded', async () => {
       // Supabase Auth ile giriş (e-posta + şifre) — tek giriş yolu
       try {
         await authSignIn(email, pass);
-        if (!data.users || !data.users.length) { await loadData(); }
-        foundUser = data.users.find(function(u) { return (u.email || '').toLowerCase() === email.toLowerCase(); });
+        // Kullanıcı tanımı/e-postaları güncel gelsin diye her zaman taze çek
+        await loadData();
+        var _loginEmail = email.trim().toLowerCase();
+        foundUser = data.users.find(function(u) { return (u.email || '').trim().toLowerCase() === _loginEmail; });
         if (!foundUser) {
           await authSignOut();
-          _showLoginMsg(errEl, 'Giriş başarılı ancak bu e-posta için kullanıcı tanımı bulunamadı. Yöneticinizden stok_users tablosuna e-posta eklemesini isteyin.', false);
+          _showLoginMsg(errEl, 'Giriş başarılı ancak bu e-posta için kullanıcı tanımı bulunamadı. Yöneticinizden stok_users tablosunda bu e-posta ile kullanıcı tanımlamasını isteyin.', false);
           return;
         }
       } catch (ae) { authErr = ae; }
