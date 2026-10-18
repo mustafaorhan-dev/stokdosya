@@ -1398,6 +1398,30 @@
                         </div>
                     </div>
 
+                    <div class="panel-container full-width" id="admin-only-logs">
+                        <div class="panel-header">
+                            <div style="display:flex;justify-content:space-between;align-items:center;width:100%;gap:10px;flex-wrap:wrap;">
+                                <h3><i class="fa-solid fa-clipboard-list"></i> Log Kayıtları</h3>
+                                <div style="display:flex;gap:8px;align-items:center;">
+                                    <select id="log-filter" class="form-control" style="width:auto;padding:4px 8px;font-size:12px;">
+                                        <option value="">Tümü</option>
+                                        <option value="giris">Giriş</option>
+                                        <option value="cikis">Çıkış</option>
+                                        <option value="duzeltme">Düzeltme</option>
+                                        <option value="silme">Silme</option>
+                                        <option value="kullanici">Kullanıcı</option>
+                                        <option value="oturum">Oturum</option>
+                                    </select>
+                                    <button type="button" id="log-export-btn" class="btn-ui btn-sm btn-outline" title="Excel"><i class="fa-solid fa-file-excel"></i></button>
+                                    <button type="button" id="log-clear-btn" class="btn-ui btn-sm btn-outline" style="color:var(--accent);" title="Temizle"><i class="fa-solid fa-eraser"></i></button>
+                                </div>
+                            </div>
+                        </div>
+                        <div style="padding: clamp(6px, 1vh, 12px) clamp(8px, 1vw, 14px);">
+                            <div id="log-list" style="max-height:340px;overflow-y:auto;font-size:13px;"></div>
+                        </div>
+                    </div>
+
                 </div>
             </div>
 
@@ -1549,7 +1573,7 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="app.js?t=20260712z3" charset="UTF-8"></script>
+    <script src="app.js?t=20260712z5" charset="UTF-8"></script>
 </body>
 
 </html>

@@ -2987,6 +2987,7 @@ document.getElementById('stock-adjust-form').addEventListener('submit', async (e
   });
   await saveData();
   toast(`Stok düzeltildi: ${_fmt(eski)} › ${_fmt(yeni)} ${p.unit}`, 'success');
+  logKaydet('duzeltme', `Stok düzeltme (${p.partiNo}): ${p.name} ${_fmt(eski)} › ${_fmt(yeni)} ${p.unit}${not ? ' — ' + not : ''}`);
   refreshWarehouse();
   refreshDashboard();
   refreshAggregatedStock();
@@ -3187,6 +3188,7 @@ function deleteProduct(partiNo) {
   }
   saveData();
   toast('Ürün silindi.', 'info');
+  logKaydet('silme', `Ürün kartı silindi (${partiNo})${p ? ': ' + p.name : ''}`);
   refreshWarehouse();
   refreshDashboard();
   buildMonthMenu();
@@ -3440,6 +3442,8 @@ document.getElementById('entry-form').addEventListener('submit', async (e) => {
     await saveData();
   }
 
+  logKaydet('giris', `${name}: ${_fmt(amount)} ${unit} giriş — ${companyName}`);
+
   const _newStockIn = Object.values(data.products)
     .filter(p => p.active !== false && p.name === name)
     .reduce((s, p) => s + (p.stock || 0), 0);
@@ -3541,6 +3545,8 @@ document.getElementById('exit-form').addEventListener('submit', async (e) => {
 
   transactions.forEach(t => data.transactions.push(t));
   await saveData();
+
+  logKaydet('cikis', `${productName}: ${_fmt(amount)} ${parts[0].unit} çıkış`);
 
   showMovementToast('OUT', productName, amount, parts[0].unit, Math.max(0, totalStock - amount));
   refreshExitForm();
@@ -4342,6 +4348,87 @@ document.getElementById('tender-form').addEventListener('submit', (e) => {
 document.getElementById('tender-year-filter')?.addEventListener('change', refreshTenders);
 document.getElementById('tender-company-filter')?.addEventListener('change', refreshTenders);
 
+// ----- LOG KAYITLARI (Supabase) -----
+var _logTurEtiket = { giris: 'GİRİŞ', cikis: 'ÇIKIŞ', duzeltme: 'DÜZELTME', silme: 'SİLME', kullanici: 'KULLANICI', oturum: 'OTURUM' };
+var _logsCache = [];
+function _logList() {
+  try { return JSON.parse(localStorage.getItem('stokdosya_log') || '[]'); } catch (e) { return []; }
+}
+function _logRender(list) {
+  const el = document.getElementById('log-list');
+  if (!el) return;
+  const filtre = (document.getElementById('log-filter') || {}).value || '';
+  let g = list || [];
+  if (filtre) g = g.filter(x => x.tur === filtre);
+  if (!g.length) { el.innerHTML = '<div style="color:var(--text-muted);padding:20px;text-align:center;">Kayıt yok.</div>'; return; }
+  const renk = { giris: 'var(--success)', cikis: 'var(--accent)', duzeltme: 'var(--warning)' };
+  el.innerHTML = g.map(x => {
+    const d = new Date(x.t);
+    const zaman = isNaN(d) ? '' : d.toLocaleString('tr-TR');
+    const k = renk[x.tur] || 'var(--primary)';
+    return `<div style="display:flex;gap:8px;padding:6px 4px;border-bottom:1px solid var(--border-color);align-items:baseline;">
+      <span style="color:var(--text-muted);font-size:11px;white-space:nowrap;min-width:120px;">${zaman}</span>
+      <span style="color:${k};font-weight:700;font-size:10px;min-width:72px;">${_logTurEtiket[x.tur] || x.tur}</span>
+      <span style="font-weight:600;color:var(--text-primary);font-size:12px;min-width:90px;">${htmlEscape(x.u)}</span>
+      <span style="color:var(--text-secondary);flex:1;">${htmlEscape(x.m)}</span>
+    </div>`;
+  }).join('');
+}
+async function logKaydet(tur, mesaj) {
+  const entry = { t: new Date().toISOString(), u: data.activeUser || '-', tur: tur, m: mesaj };
+  try {
+    let list = _logList();
+    list.unshift(entry);
+    if (list.length > 500) list = list.slice(0, 500);
+    localStorage.setItem('stokdosya_log', JSON.stringify(list));
+  } catch (e) {}
+  if (typeof isSupabaseReady === 'function' && isSupabaseReady()) {
+    try { await supabaseFetch('POST', 'logs', null, [{ created_at: entry.t, actor: entry.u, tur: entry.tur, mesaj: entry.m }]); }
+    catch (e) { console.warn('Supabase log kaydı hatası:', e); }
+  }
+  refreshLogs();
+}
+async function refreshLogs() {
+  const el = document.getElementById('log-list');
+  if (!el) return;
+  let list = null;
+  if (typeof isSupabaseReady === 'function' && isSupabaseReady()) {
+    try {
+      const rows = await supabaseFetch('GET', 'logs', { select: 'created_at,actor,tur,mesaj', order: 'created_at.desc', limit: '500' });
+      if (Array.isArray(rows)) {
+        list = rows.map(r => ({ t: r.created_at, u: r.actor, tur: r.tur, m: r.mesaj }));
+        try { localStorage.setItem('stokdosya_log', JSON.stringify(list)); } catch (e) {}
+      }
+    } catch (e) { console.warn('Supabase log çekme hatası:', e); }
+  }
+  if (!list) list = _logList();
+  _logsCache = list;
+  _logRender(list);
+}
+async function clearLogs() {
+  if (!isAdmin()) return;
+  if (!confirm('Tüm log kayıtları silinsin mi?')) return;
+  if (typeof isSupabaseReady === 'function' && isSupabaseReady()) {
+    try { await supabaseFetch('DELETE', 'logs', { id: 'gt.0' }); } catch (e) { console.warn('Log temizleme hatası:', e); }
+  }
+  localStorage.removeItem('stokdosya_log');
+  _logsCache = [];
+  _logRender([]);
+  toast('Log kayıtları temizlendi.', 'info');
+}
+function exportLogs() {
+  const list = _logsCache.length ? _logsCache : _logList();
+  if (!list.length) { toast('Log kaydı yok.', 'info'); return; }
+  const rows = list.map(x => {
+    const d = new Date(x.t);
+    return [isNaN(d) ? '' : d.toLocaleString('tr-TR'), x.u || '', _logTurEtiket[x.tur] || x.tur, x.m || ''];
+  });
+  _htmlExcelBlob(rows, ['Zaman', 'Kullanıcı', 'Tür', 'Açıklama'], 'log_kayitlari.xls');
+}
+document.getElementById('log-filter')?.addEventListener('change', () => _logRender(_logsCache.length ? _logsCache : _logList()));
+document.getElementById('log-clear-btn')?.addEventListener('click', clearLogs);
+document.getElementById('log-export-btn')?.addEventListener('click', exportLogs);
+
 // ----- AYARLAR -----
 function refreshSettings() {
   // Kullanici adi
@@ -4357,10 +4444,11 @@ function refreshSettings() {
   // Admin değilse ekleme formunu gizle
   const addUserSection = document.getElementById('add-user-section');
   if (addUserSection) addUserSection.style.display = admin ? '' : 'none';
-  ['admin-only-users','admin-only-backup','admin-only-reset'].forEach(id => {
+  ['admin-only-users','admin-only-backup','admin-only-reset','admin-only-logs'].forEach(id => {
     const blk = document.getElementById(id);
     if (blk) blk.style.display = admin ? '' : 'none';
   });
+  if (admin) { try { refreshLogs(); } catch (e) {} }
   if (!ul) return;
   ul.innerHTML = data.users.map(u => {
     const aktif = u.name === data.activeUser;
@@ -4655,6 +4743,7 @@ document.getElementById('add-user-btn').addEventListener('click', async () => {
   data.settings._userActiveFlags = JSON.stringify(userFlags);
   const ok = await saveData();
   if (ok) toast(`"${name}" eklendi. Şifreyi Supabase > Authentication > Users bölümünden oluşturun.`, 'success');
+  logKaydet('kullanici', `Kullanıcı eklendi: "${name}" (${role}${email ? ', ' + email : ''})`);
   document.getElementById('new-username-input').value = '';
   document.getElementById('new-userrole-input').value = 'Depo Kullanıcısı';
   document.getElementById('new-useremail-input').value = '';
@@ -4826,6 +4915,7 @@ async function renameUser(oldName) {
 
   await saveData();
   toast(`İsim güncellendi: "${oldName}" › "${yeni}"`, 'success');
+  logKaydet('kullanici', `İsim değiştirildi: "${oldName}" › "${yeni}"`);
   refreshSettings();
   if (data.activeUser === yeni && typeof applyPermissions === 'function') applyPermissions();
   if (typeof refreshDailyView === 'function') refreshDailyView();
@@ -4840,6 +4930,7 @@ async function changeUserRole(name, newRole) {
   const ok = await saveData();
   if (data.activeUser === name && typeof applyPermissions === 'function') applyPermissions();
   if (ok) toast(`"${name}" rolü "${newRole}" olarak güncellendi.`, 'success');
+  logKaydet('kullanici', `Rol değişti: "${name}" › ${newRole}`);
   refreshSettings();
 }
 
@@ -4862,6 +4953,7 @@ async function toggleUserActive(name) {
   }
   saveData();
   toast(`"${name}" kullanıcısı ${u.active ? 'aktifleştirildi' : 'pasif yapıldı'}.`, 'info');
+  logKaydet('kullanici', `"${name}" ${u.active ? 'aktifleştirildi' : 'pasif yapıldı'}`);
   refreshSettings();
 }
 
@@ -4880,6 +4972,7 @@ async function deleteUserPermanently(name) {
   }
   saveData();
   toast(`"${name}" silindi.`, 'info');
+  logKaydet('kullanici', `Kullanıcı silindi: "${name}"`);
   refreshSettings();
 }
 
@@ -4932,6 +5025,7 @@ document.getElementById('restore-btn')?.addEventListener('click', () => {
       initData();
       saveData();
       toast('Veri başarıyla geri yüklendi!', 'success');
+      logKaydet('duzeltme', 'Yedek dosyası geri yüklendi');
       fileInput.value = '';
       refreshAll();
     } catch (err) {
@@ -5857,6 +5951,7 @@ document.getElementById('exit-edit-form').addEventListener('submit', (e) => {
   document.getElementById('exit-edit-modal').classList.remove('show');
 
   toast(`${tur} düzeltildi: ${_fmt(eskiMiktar)} › ${_fmt(yeniMiktar)} ${p.unit}`, 'success');
+  logKaydet('duzeltme', `${tur} düzeltme (${t.partiNo}) ${t.productName}: ${_fmt(eskiMiktar)} › ${_fmt(yeniMiktar)} ${p.unit}${duzeltmeNotu ? ' — ' + duzeltmeNotu : ''}`);
 
   // Tüm modülleri eşzamanlı güncelle
   refreshDailyView();
@@ -5891,6 +5986,7 @@ async function deleteTransaction(id) {
     try { await supabaseFetch('DELETE', 'transactions', { id: `eq.${id}` }); } catch (e) { console.error('Supabase silme hatası:', e); }
   }
   toast('İşlem silindi.', 'info');
+  logKaydet('silme', `${t.type === 'giris' ? 'Giriş' : 'Çıkış'} kaydı silindi: ${t.productName} ${_fmt(t.amount)} ${t.unit} (${t.partiNo})`);
   refreshAll();
   buildMonthMenu();
 }
@@ -6272,6 +6368,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       foundUser.lastLogin = new Date().toISOString();
       if (!isViewOnly()) saveData();
       refreshAll();
+      logKaydet('oturum', 'Oturum açıldı');
       startHeartbeat();
       var hashTarget = location.hash ? location.hash.slice(1) : 'dashboard';
       var validViews = ['dashboard','warehouse','aggregated-stock','entry','exit','daily','daily-cost','month-view','years-view','year-compare','stt-tracking','tender-tracking','suppliers','supplier-report-view','critical-stock-view','user-guide-view','settings-view'];
@@ -6307,6 +6404,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   [document.getElementById('logout-btn'), document.getElementById('logout-btn-header')].forEach(btn => {
     if (btn) btn.addEventListener('click', async () => {
       if (_heartbeatInterval) { clearInterval(_heartbeatInterval); _heartbeatInterval = null; }
+      logKaydet('oturum', 'Oturum kapatıldı');
       await authSignOut();
       sessionStorage.removeItem('stokdosya_logged_in');
       sessionStorage.removeItem('stokdosya_activeUser');
