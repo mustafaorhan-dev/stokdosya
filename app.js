@@ -4254,9 +4254,9 @@ function refreshSettings() {
     const aktif = u.name === data.activeUser;
     const aktifMi = u.active !== false;
     const canEditPass = admin || aktif;
+    const roleSelect = admin ? `<select onchange="changeUserRole('${u.name.replace(/'/g, '&#39;')}', this.value)" title="Rolü değiştir" style="font-size:12px;padding:3px 6px;border-radius:6px;border:1px solid var(--border-color);background:var(--bg-primary);color:var(--text-primary);cursor:pointer;margin-left:6px;"><option value="Depo Kullanıcısı"${u.role === 'Depo Kullanıcısı' ? ' selected' : ''}>Depo Kullanıcısı</option><option value="Sadece Görüntüleme"${u.role === 'Sadece Görüntüleme' ? ' selected' : ''}>Sadece Görüntüleme</option><option value="Yönetici"${u.role === 'Yönetici' ? ' selected' : ''}>Yönetici</option></select>` : `<span style="color:var(--text-secondary);font-size:13px;">— ${htmlEscape(u.role)}</span>`;
     return `<li style="display:flex;align-items:center;justify-content:space-between;background:var(--bg-primary);padding:10px 14px;border-radius:var(--border-radius-sm);border:1px solid ${aktif ? 'var(--primary)' : 'var(--border-color)'};flex-wrap:wrap;gap:6px;${!aktifMi ? 'opacity:0.6;' : ''}">
-      <span style="flex:1;min-width:120px;"><strong>${htmlEscape(u.name)}</strong> <span style="color:var(--text-secondary);font-size:13px;">— ${htmlEscape(u.role)}</span> ${aktif ? '<span style="background:var(--primary-light);color:var(--primary);padding:2px 8px;border-radius:999px;font-size:11px;font-weight:700;margin-left:6px;">AKTİF</span>' : ''} ${!aktifMi ? '<span style="background:var(--accent);color:#fff;padding:2px 8px;border-radius:999px;font-size:11px;font-weight:700;margin-left:6px;">PASİF</span>' : ''}</span>
-      <span style="font-size:13px;color:var(--text-muted);font-family:monospace;">${'•'.repeat(8)}</span>
+      <span style="flex:1;min-width:120px;"><strong>${htmlEscape(u.name)}</strong> ${roleSelect}${u.email ? ` <span style="color:var(--text-muted);font-size:12px;font-family:monospace;">${htmlEscape(u.email)}</span>` : ' <span style="color:var(--text-muted);font-size:12px;">(e-posta yok)</span>'} ${aktif ? '<span style="background:var(--primary-light);color:var(--primary);padding:2px 8px;border-radius:999px;font-size:11px;font-weight:700;margin-left:6px;">AKTİF</span>' : ''} ${!aktifMi ? '<span style="background:var(--accent);color:#fff;padding:2px 8px;border-radius:999px;font-size:11px;font-weight:700;margin-left:6px;">PASİF</span>' : ''}</span>
       ${canEditPass ? `<button class="btn-ui btn-sm btn-outline" onclick="editUserPassword('${u.name.replace(/'/g, '&#39;')}')" title="Şifre Değiştir" style="padding:4px 8px;font-size:12px;"><i class="fa-solid fa-key"></i></button>` : ''}
       ${admin && u.name !== 'MUSTAFA ORHAN' ? `<button class="btn-ui btn-sm ${aktifMi ? 'btn-outline' : ''}" onclick="toggleUserActive('${u.name.replace(/'/g, '&#39;')}')" style="color:${aktifMi ? 'var(--accent)' : 'var(--success)'};padding:4px 10px;font-size:12px;border:1px solid currentColor;border-radius:var(--border-radius-sm);background:transparent;cursor:pointer;">${aktifMi ? 'Pasif Yap' : 'Aktifleştir'}</button>
       <button class="btn-ui btn-sm btn-outline" onclick="deleteUserPermanently('${u.name.replace(/'/g, '&#39;')}')" title="Kullanıcıyı Sil" style="color:var(--accent);padding:2px 7px;font-size:10px;margin-left:4px;"><i class="fa-solid fa-trash-can"></i></button>` : ''}
@@ -4680,6 +4680,18 @@ document.addEventListener('click', (e) => {
     toast(`${names.length} ürün ismi kaldırıldı.`, 'success');
   }
 });
+
+async function changeUserRole(name, newRole) {
+  if (!isAdmin()) { toast('Sadece yönetici rol değiştirebilir.', 'error'); refreshSettings(); return; }
+  if (name === 'MUSTAFA ORHAN' && newRole !== 'Yönetici') { toast('MUSTAFA ORHAN her zaman yönetici kalmalıdır.', 'error'); refreshSettings(); return; }
+  const u = data.users.find(x => x.name === name);
+  if (!u || u.role === newRole) return;
+  u.role = newRole;
+  const ok = await saveData();
+  if (data.activeUser === name && typeof applyPermissions === 'function') applyPermissions();
+  if (ok) toast(`"${name}" rolü "${newRole}" olarak güncellendi.`, 'success');
+  refreshSettings();
+}
 
 async function toggleUserActive(name) {
   if (!isAdmin()) { toast('Sadece yönetici kullanıcı pasif/aktif yapabilir.', 'error'); return; }
