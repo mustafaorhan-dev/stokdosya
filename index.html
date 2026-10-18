@@ -41,9 +41,28 @@
                 <input type="password" id="login-password" class="form-control" placeholder="Şifre" style="padding:14px 16px;font-size:16px;width:100%;" autocomplete="off">
                 <button id="login-btn" class="btn-ui btn-primary" style="padding:14px;font-size:16px;font-weight:700;width:100%;text-transform:uppercase;justify-content:center;">Giriş Yap</button>
                 <p id="login-error" style="color:var(--accent);font-size:0.85rem;margin:0;display:none;"></p>
-                <span style="font-size:0.75rem;color:var(--text-muted);margin-top:4px;">Şifrenizi mi unuttunuz? Yardım için yöneticinize başvurun.</span>
+                <span style="font-size:0.75rem;color:var(--text-muted);margin-top:4px;">Şifrenizi mi unuttunuz? <a href="#" id="forgot-password-link" style="color:var(--primary);text-decoration:underline;cursor:pointer;">Sıfırlama bağlantısı gönder</a></span>
                 <span style="position:absolute;bottom:8px;right:12px;font-size:9px;color:var(--text-muted);opacity:0.4;font-weight:600;letter-spacing:1px;user-select:none;">FMG</span>
             </div>
+        </div>
+    </div>
+
+    <!-- Password Recovery Modal -->
+    <div id="recovery-modal" class="modal">
+        <div class="form-card" style="width:420px;max-width:92vw;">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem;border-bottom:1px solid var(--border-color);padding-bottom:1rem;">
+                <h3 style="font-size:1.2rem;font-weight:700;"><i class="fa-solid fa-key" style="color:var(--primary);"></i> Yeni Şifre Belirle</h3>
+            </div>
+            <div class="form-group">
+                <label>Yeni Şifre</label>
+                <input type="password" id="recovery-pass1" class="form-control" placeholder="En az 6 karakter" autocomplete="new-password">
+            </div>
+            <div class="form-group">
+                <label>Yeni Şifre (tekrar)</label>
+                <input type="password" id="recovery-pass2" class="form-control" placeholder="Tekrar girin" autocomplete="new-password">
+            </div>
+            <p id="recovery-error" style="color:var(--accent);font-size:0.85rem;display:none;"></p>
+            <button type="button" id="recovery-save-btn" class="btn-ui btn-primary" style="width:100%;justify-content:center;"><i class="fa-solid fa-floppy-disk"></i> Şifreyi Güncelle</button>
         </div>
     </div>
 
@@ -1517,7 +1536,7 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="app.js?t=20260712s" charset="UTF-8"></script>
+    <script src="app.js?t=20260712t" charset="UTF-8"></script>
 </body>
 
 </html>

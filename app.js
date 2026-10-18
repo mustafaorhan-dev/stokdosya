@@ -8,6 +8,10 @@
 const SUPABASE_URL = 'https://jarnxfhviniqfdeptifb.supabase.co';
 const SUPABASE_ANON = 'sb_publishable_jDi72096C6MNcrcZHmpPFg_ATt5_2SP';
 
+// Şifre sıfırlama mailinin döneceği adres.
+// Supabase > Authentication > URL Configuration > Redirect URLs'e bu adres EKLENMELİ.
+const APP_RESET_URL = 'https://mustafaorhan-dev.github.io/stokdosya/';
+
 // ----- SUPABASE AUTH (e-posta + şifre ile güvenli giriş) -----
 // supabase-js yüklenemezse null kalır ve program eski (yerel) girişe düşer.
 const _sb = (typeof supabase !== 'undefined' && supabase.createClient)
@@ -308,12 +312,13 @@ function recalculateStocks() {
 async function authInit() {
   if (!_sb) return false;
   try {
-    const { data: { session } } = await _sb.auth.getSession();
-    if (session) { _accessToken = session.access_token; _authUserEmail = session.user?.email || ''; }
     _sb.auth.onAuthStateChange((_ev, s) => {
       _accessToken = s ? s.access_token : null;
       _authUserEmail = s?.user?.email || '';
+      if (_ev === 'PASSWORD_RECOVERY') { try { _showRecoveryForm(); } catch (e) {} }
     });
+    const { data: { session } } = await _sb.auth.getSession();
+    if (session) { _accessToken = session.access_token; _authUserEmail = session.user?.email || ''; }
     return !!_accessToken;
   } catch (e) { console.warn('⚠️ Auth init hatası:', e); return false; }
 }
@@ -339,6 +344,73 @@ function ceviriAuthHata(msg) {
   if (m.includes('email not confirmed')) return 'E-posta adresi henüz doğrulanmamış. Yöneticinize başvurun.';
   if (m.includes('too many')) return 'Çok fazla deneme. Lütfen biraz sonra tekrar deneyin.';
   return msg || 'Giriş yapılamadı.';
+}
+
+// ---------- ŞİFRE SIFIRLAMA ----------
+// Giriş ekranından sıfırlama bağlantısı gönder (e-posta kayıtlı olsa da olmasa da aynı mesaj verilir)
+async function _sendPasswordReset() {
+  const emailEl = document.getElementById('login-username');
+  const errEl = document.getElementById('login-error');
+  const email = (emailEl?.value || '').trim();
+  const show = (msg, ok) => {
+    if (!errEl) return;
+    errEl.style.color = ok ? 'var(--success)' : 'var(--accent)';
+    errEl.textContent = msg;
+    errEl.style.display = 'block';
+  };
+  if (!email || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) {
+    show('Lütfen yukarıdaki alana e-posta adresinizi yazın.', false);
+    return;
+  }
+  if (!_sb) { show('Bağlantı kurulamadı. İnterneti kontrol edin.', false); return; }
+  try {
+    await _sb.auth.resetPasswordForEmail(email, { redirectTo: APP_RESET_URL });
+    show('Eğer bu e-posta kayıtlıysa, şifre sıfırlama bağlantısı gönderildi. Gelen kutunuzu (ve spam klasörünü) kontrol edin.', true);
+  } catch (e) {
+    show('İşlem şu an yapılamadı. Lütfen biraz sonra tekrar deneyin.', false);
+  }
+}
+
+function _showRecoveryForm() {
+  const m = document.getElementById('recovery-modal');
+  if (!m) return;
+  const ls = document.getElementById('login-screen');
+  if (ls) ls.style.display = 'none';
+  const ac = document.getElementById('app-container');
+  if (ac) ac.style.display = 'none';
+  m.classList.add('show');
+}
+
+function _hideRecoveryForm() {
+  const m = document.getElementById('recovery-modal');
+  if (m) m.classList.remove('show');
+  const ls = document.getElementById('login-screen');
+  if (ls) ls.style.display = 'flex';
+}
+
+async function _saveRecoveredPassword() {
+  const p1El = document.getElementById('recovery-pass1');
+  const p2El = document.getElementById('recovery-pass2');
+  const errEl = document.getElementById('recovery-error');
+  const p1 = p1El ? p1El.value : '';
+  const p2 = p2El ? p2El.value : '';
+  const fail = (msg) => { if (errEl) { errEl.textContent = msg; errEl.style.display = 'block'; } };
+  if (errEl) errEl.style.display = 'none';
+  if (p1.length < 6) { fail('Şifre en az 6 karakter olmalı.'); return; }
+  if (p1 !== p2) { fail('Şifreler eşleşmiyor.'); return; }
+  if (!_sb) { fail('Bağlantı kurulamadı.'); return; }
+  try {
+    const { error } = await _sb.auth.updateUser({ password: p1 });
+    if (error) throw error;
+    await _sb.auth.signOut();
+    _accessToken = null;
+    if (p1El) p1El.value = '';
+    if (p2El) p2El.value = '';
+    _hideRecoveryForm();
+    toast('Şifreniz güncellendi. Yeni şifrenizle giriş yapabilirsiniz.', 'success');
+  } catch (e) {
+    fail('Şifre güncellenemedi: ' + (e.message || e));
+  }
 }
 
 // Son kullanılan e-postayı hatırla (şifre saklanmaz)
@@ -5982,8 +6054,14 @@ document.addEventListener('DOMContentLoaded', async () => {
   const loginScreen = document.getElementById('login-screen');
   const appContainer = document.getElementById('app-container');
 
+  // Supabase, sıfırlama bağlantısındaki token'ı adresten tüketir; önce yakala
+  const _urlHadRecovery = /[#&?]type=recovery\b/.test(location.href);
+
   // Supabase oturumunu geri yükle (geçerliyse access token alınır)
   await authInit();
+
+  // Sıfırlama bağlantısıyla gelindiyse yeni şifre ekranını göster
+  if (_urlHadRecovery) { try { _showRecoveryForm(); } catch (e) {} }
 
   // Son kullanılan e-postayı giriş alanına yaz
   stokdosyaPrefillLastEmail();
@@ -6036,6 +6114,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     var pass = document.getElementById('login-password').value.trim();
     var errEl = document.getElementById('login-error');
     var btn = document.getElementById('login-btn');
+    errEl.style.color = 'var(--accent)';
 
     if (!email || !pass) {
       errEl.textContent = 'E-posta ve şifre girin.';
@@ -6118,6 +6197,18 @@ document.addEventListener('DOMContentLoaded', async () => {
   });
   document.getElementById('login-username').addEventListener('keydown', (e) => {
     if (e.key === 'Enter') document.getElementById('login-btn').click();
+  });
+
+  // Şifremi unuttum → sıfırlama bağlantısı gönder
+  document.getElementById('forgot-password-link')?.addEventListener('click', (e) => {
+    e.preventDefault();
+    _sendPasswordReset();
+  });
+
+  // Sıfırlama ekranı → yeni şifreyi kaydet
+  document.getElementById('recovery-save-btn')?.addEventListener('click', _saveRecoveredPassword);
+  document.getElementById('recovery-pass2')?.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') _saveRecoveredPassword();
   });
 
   // Çıkış (sidebar + header)
