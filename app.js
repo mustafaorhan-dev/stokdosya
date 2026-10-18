@@ -2622,34 +2622,83 @@ function _exportData() {
   });
 }
 
-function _htmlExcelBlob(rows, headers, fileName) {
-  const esc = s => String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-  const cell = v => {
-    const isNum = typeof v === 'number' && isFinite(v);
-    return isNum
-      ? '<Cell><Data ss:Type="Number">' + v + '</Data></Cell>'
-      : '<Cell><Data ss:Type="String">' + esc(v == null ? '' : v) + '</Data></Cell>';
-  };
-  const cols = Math.max(headers ? headers.length : 0, ...rows.map(r => r.length), 1);
-  const pad = r => { const o = r.slice(); while (o.length < cols) o.push(''); return o; };
-  let xml = '<?xml version="1.0"?>\n';
-  xml += '<?mso-application progid="Excel.Sheet"?>\n';
-  xml += '<Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet" xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet" xmlns:html="http://www.w3.org/TR/REC-html40">';
-  xml += '<Worksheet ss:Name="Sayfa1"><Table>';
-  if (headers && headers.length) {
-    xml += '<Row>' + pad(headers).map(h => '<Cell><Data ss:Type="String">' + esc(h) + '</Data></Cell>').join('') + '</Row>';
+var _CRC_TABLE = null;
+function _crc32(bytes) {
+  if (!_CRC_TABLE) {
+    _CRC_TABLE = new Array(256);
+    for (var n = 0; n < 256; n++) { var c = n; for (var k = 0; k < 8; k++) c = (c & 1) ? (0xEDB88320 ^ (c >>> 1)) : (c >>> 1); _CRC_TABLE[n] = c >>> 0; }
   }
-  rows.forEach(r => {
-    xml += '<Row>' + pad(r).map(cell).join('') + '</Row>';
+  var crc = 0xFFFFFFFF;
+  for (var i = 0; i < bytes.length; i++) crc = _CRC_TABLE[(crc ^ bytes[i]) & 0xFF] ^ (crc >>> 8);
+  return (crc ^ 0xFFFFFFFF) >>> 0;
+}
+function _zipStore(files) {
+  var enc = new TextEncoder();
+  var u16 = function(v){ return [v & 0xFF, (v >>> 8) & 0xFF]; };
+  var u32 = function(v){ return [v & 0xFF, (v >>> 8) & 0xFF, (v >>> 16) & 0xFF, (v >>> 24) & 0xFF]; };
+  var parts = [], central = [], offset = 0;
+  files.forEach(function(f) {
+    var nameBytes = enc.encode(f.name), data = f.data, crc = _crc32(data);
+    var lh = new Uint8Array(u32(0x04034b50).concat(u16(20), u16(0x0800), u16(0), u16(0), u16(0), u32(crc), u32(data.length), u32(data.length), u16(nameBytes.length), u16(0)));
+    parts.push(lh, nameBytes, data);
+    central.push(new Uint8Array(u32(0x02014b50).concat(u16(20), u16(20), u16(0x0800), u16(0), u16(0), u16(0), u32(crc), u32(data.length), u32(data.length), u16(nameBytes.length), u16(0), u16(0), u16(0), u16(0), u32(0), u32(offset))), nameBytes);
+    offset += lh.length + nameBytes.length + data.length;
   });
-  xml += '</Table></Worksheet></Workbook>';
-  const blob = new Blob(['\ufeff' + xml], { type: 'application/vnd.ms-excel;charset=utf-8' });
-  const a = document.createElement('a');
+  var cdSize = 0; central.forEach(function(p){ cdSize += p.length; });
+  var all = parts.concat(central, [new Uint8Array(u32(0x06054b50).concat(u16(0), u16(0), u16(files.length), u16(files.length), u32(cdSize), u32(offset), u16(0)))]);
+  var total = 0; all.forEach(function(p){ total += p.length; });
+  var out = new Uint8Array(total), pos = 0;
+  all.forEach(function(p){ out.set(p, pos); pos += p.length; });
+  return out;
+}
+function _xlsxColLetter(n) {
+  var s = ''; n = n + 1;
+  while (n > 0) { var m = (n - 1) % 26; s = String.fromCharCode(65 + m) + s; n = Math.floor((n - 1) / 26); }
+  return s;
+}
+function _xlsxEsc(s) {
+  return String(s == null ? '' : s)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;').replace(/'/g, '&apos;')
+    .replace(/[\x00-\x08\x0B\x0C\x0E-\x1F]/g, '');
+}
+function _xlsxBlob(rows, headers, fileName) {
+  var enc = new TextEncoder();
+  var cols = Math.max(headers ? headers.length : 0, rows.reduce(function(m, r){ return Math.max(m, r.length); }, 0), 1);
+  var pad = function(r){ var o = r.slice(); while (o.length < cols) o.push(''); return o; };
+  var cellXml = function(ref, v) {
+    if (typeof v === 'number' && isFinite(v)) return '<c r="' + ref + '"><v>' + v + '</v></c>';
+    return '<c r="' + ref + '" t="inlineStr"><is><t xml:space="preserve">' + _xlsxEsc(v) + '</t></is></c>';
+  };
+  var sheetRows = [], rowNum = 1;
+  if (headers && headers.length) {
+    sheetRows.push('<row r="1">' + pad(headers).map(function(h, i){ return cellXml(_xlsxColLetter(i) + 1, h); }).join('') + '</row>');
+    rowNum = 2;
+  }
+  rows.forEach(function(r) {
+    sheetRows.push('<row r="' + rowNum + '">' + pad(r).map(function(v, i){ return cellXml(_xlsxColLetter(i) + rowNum, v); }).join('') + '</row>');
+    rowNum++;
+  });
+  var contentTypes = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/><Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/></Types>';
+  var rels = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/></Relationships>';
+  var workbook = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheets><sheet name="Sayfa1" sheetId="1" r:id="rId1"/></sheets></workbook>';
+  var wbRels = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/></Relationships>';
+  var sheet = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><sheetData>' + sheetRows.join('') + '</sheetData></worksheet>';
+  var files = [
+    { name: '[Content_Types].xml', data: enc.encode(contentTypes) },
+    { name: '_rels/.rels', data: enc.encode(rels) },
+    { name: 'xl/workbook.xml', data: enc.encode(workbook) },
+    { name: 'xl/_rels/workbook.xml.rels', data: enc.encode(wbRels) },
+    { name: 'xl/worksheets/sheet1.xml', data: enc.encode(sheet) }
+  ];
+  var blob = new Blob([_zipStore(files)], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+  var a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
-  a.download = fileName;
+  a.download = fileName.replace(/\.xls$/i, '.xlsx');
   a.click();
   URL.revokeObjectURL(a.href);
 }
+function _htmlExcelBlob(rows, headers, fileName) { _xlsxBlob(rows, headers, fileName); }
 
 function exportXLSX() {
   const rows = _exportData();
