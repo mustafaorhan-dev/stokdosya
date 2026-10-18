@@ -944,7 +944,7 @@ input[type="file"].form-control { padding: 8px; }
 .login-shell {
   position: relative;
   display: flex; flex-direction: column; justify-content: center;
-  width: 400px; max-width: 94vw; min-height: 600px;
+  width: 400px; max-width: 94vw; min-height: 500px;
   background: var(--bg-secondary);
   border: 1px solid var(--border-color);
   border-radius: 22px; overflow: hidden;
@@ -956,7 +956,7 @@ input[type="file"].form-control { padding: 8px; }
   background: linear-gradient(90deg, var(--primary), var(--purple));
 }
 @keyframes loginIn { from { opacity: 0; transform: translateY(18px) scale(.985); } to { opacity: 1; transform: none; } }
-.login-form-side { padding: 3rem 2.4rem; display: flex; flex-direction: column; justify-content: center; text-align: center; }
+.login-form-side { padding: 2.4rem; display: flex; flex-direction: column; justify-content: center; text-align: center; }
 .login-form-side .login-title { text-align: center; margin: 0 0 .2rem; }
 .login-form-side .login-subtitle { text-align: center; margin: 0 0 1.5rem; }
 .login-badge {
