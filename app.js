@@ -4351,8 +4351,20 @@ document.getElementById('tender-company-filter')?.addEventListener('change', ref
 // ----- LOG KAYITLARI (Supabase) -----
 var _logTurEtiket = { giris: 'GİRİŞ', cikis: 'ÇIKIŞ', duzeltme: 'DÜZELTME', silme: 'SİLME', kullanici: 'KULLANICI', oturum: 'OTURUM' };
 var _logsCache = [];
+var _logSayfa = 1;
+var _logSayfaBoyut = 20;
 function _logList() {
   try { return JSON.parse(localStorage.getItem('stokdosya_log') || '[]'); } catch (e) { return []; }
+}
+function _logSayfaGit(n) { _logSayfa = n; _logRender(_logsCache.length ? _logsCache : _logList()); }
+function _logPager(toplam, sayfaSayisi) {
+  const p = document.getElementById('log-pager');
+  if (!p) return;
+  if (toplam <= _logSayfaBoyut) { p.innerHTML = `<span style="color:var(--text-muted);font-size:12px;">${toplam} kayıt</span>`; return; }
+  const btn = (n, lbl, dis) => `<button type="button" class="btn-ui btn-sm btn-outline" ${dis ? 'disabled' : ''} onclick="_logSayfaGit(${n})" style="padding:3px 10px;">${lbl}</button>`;
+  p.innerHTML = btn(_logSayfa - 1, '‹', _logSayfa <= 1) +
+    `<span style="font-size:12px;color:var(--text-secondary);">Sayfa ${_logSayfa} / ${sayfaSayisi} · ${toplam} kayıt</span>` +
+    btn(_logSayfa + 1, '›', _logSayfa >= sayfaSayisi);
 }
 function _logRender(list) {
   const el = document.getElementById('log-list');
@@ -4360,9 +4372,15 @@ function _logRender(list) {
   const filtre = (document.getElementById('log-filter') || {}).value || '';
   let g = list || [];
   if (filtre) g = g.filter(x => x.tur === filtre);
-  if (!g.length) { el.innerHTML = '<div style="color:var(--text-muted);padding:20px;text-align:center;">Kayıt yok.</div>'; return; }
+  const toplam = g.length;
+  const sayfaSayisi = Math.max(1, Math.ceil(toplam / _logSayfaBoyut));
+  if (_logSayfa > sayfaSayisi) _logSayfa = sayfaSayisi;
+  if (_logSayfa < 1) _logSayfa = 1;
+  const bas = (_logSayfa - 1) * _logSayfaBoyut;
+  const dilim = g.slice(bas, bas + _logSayfaBoyut);
+  if (!toplam) { el.innerHTML = '<div style="color:var(--text-muted);padding:20px;text-align:center;">Kayıt yok.</div>'; _logPager(0, 1); return; }
   const renk = { giris: 'var(--success)', cikis: 'var(--accent)', duzeltme: 'var(--warning)' };
-  el.innerHTML = g.map(x => {
+  el.innerHTML = dilim.map(x => {
     const d = new Date(x.t);
     const zaman = isNaN(d) ? '' : d.toLocaleString('tr-TR');
     const k = renk[x.tur] || 'var(--primary)';
@@ -4373,6 +4391,7 @@ function _logRender(list) {
       <span style="color:var(--text-secondary);flex:1;">${htmlEscape(x.m)}</span>
     </div>`;
   }).join('');
+  _logPager(toplam, sayfaSayisi);
 }
 async function logKaydet(tur, mesaj) {
   const entry = { t: new Date().toISOString(), u: data.activeUser || '-', tur: tur, m: mesaj };
@@ -4413,6 +4432,7 @@ async function clearLogs() {
   }
   localStorage.removeItem('stokdosya_log');
   _logsCache = [];
+  _logSayfa = 1;
   _logRender([]);
   toast('Log kayıtları temizlendi.', 'info');
 }
@@ -4425,7 +4445,7 @@ function exportLogs() {
   });
   _htmlExcelBlob(rows, ['Zaman', 'Kullanıcı', 'Tür', 'Açıklama'], 'log_kayitlari.xls');
 }
-document.getElementById('log-filter')?.addEventListener('change', () => _logRender(_logsCache.length ? _logsCache : _logList()));
+document.getElementById('log-filter')?.addEventListener('change', () => { _logSayfa = 1; _logRender(_logsCache.length ? _logsCache : _logList()); });
 document.getElementById('log-clear-btn')?.addEventListener('click', clearLogs);
 document.getElementById('log-export-btn')?.addEventListener('click', exportLogs);
 
