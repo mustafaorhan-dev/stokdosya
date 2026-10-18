@@ -245,7 +245,7 @@ async function supabaseLoad() {
     (users || []).forEach(u => {
       userMap.set(u.name, {
         name: u.name, role: u.role || 'Depo Kullanıcısı', email: u.email || '',
-        password: u.password, lastLogin: u.last_login, active: u.active !== false
+        lastLogin: u.last_login, active: u.active !== false
       });
     });
     const userList = Array.from(userMap.values());
@@ -352,18 +352,6 @@ function stokdosyaPrefillLastEmail() {
     const last = localStorage.getItem('stokdosya_last_email');
     if (last) el.value = last;
   } catch (e) {}
-}
-
-// ---------- KULLANICI GİRİŞİ (local veri kontrolü) ----------
-function sheetsLogin(username, password) {
-  var user = data.users.find(function(u) {
-    return u.name === username && u.password === password && u.active !== false;
-  });
-  if (user) {
-    data.activeUser = user.name;
-    return Promise.resolve(user);
-  }
-  return Promise.resolve(null);
 }
 
 async function heartbeatActiveSession() {
@@ -1390,14 +1378,31 @@ function pdfYearCompare() {
     else if (t.type === 'cikis') { if (!yilCikis[yil]) yilCikis[yil] = 0; yilCikis[yil] += t.amount; }
   });
   const tumYillar = [...new Set([...Object.keys(yilGiris), ...Object.keys(yilCikis)].map(Number))].sort((a, b) => a - b);
-  const rows = tumYillar.map(y => {
+  const rows = [];
+  rows.push(['Yıllık Karşılaştırma (Stok) — ' + urunAdi]);
+  rows.push(['']);
+  rows.push(['YILLIK ÖZET']);
+  rows.push(['Yıl', 'Giriş', 'Çıkış', 'Net']);
+  tumYillar.forEach(y => {
     const g = yilGiris[y] || 0, c = yilCikis[y] || 0;
-    return [y, g, c, g - c];
+    rows.push([y, g, c, g - c]);
   });
   const tGiris = tumYillar.reduce((s, y) => s + (yilGiris[y] || 0), 0);
   const tCikis = tumYillar.reduce((s, y) => s + (yilCikis[y] || 0), 0);
   rows.push(['Toplam', tGiris, tCikis, tGiris - tCikis]);
-  _htmlExcelBlob(rows, ['Yıl', 'Giriş', 'Çıkış', 'Net'], `yillik_karsilastirma_stok_${urunAdi}.xls`);
+  rows.push(['']);
+  rows.push(['DETAYLI HAREKET DÖKÜMÜ']);
+  rows.push(['Tarih', 'İşlem Türü', 'Ürün', 'Miktar', 'Birim', 'Açıklama']);
+  data.transactions
+    .filter(t => t.date && t.amount != null && (!secili || t.productName === secili))
+    .sort((a, b) => new Date(b.date) - new Date(a.date))
+    .forEach(t => {
+      const tip = t.type === 'giris' ? 'GİRİŞ' : t.type === 'duzeltme' ? 'DÜZELTME' : 'ÇIKIŞ';
+      const birim = t.unit || (data.products[t.partiNo] && data.products[t.partiNo].unit) || '';
+      const sign = t.type === 'giris' ? '+' : t.type === 'duzeltme' ? '±' : '-';
+      rows.push([formatDate(t.date), tip, t.productName, sign + _fmt(t.amount), birim, t.note || '']);
+    });
+  _htmlExcelBlob(rows, null, `yillik_karsilastirma_stok_${urunAdi}.xls`);
   toast('Excel dosyası indirildi.', 'success');
 }
 
@@ -1782,15 +1787,27 @@ function pdfYearCompareTender() {
     yilTeslim[yil] += (t.delivered || 0);
   });
   const tumYillar = Object.keys(yilAnlasma).map(Number).sort((a, b) => a - b);
-  const rows = tumYillar.map(y => {
+  const rows = [];
+  rows.push(['Yıllık Karşılaştırma (İhale) — ' + ((firma ? firma + ' - ' : '') + (urun || 'Tüm Ürünler'))]);
+  rows.push(['']);
+  rows.push(['YILLIK ÖZET']);
+  rows.push(['Yıl', 'Anlaşma', 'Teslim', 'Kalan', 'Oran %']);
+  tumYillar.forEach(y => {
     const a = yilAnlasma[y] || 0, d = yilTeslim[y] || 0;
-    return [y, a, d, a - d, a > 0 ? ((d / a) * 100).toFixed(1) : '0'];
+    rows.push([y, a, d, a - d, a > 0 ? Number(((d / a) * 100).toFixed(1)) : 0]);
   });
   const tAnlasma = tumYillar.reduce((s, y) => s + (yilAnlasma[y] || 0), 0);
   const tTeslim = tumYillar.reduce((s, y) => s + (yilTeslim[y] || 0), 0);
   const tOran = tAnlasma > 0 ? ((tTeslim / tAnlasma) * 100).toFixed(1) : '0';
-  rows.push(['Toplam', tAnlasma, tTeslim, tAnlasma - tTeslim, tOran]);
-  _htmlExcelBlob(rows, ['Yıl', 'Anlaşma', 'Teslim', 'Kalan', 'Oran %'], `yillik_karsilastirma_ihale_${urun || 'tum'}.xls`);
+  rows.push(['Toplam', tAnlasma, tTeslim, tAnlasma - tTeslim, Number(tOran)]);
+  rows.push(['']);
+  rows.push(['DETAYLI İHALE DÖKÜMÜ']);
+  rows.push(['Firma', 'Ürün', 'Yıl', 'Anlaşma', 'Teslim', 'Kalan', 'Birim']);
+  (data.tenders || [])
+    .filter(t => t.quantity && (!firma || t.companyName === firma) && (!urun || t.product === urun))
+    .sort((a, b) => (b.year || 0) - (a.year || 0) || String(a.companyName || '').localeCompare(String(b.companyName || ''), 'tr'))
+    .forEach(t => rows.push([t.companyName || '', t.product || '', t.year || '', t.quantity || 0, t.delivered || 0, (t.quantity || 0) - (t.delivered || 0), t.unit || '']));
+  _htmlExcelBlob(rows, null, `yillik_karsilastirma_ihale_${urun || 'tum'}.xls`);
   toast('Excel dosyası indirildi.', 'success');
 }
 
@@ -2594,14 +2611,26 @@ function _exportData() {
 
 function _htmlExcelBlob(rows, headers, fileName) {
   const esc = s => String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-  const attr = ' style="border:1px solid #ccc;padding:6px 8px;"';
-  let html = '<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel"><head><meta charset="UTF-8"><!--[if gte mso 9]><xml><x:ExcelWorkbook><x:ExcelWorksheets><x:ExcelWorksheet><x:Name>Sayfa1</x:Name></x:ExcelWorksheet></x:ExcelWorksheets></x:ExcelWorkbook></xml><![endif]--></head><body><table>';
-  html += '<tr>' + headers.map(h => '<th' + attr + '>' + esc(h) + '</th>').join('') + '</tr>';
+  const cell = v => {
+    const isNum = typeof v === 'number' && isFinite(v);
+    return isNum
+      ? '<Cell><Data ss:Type="Number">' + v + '</Data></Cell>'
+      : '<Cell><Data ss:Type="String">' + esc(v == null ? '' : v) + '</Data></Cell>';
+  };
+  const cols = Math.max(headers ? headers.length : 0, ...rows.map(r => r.length), 1);
+  const pad = r => { const o = r.slice(); while (o.length < cols) o.push(''); return o; };
+  let xml = '<?xml version="1.0"?>\n';
+  xml += '<?mso-application progid="Excel.Sheet"?>\n';
+  xml += '<Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet" xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet" xmlns:html="http://www.w3.org/TR/REC-html40">';
+  xml += '<Worksheet ss:Name="Sayfa1"><Table>';
+  if (headers && headers.length) {
+    xml += '<Row>' + pad(headers).map(h => '<Cell><Data ss:Type="String">' + esc(h) + '</Data></Cell>').join('') + '</Row>';
+  }
   rows.forEach(r => {
-    html += '<tr>' + r.map(v => '<td' + attr + '>' + esc(v) + '</td>').join('') + '</tr>';
+    xml += '<Row>' + pad(r).map(cell).join('') + '</Row>';
   });
-  html += '</table></body></html>';
-  const blob = new Blob([html], { type: 'application/vnd.ms-excel;charset=utf-8' });
+  xml += '</Table></Worksheet></Workbook>';
+  const blob = new Blob(['\ufeff' + xml], { type: 'application/vnd.ms-excel;charset=utf-8' });
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
   a.download = fileName;
@@ -3653,20 +3682,33 @@ function refreshYearsView() {
 function exportXLSX_year() {
   const yil = parseInt(document.getElementById('year-select').value) || new Date().getFullYear();
   const urunFiltre = (document.getElementById('year-filter-btn').dataset.value || '');
-  const baslik = urunFiltre ? `${yil} Yılı Analiz Raporu — ${htmlEscape(urunFiltre)}` : `${yil} Yılı Analiz Raporu`;
-  const headers = ['Ay', 'Giriş', 'Çıkış', 'Net'];
-  const rows = AYLAR.map((ayAdi, i) => {
-    const har = data.transactions.filter(t => {
-      const d = new Date(t.date);
-      return d.getFullYear() === yil && d.getMonth() === i && (!urunFiltre || t.productName === urunFiltre) && data.products[t.partiNo]?.active !== false;
-    });
-    if (!har.length) return '';
+  const aktif = t => data.products[t.partiNo]?.active !== false;
+  const yilHar = data.transactions.filter(t => new Date(t.date).getFullYear() === yil && (!urunFiltre || t.productName === urunFiltre) && aktif(t));
+  const rows = [];
+  rows.push([yil + ' Yılı Analiz Raporu' + (urunFiltre ? ' — ' + urunFiltre : '')]);
+  rows.push(['']);
+  rows.push(['AYLIK KARŞILAŞTIRMA']);
+  rows.push(['Ay', 'Giriş', 'Çıkış', 'Net', 'İşlem Adet']);
+  AYLAR.forEach((ayAdi, i) => {
+    const har = yilHar.filter(t => new Date(t.date).getMonth() === i);
+    if (!har.length) return;
     const g = har.filter(t => t.type === 'giris').reduce((s, t) => s + t.amount, 0);
     const c = har.filter(t => t.type === 'cikis').reduce((s, t) => s + t.amount, 0);
-    const net = g - c;
-    return [ayAdi, _fmt(g), _fmt(c), (net > 0 ? '+' : '') + _fmt(net)];
-  }).filter(r => r);
-  _htmlExcelBlob(rows, headers, `${yil}_yillik_analiz_raporu.xls`);
+    rows.push([ayAdi, g, c, g - c, har.length]);
+  });
+  rows.push(['']);
+  const girisMiktar = yilHar.filter(t => t.type === 'giris').reduce((s, t) => s + t.amount, 0);
+  const cikisMiktar = yilHar.filter(t => t.type === 'cikis').reduce((s, t) => s + t.amount, 0);
+  rows.push(['DETAYLI YILLIK HAREKET DÖKÜMÜ']);
+  rows.push(['Toplam Giriş', girisMiktar, 'Toplam Çıkış', cikisMiktar, 'Net', girisMiktar - cikisMiktar]);
+  rows.push(['Tarih', 'İşlem Türü', 'Ürün', 'Miktar', 'Birim', 'Açıklama']);
+  [...yilHar].sort((a, b) => new Date(b.date) - new Date(a.date)).forEach(t => {
+    const tip = t.type === 'giris' ? 'GİRİŞ' : t.type === 'duzeltme' ? 'DÜZELTME' : 'ÇIKIŞ';
+    const birim = t.unit || (data.products[t.partiNo] && data.products[t.partiNo].unit) || '';
+    const sign = t.type === 'giris' ? '+' : t.type === 'duzeltme' ? '±' : '-';
+    rows.push([formatDate(t.date), tip, t.productName, sign + _fmt(t.amount), birim, t.note || '']);
+  });
+  _htmlExcelBlob(rows, null, `${yil}_yillik_analiz_raporu.xls`);
   toast('Excel dosyası indirildi.', 'success');
 }
 
@@ -5977,25 +6019,24 @@ document.addEventListener('DOMContentLoaded', async () => {
       var foundUser = null;
       var authErr = null;
 
-      // 1) Supabase Auth ile giriş (e-posta + şifre)
-      if (_sb) {
-        try {
-          await authSignIn(email, pass);
-          if (!data.users || !data.users.length) { await loadData(); }
-          foundUser = data.users.find(function(u) { return (u.email || '').toLowerCase() === email.toLowerCase(); });
-          if (!foundUser) {
-            await authSignOut();
-            errEl.textContent = 'Giriş başarılı ancak bu e-posta için kullanıcı tanımı bulunamadı. Yöneticinizden stok_users tablosuna e-posta eklemesini isteyin.';
-            errEl.style.display = 'block';
-            return;
-          }
-        } catch (ae) { authErr = ae; }
+      if (!_sb) {
+        errEl.textContent = 'Supabase Auth yüklenemedi. İnternet bağlantınızı kontrol edin.';
+        errEl.style.display = 'block';
+        return;
       }
 
-      // 2) Eşleşme yoksa (geçiş dönemi): yerel kullanıcı adı + şifre kontrolü
-      if (!foundUser && data.users && data.users.length) {
-        foundUser = data.users.find(function(u) { return u.name === email && u.password === pass; }) || null;
-      }
+      // Supabase Auth ile giriş (e-posta + şifre) — tek giriş yolu
+      try {
+        await authSignIn(email, pass);
+        if (!data.users || !data.users.length) { await loadData(); }
+        foundUser = data.users.find(function(u) { return (u.email || '').toLowerCase() === email.toLowerCase(); });
+        if (!foundUser) {
+          await authSignOut();
+          errEl.textContent = 'Giriş başarılı ancak bu e-posta için kullanıcı tanımı bulunamadı. Yöneticinizden stok_users tablosuna e-posta eklemesini isteyin.';
+          errEl.style.display = 'block';
+          return;
+        }
+      } catch (ae) { authErr = ae; }
 
       if (!foundUser) {
         errEl.textContent = authErr ? authErr.message : 'Hatalı e-posta veya şifre.';
