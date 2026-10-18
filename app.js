@@ -1,4 +1,4 @@
-﻿// ¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦
+// ¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦
 // STOKDEPO — Ana Uygulama JavaScript'i
 // ¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦
 
@@ -2560,7 +2560,7 @@ function refreshAggregatedStock() {
   }).join('');
 }
 
-function aggStockExportPrint() {
+function exportXLSX_agg() {
   const prods = Object.values(data.products).filter(p => p.active !== false);
   const groups = {};
   prods.forEach(p => {
@@ -3552,7 +3552,7 @@ function refreshMonthView() {
   window._monthYil = yil;
 }
 
-function monthExportPrint() {
+function exportXLSX_month() {
   const girisler = window._monthGirisler || [];
   const cikislar = window._monthCikislar || [];
   const ay = window._monthAy;
@@ -3740,7 +3740,7 @@ function refreshYearsView() {
   }).join('');
 }
 
-function yearExportPrint() {
+function exportXLSX_year() {
   const yil = parseInt(document.getElementById('year-select').value) || new Date().getFullYear();
   const urunFiltre = (document.getElementById('year-filter-btn').dataset.value || '');
   const baslik = urunFiltre ? `${yil} Yılı Analiz Raporu — ${htmlEscape(urunFiltre)}` : `${yil} Yılı Analiz Raporu`;
@@ -4120,7 +4120,7 @@ function refreshTenders() {
   refreshTenderChart();
 }
 
-function pdfTenders() {
+function exportXLSX_tenders() {
   if (!data.tenders || !data.tenders.length) { toast('Yazdırılacak ihale kaydı yok.', 'info'); return; }
   const yilFiltre = document.getElementById('tender-year-filter')?.value || '';
   const firmaFiltre = document.getElementById('tender-company-filter')?.value || '';
@@ -4450,7 +4450,7 @@ function refreshProductNames() {
   }
 }
 
-function printSupplierList() {
+function exportXLSX_suppliers() {
   const list = (data.companies || []).sort((a, b) => a.localeCompare(b));
   if (!list.length) { toast('Tedarikçi listesi boş.', 'info'); return; }
   const w = window.open('', '_blank');
@@ -4469,7 +4469,7 @@ function printSupplierList() {
   w.document.close();
 }
 
-function printProductNameList() {
+function exportXLSX_prodnames() {
   const names = (data.productNames || []).sort((a, b) => a.localeCompare(b));
   if (!names.length) { toast('Ürün isim listesi boş.', 'info'); return; }
   const w = window.open('', '_blank');
@@ -5838,7 +5838,7 @@ function refreshDailyCost() {
   document.getElementById('dc-total-persons').textContent = _fmt(totalPersons);
 }
 
-function pdfCiktiMaliyet() {
+function exportXLSX_maliyet() {
   const date = document.getElementById('daily-cost-date').value;
   if (!date) { toast('Tarih seçin.', 'warning'); return; }
   const cikislar = data.transactions.filter(t =>
@@ -5994,7 +5994,7 @@ function refreshSupplierReport() {
   }).join('');
 }
 
-function srExportPrint() {
+function exportXLSX_sr() {
   const monthEl = document.getElementById('sr-month');
   const supplierEl = document.getElementById('sr-supplier');
   const productEl = document.getElementById('sr-product');
@@ -6084,7 +6084,7 @@ function srExportPrint() {
   w.document.close();
 }
 
-function pdfCikti() {
+function exportXLSX_daily() {
   const dateStr = document.getElementById('daily-date').value || todayStr();
   const baslik = document.getElementById('daily-baslik').textContent;
   const tablo = document.querySelector('#daily .minimal-table');
