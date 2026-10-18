@@ -4369,6 +4369,7 @@ function refreshSettings() {
     const roleSelect = admin ? `<select onchange="changeUserRole('${u.name.replace(/'/g, '&#39;')}', this.value)" title="Rolü değiştir" style="font-size:12px;padding:3px 6px;border-radius:6px;border:1px solid var(--border-color);background:var(--bg-primary);color:var(--text-primary);cursor:pointer;margin-left:6px;"><option value="Depo Kullanıcısı"${u.role === 'Depo Kullanıcısı' ? ' selected' : ''}>Depo Kullanıcısı</option><option value="Sadece Görüntüleme"${u.role === 'Sadece Görüntüleme' ? ' selected' : ''}>Sadece Görüntüleme</option><option value="Yönetici"${u.role === 'Yönetici' ? ' selected' : ''}>Yönetici</option></select>` : `<span style="color:var(--text-secondary);font-size:13px;">— ${htmlEscape(u.role)}</span>`;
     return `<li style="display:flex;align-items:center;justify-content:space-between;background:var(--bg-primary);padding:10px 14px;border-radius:var(--border-radius-sm);border:1px solid ${aktif ? 'var(--primary)' : 'var(--border-color)'};flex-wrap:wrap;gap:6px;${!aktifMi ? 'opacity:0.6;' : ''}">
       <span style="flex:1;min-width:120px;"><strong>${htmlEscape(u.name)}</strong> ${roleSelect}${u.email ? ` <span style="color:var(--text-muted);font-size:12px;font-family:monospace;">${htmlEscape(u.email)}</span>` : ' <span style="color:var(--text-muted);font-size:12px;">(e-posta yok)</span>'} ${aktif ? '<span style="background:var(--primary-light);color:var(--primary);padding:2px 8px;border-radius:999px;font-size:11px;font-weight:700;margin-left:6px;">AKTİF</span>' : ''} ${!aktifMi ? '<span style="background:var(--accent);color:#fff;padding:2px 8px;border-radius:999px;font-size:11px;font-weight:700;margin-left:6px;">PASİF</span>' : ''}</span>
+      ${admin ? `<button class="btn-ui btn-sm btn-outline" onclick="renameUser('${u.name.replace(/'/g, '&#39;')}')" title="İsmi Değiştir" style="padding:4px 8px;font-size:12px;"><i class="fa-solid fa-user-pen"></i></button>` : ''}
       ${canEditPass ? `<button class="btn-ui btn-sm btn-outline" onclick="editUserPassword('${u.name.replace(/'/g, '&#39;')}')" title="Şifre Değiştir" style="padding:4px 8px;font-size:12px;"><i class="fa-solid fa-key"></i></button>` : ''}
       ${admin && u.name !== 'MUSTAFA ORHAN' ? `<button class="btn-ui btn-sm ${aktifMi ? 'btn-outline' : ''}" onclick="toggleUserActive('${u.name.replace(/'/g, '&#39;')}')" style="color:${aktifMi ? 'var(--accent)' : 'var(--success)'};padding:4px 10px;font-size:12px;border:1px solid currentColor;border-radius:var(--border-radius-sm);background:transparent;cursor:pointer;">${aktifMi ? 'Pasif Yap' : 'Aktifleştir'}</button>
       <button class="btn-ui btn-sm btn-outline" onclick="deleteUserPermanently('${u.name.replace(/'/g, '&#39;')}')" title="Kullanıcıyı Sil" style="color:var(--accent);padding:2px 7px;font-size:10px;margin-left:4px;"><i class="fa-solid fa-trash-can"></i></button>` : ''}
@@ -4792,6 +4793,43 @@ document.addEventListener('click', (e) => {
     toast(`${names.length} ürün ismi kaldırıldı.`, 'success');
   }
 });
+
+async function renameUser(oldName) {
+  if (!isAdmin()) { toast('Sadece yönetici ismi değiştirebilir.', 'error'); return; }
+  const u = data.users.find(x => x.name === oldName);
+  if (!u) return;
+  const yeni = (prompt('Yeni isim (Ad Soyad):', oldName) || '').trim();
+  if (!yeni || yeni === oldName) return;
+  if (data.users.some(x => x.name === yeni)) { toast('Bu isim zaten kullanılıyor.', 'error'); return; }
+
+  // Supabase'de kaydı yeniden adlandır (PK/unique olduğu için önce güncelle)
+  if (isSupabaseReady()) {
+    try { await supabaseFetch('PATCH', 'stok_users', { name: `eq.${oldName}` }, { name: yeni }); }
+    catch (e) { toast('İsim Supabase\'de değiştirilemedi: ' + e.message, 'error'); return; }
+  }
+
+  u.name = yeni;
+  (data.transactions || []).forEach(t => { if (t.createdBy === oldName) t.createdBy = yeni; });
+  Object.values(data.products || {}).forEach(p => { if (p.createdBy === oldName) p.createdBy = yeni; if (p.deletedBy === oldName) p.deletedBy = yeni; });
+  try {
+    const f = JSON.parse(data.settings._userActiveFlags || '{}');
+    if (oldName in f) { f[yeni] = f[oldName]; delete f[oldName]; }
+    data.settings._userActiveFlags = JSON.stringify(f);
+  } catch (e) {}
+  try {
+    const s = JSON.parse(data.settings._activeSessions || '[]');
+    s.forEach(x => { if (x.user === oldName) x.user = yeni; });
+    data.settings._activeSessions = JSON.stringify(s);
+  } catch (e) {}
+  if (data.settings._forceLogout === oldName) data.settings._forceLogout = yeni;
+  if (data.activeUser === oldName) data.activeUser = yeni;
+
+  await saveData();
+  toast(`İsim güncellendi: "${oldName}" › "${yeni}"`, 'success');
+  refreshSettings();
+  if (data.activeUser === yeni && typeof applyPermissions === 'function') applyPermissions();
+  if (typeof refreshDailyView === 'function') refreshDailyView();
+}
 
 async function changeUserRole(name, newRole) {
   if (!isAdmin()) { toast('Sadece yönetici rol değiştirebilir.', 'error'); refreshSettings(); return; }
