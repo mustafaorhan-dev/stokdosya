@@ -1912,10 +1912,6 @@ function _fieldWarn(el, msg) {
 
 // ----- NAVIGASYON -----
 function navigateTo(target) {
-  // Admin değilse ayarlara gidemez
-  if (target === 'settings-view' && !isAdmin()) {
-    target = 'dashboard';
-  }
 
   _formDirty = false;
   document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
@@ -4234,6 +4230,10 @@ function refreshSettings() {
   // Admin değilse ekleme formunu gizle
   const addUserSection = document.getElementById('add-user-section');
   if (addUserSection) addUserSection.style.display = admin ? '' : 'none';
+  ['admin-only-users','admin-only-backup','admin-only-reset'].forEach(id => {
+    const blk = document.getElementById(id);
+    if (blk) blk.style.display = admin ? '' : 'none';
+  });
   if (!ul) return;
   ul.innerHTML = data.users.map(u => {
     const aktif = u.name === data.activeUser;
@@ -5519,7 +5519,7 @@ function refreshAll() {
   if (_el('new-supplier-input')) _el('new-supplier-input').style.display = isAdmin() ? '' : 'none';
 
   const settingsNav = document.querySelector('.nav-item[data-target="settings-view"]');
-  if (settingsNav) settingsNav.style.display = isAdmin() ? '' : 'none';
+  if (settingsNav) settingsNav.style.display = '';
   const themeBtn = _el('theme-toggle');
   if (themeBtn) themeBtn.style.display = isAdmin() ? '' : 'none';
   setCloudDot(isSupabaseReady());

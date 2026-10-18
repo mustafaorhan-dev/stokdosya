@@ -1325,7 +1325,7 @@
                                 <button type="submit" class="btn-ui btn-primary"><i class="fa-solid fa-floppy-disk"></i> Kaydet</button>
                             </form>
 
-                            <div>
+                            <div id="admin-only-users">
                                 <h4 style="font-size:0.85rem; font-weight:700; margin-bottom:0.75rem; color:var(--primary);"><i class="fa-solid fa-users-gear"></i> Sistem Kullanıcı Listesi</h4>
                                 <p style="font-size:0.8rem; color:var(--text-secondary); margin-bottom:1rem;">Yeni personel hesapları ekleyin. Giriş, Supabase'de tanımlı e-posta ve şifre ile yapılır.</p>
                                 <div id="add-user-section">
@@ -1348,7 +1348,7 @@
                     </div>
 
                      <!-- Yedekleme -->
-                    <div class="panel-container full-width">
+                    <div class="panel-container full-width" id="admin-only-backup">
                         <div class="panel-header">
                             <h3><i class="fa-solid fa-database"></i> Veri Yedekleme ve Kurtarma</h3>
                         </div>
@@ -1377,7 +1377,7 @@
                     </div>
 
                     <!-- Veri Sıfırlama -->
-                    <div class="panel-container full-width" style="border-color: var(--accent);">
+                    <div class="panel-container full-width" id="admin-only-reset" style="border-color: var(--accent);">
                         <div class="panel-header" style="border-bottom-color: var(--accent);">
                             <h3 style="color: var(--accent);"><i class="fa-solid fa-bomb"></i> Veri Sıfırlama</h3>
                         </div>
@@ -1517,7 +1517,7 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="app.js?t=20260712r" charset="UTF-8"></script>
+    <script src="app.js?t=20260712s" charset="UTF-8"></script>
 </body>
 
 </html>
