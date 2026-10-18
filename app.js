@@ -1390,36 +1390,15 @@ function pdfYearCompare() {
     else if (t.type === 'cikis') { if (!yilCikis[yil]) yilCikis[yil] = 0; yilCikis[yil] += t.amount; }
   });
   const tumYillar = [...new Set([...Object.keys(yilGiris), ...Object.keys(yilCikis)].map(Number))].sort((a, b) => a - b);
-  const satirlar = tumYillar.map(y => {
+  const rows = tumYillar.map(y => {
     const g = yilGiris[y] || 0, c = yilCikis[y] || 0;
-    return `<tr><td>${y}</td><td style="text-align:right">${_fmt(g)}</td><td style="text-align:right">${_fmt(c)}</td><td style="text-align:right;font-weight:700;color:${g-c>0?'var(--success)':'var(--accent)'}">${(g-c>=0?'+':'')+_fmt(Math.abs(g-c))}</td></tr>`;
-  }).join('');
+    return [y, g, c, g - c];
+  });
   const tGiris = tumYillar.reduce((s, y) => s + (yilGiris[y] || 0), 0);
   const tCikis = tumYillar.reduce((s, y) => s + (yilCikis[y] || 0), 0);
-  const w = window.open('', '_blank');
-  w.document.write(`
-    <html><head><title>Yıllık Karşılaştırma (Stok)</title>
-    <style>
-      body { font-family:Arial; padding:24px; color:#1e293b; }
-      h2 { margin-bottom:4px; }
-      .sub { color:#64748b; margin-bottom:16px; font-size:13px; }
-      table { width:100%; border-collapse:collapse; font-size:12px; }
-      th, td { border:1px solid #cbd5e1; padding:6px 10px; text-align:left; }
-      th { background:#f1f5f9; text-transform:uppercase; font-size:11px; }
-      .toplam { font-weight:700; background:#f8fafc; }
-    </style></head>
-    <body>
-      <h2>Yıllık Karşılaştırma (Stok)</h2>
-      <p class="sub">Ürün: ${htmlEscape(urunAdi)} &nbsp;|&nbsp; ${tumYillar.length} yıl</p>
-      <table>
-        <thead><tr><th>Yıl</th><th style="text-align:right">Giriş</th><th style="text-align:right">Çıkış</th><th style="text-align:right">Net</th></tr></thead>
-        <tbody>${satirlar}</tbody>
-        <tfoot><tr class="toplam"><td>Toplam</td><td style="text-align:right">${_fmt(tGiris)}</td><td style="text-align:right">${_fmt(tCikis)}</td><td style="text-align:right">${_fmt(tGiris - tCikis)}</td></tr></tfoot>
-      </table>
-      <script>window.print();<\/script>
-    </body></html>
-  `);
-  w.document.close();
+  rows.push(['Toplam', tGiris, tCikis, tGiris - tCikis]);
+  _htmlExcelBlob(rows, ['Yıl', 'Giriş', 'Çıkış', 'Net'], `yillik_karsilastirma_stok_${urunAdi}.xls`);
+  toast('Excel dosyası indirildi.', 'success');
 }
 
 // ----- YILLIK KARSILASTIRMA GRAFIGI (IHALE) -----
@@ -1803,39 +1782,16 @@ function pdfYearCompareTender() {
     yilTeslim[yil] += (t.delivered || 0);
   });
   const tumYillar = Object.keys(yilAnlasma).map(Number).sort((a, b) => a - b);
-  const satirlar = tumYillar.map(y => {
+  const rows = tumYillar.map(y => {
     const a = yilAnlasma[y] || 0, d = yilTeslim[y] || 0;
-    const kalan = a - d;
-    const oran = a > 0 ? ((d / a) * 100).toFixed(1) : '0';
-    return `<tr><td>${y}</td><td style="text-align:right">${_fmt(a)}${_bPrint}</td><td style="text-align:right">${_fmt(d)}${_bPrint}</td><td style="text-align:right">${_fmt(kalan)}${_bPrint}</td><td style="text-align:right">%${oran}</td></tr>`;
-  }).join('');
+    return [y, a, d, a - d, a > 0 ? ((d / a) * 100).toFixed(1) : '0'];
+  });
   const tAnlasma = tumYillar.reduce((s, y) => s + (yilAnlasma[y] || 0), 0);
   const tTeslim = tumYillar.reduce((s, y) => s + (yilTeslim[y] || 0), 0);
   const tOran = tAnlasma > 0 ? ((tTeslim / tAnlasma) * 100).toFixed(1) : '0';
-  const w = window.open('', '_blank');
-  w.document.write(`
-    <html><head><title>Yıllık Karşılaştırma (İhale)</title>
-    <style>
-      body { font-family:Arial; padding:24px; color:#1e293b; }
-      h2 { margin-bottom:4px; }
-      .sub { color:#64748b; margin-bottom:16px; font-size:13px; }
-      table { width:100%; border-collapse:collapse; font-size:12px; }
-      th, td { border:1px solid #cbd5e1; padding:6px 10px; text-align:left; }
-      th { background:#f1f5f9; text-transform:uppercase; font-size:11px; }
-      .toplam { font-weight:700; background:#f8fafc; }
-    </style></head>
-    <body>
-      <h2>Yıllık Karşılaştırma (İhale)</h2>
-      <p class="sub">${baslik} ${birim ? '| ' + birim : ''} &nbsp;|&nbsp; ${tumYillar.length} yıl</p>
-      <table>
-        <thead><tr><th>Yıl</th><th style="text-align:right">Anlaşma</th><th style="text-align:right">Teslim</th><th style="text-align:right">Kalan</th><th style="text-align:right">Oran</th></tr></thead>
-        <tbody>${satirlar}</tbody>
-        <tfoot><tr class="toplam"><td>Toplam</td><td style="text-align:right">${_fmt(tAnlasma)}</td><td style="text-align:right">${_fmt(tTeslim)}</td><td style="text-align:right">${_fmt(tAnlasma - tTeslim)}</td><td style="text-align:right">%${tOran}</td></tr></tfoot>
-      </table>
-      <script>window.print();<\/script>
-    </body></html>
-  `);
-  w.document.close();
+  rows.push(['Toplam', tAnlasma, tTeslim, tAnlasma - tTeslim, tOran]);
+  _htmlExcelBlob(rows, ['Yıl', 'Anlaşma', 'Teslim', 'Kalan', 'Oran %'], `yillik_karsilastirma_ihale_${urun || 'tum'}.xls`);
+  toast('Excel dosyası indirildi.', 'success');
 }
 
 // Ürün / yıl / mod değişince grafiği yenile
@@ -2572,39 +2528,15 @@ function exportXLSX_agg() {
     if (p.stt) groups[p.name].sttDates.push(p.stt);
   });
   let entries = Object.values(groups).filter(e => e.totalStock > 0).sort((a, b) => a.name.localeCompare(b.name));
-  const w = window.open('', '_blank');
-  w.document.write(`
-    <html><head><title>Depodaki Ürün Miktarları</title>
-    <style>
-      body { font-family:Arial; padding:24px; color:#1e293b; }
-      h2 { margin-bottom:4px; font-size:20px; }
-      .sub { color:#64748b; margin-bottom:16px; font-size:13px; }
-      table { width:100%; border-collapse:collapse; font-size:12px; }
-      th, td { border:1px solid #cbd5e1; padding:6px 10px; text-align:left; }
-      th { background:#f1f5f9; font-size:11px; text-transform:uppercase; }
-      .r { text-align:right; }
-      @media print { .no-print { display:none; } body { padding:12px; } }
-    </style></head>
-    <body>
-      <h2>Depodaki Ürün Miktarları</h2>
-      <p class="sub">Oluşturulma: ${new Date().toLocaleDateString('tr-TR')}</p>
-      <table>
-        <thead><tr><th>#</th><th>Ürün Adı</th><th class="r">Toplam Stok</th><th>Birim</th><th class="r">Parti Sayısı</th><th>Kategoriler</th><th>En Erken STT</th><th>En Geç STT</th></tr></thead>
-        <tbody>
-          ${entries.map((e, i) => {
-            const sttVals = e.sttDates.filter(Boolean).sort();
-            const enErken = sttVals.length ? formatDate(sttVals[0]) : '—';
-            const enGec = sttVals.length ? formatDate(sttVals[sttVals.length - 1]) : '—';
-            const catStr = [...e.categories].join(', ');
-            return `<tr><td>${i + 1}</td><td><strong>${htmlEscape(e.name)}</strong></td><td class="r">${_fmt(e.totalStock)}</td><td>${htmlEscape(e.unit || '—')}</td><td class="r">${e.batchCount}</td><td>${htmlEscape(catStr || '—')}</td><td>${enErken}</td><td>${enGec}</td></tr>`;
-          }).join('')}
-        </tbody>
-      </table>
-      <p style="font-size:11px;color:#94a3b8;margin-top:20px;">STOKDEPO — Otomatik oluşturulmuş rapordur.</p>
-      <script>window.print();<\/script>
-    </body></html>
-  `);
-  w.document.close();
+  const rows = entries.map((e, i) => {
+    const sttVals = e.sttDates.filter(Boolean).sort();
+    const enErken = sttVals.length ? formatDate(sttVals[0]) : '—';
+    const enGec = sttVals.length ? formatDate(sttVals[sttVals.length - 1]) : '—';
+    const catStr = [...e.categories].join(', ');
+    return [i + 1, e.name, e.totalStock, e.unit || '—', e.batchCount, catStr || '—', enErken, enGec];
+  });
+  _htmlExcelBlob(rows, ['#', 'Ürün Adı', 'Toplam Stok', 'Birim', 'Parti Sayısı', 'Kategoriler', 'En Erken STT', 'En Geç STT'], 'depodaki_urun_miktarlari.xls');
+  toast('Excel dosyası indirildi.', 'success');
 }
 
 // Kategori filtreleme + Anbar filtre butonları
@@ -3562,40 +3494,18 @@ function exportXLSX_month() {
   function _stt(t) { const stt = (data.products[t.partiNo] && data.products[t.partiNo].stt) || t.stt || ''; return stt ? formatDate(stt) : '—'; }
   function _birim(t) { return (data.products[t.partiNo] && data.products[t.partiNo].unit) || t.unit || '—'; }
 
-  const w = window.open('', '_blank');
-  w.document.write(`
-    <html><head><title>Aylık Rapor - ${ayAdi} ${yil}</title>
-    <style>
-      body { font-family:Arial; padding:20px; }
-      h2 { margin-bottom:4px; }
-      .sub { color:#666; margin-bottom:16px; font-size:13px; }
-      h4 { margin:20px 0 8px; }
-      table { width:100%; border-collapse:collapse; font-size:12px; margin-bottom:20px; }
-      th, td { border:1px solid #ccc; padding:6px 8px; text-align:left; }
-      th { background:#e2e8f0; }
-      .toplam { font-weight:700; background:#f8fafc; }
-      @media print { .no-print { display:none; } }
-    </style></head>
-    <body>
-      <h2>Aylık Rapor — ${htmlEscape(ayAdi)} ${yil}</h2>
-      <p class="sub">Oluşturulma: ${new Date().toLocaleDateString('tr-TR')}</p>
-
-      <h4>Girişler (Toplam: ${_fmt(girisler.reduce((s,t) => s + t.amount, 0))})</h4>
-      <table>
-        <thead><tr><th>Firma</th><th>Tarih</th><th>Ürün</th><th>STT</th><th>Miktar</th><th>Birim</th></tr></thead>
-        <tbody>${girisler.map(t => `<tr><td>${htmlEscape(_firma(t))}</td><td>${formatDate(t.date)}</td><td>${htmlEscape(t.productName)}</td><td>${_stt(t)}</td><td>${t.amount}</td><td>${htmlEscape(_birim(t))}</td></tr>`).join('')}</tbody>
-      </table>
-
-      <h4>Çıkışlar (Toplam: ${_fmt(cikislar.reduce((s,t) => s + t.amount, 0))})</h4>
-      <table>
-        <thead><tr><th>Firma</th><th>Tarih</th><th>Ürün</th><th>Miktar</th><th>Birim</th></tr></thead>
-        <tbody>${cikislar.map(t => `<tr><td>${htmlEscape(_firma(t))}</td><td>${formatDate(t.date)}</td><td>${htmlEscape(t.productName)}</td><td>${t.amount}</td><td>${htmlEscape(_birim(t))}</td></tr>`).join('')}</tbody>
-      </table>
-
-      <button class="no-print" onclick="window.print()" style="padding:8px 20px;font-size:14px;cursor:pointer;"><i class="fa-solid fa-print"></i> Yazdır</button>
-    </body></html>
-  `);
-  w.document.close();
+  const headers = ['Tip', 'Firma', 'Tarih', 'Ürün', 'STT', 'Miktar', 'Birim'];
+  const rows = [];
+  girisler.forEach(t => {
+    rows.push(['Giriş', htmlEscape(_firma(t)), formatDate(t.date), htmlEscape(t.productName), _stt(t), t.amount, htmlEscape(_birim(t))]);
+  });
+  cikislar.forEach(t => {
+    rows.push(['Çıkış', htmlEscape(_firma(t)), formatDate(t.date), htmlEscape(t.productName), '', t.amount, htmlEscape(_birim(t))]);
+  });
+  rows.push(['Toplam Giriş', '', '', '', '', _fmt(girisler.reduce((s,t) => s + t.amount, 0)), '']);
+  rows.push(['Toplam Çıkış', '', '', '', '', _fmt(cikislar.reduce((s,t) => s + t.amount, 0)), '']);
+  _htmlExcelBlob(rows, headers, `aylik_rapor_${yil}.xls`);
+  toast('Excel dosyası indirildi.', 'success');
 }
 
 // ----- YILLIK RAPOR -----
@@ -3744,44 +3654,20 @@ function exportXLSX_year() {
   const yil = parseInt(document.getElementById('year-select').value) || new Date().getFullYear();
   const urunFiltre = (document.getElementById('year-filter-btn').dataset.value || '');
   const baslik = urunFiltre ? `${yil} Yılı Analiz Raporu — ${htmlEscape(urunFiltre)}` : `${yil} Yılı Analiz Raporu`;
-  const w = window.open('', '_blank');
-  w.document.write(`
-    <html><head><title>${htmlEscape(baslik)}</title>
-    <style>
-      body { font-family:Arial; padding:24px; color:#1e293b; }
-      h2 { margin-bottom:4px; font-size:20px; }
-      .sub { color:#64748b; margin-bottom:16px; font-size:13px; }
-      table { width:100%; border-collapse:collapse; font-size:12px; margin-bottom:16px; }
-      th, td { border:1px solid #cbd5e1; padding:6px 10px; text-align:left; }
-      th { background:#f1f5f9; font-size:11px; text-transform:uppercase; }
-      .toplam { font-weight:700; background:#f8fafc; }
-      .g { color:#16a34a; } .c { color:#dc2626; }
-      @media print { .no-print { display:none; } body { padding:12px; } }
-    </style></head>
-    <body>
-      <h2>${htmlEscape(baslik)}</h2>
-      <p class="sub">Oluşturulma: ${new Date().toLocaleDateString('tr-TR')}</p>
-      <table>
-        <thead><tr><th>Ay</th><th style="text-align:right">Giriş</th><th style="text-align:right">Çıkış</th><th style="text-align:right">Net</th></tr></thead>
-        <tbody>
-          ${AYLAR.map((ayAdi, i) => {
-            const har = data.transactions.filter(t => {
-              const d = new Date(t.date);
-              return d.getFullYear() === yil && d.getMonth() === i && (!urunFiltre || t.productName === urunFiltre) && data.products[t.partiNo]?.active !== false;
-            });
-            if (!har.length) return '';
-            const g = har.filter(t => t.type === 'giris').reduce((s, t) => s + t.amount, 0);
-            const c = har.filter(t => t.type === 'cikis').reduce((s, t) => s + t.amount, 0);
-            const net = g - c;
-            return `<tr><td><strong>${ayAdi}</strong></td><td class="g" style="text-align:right">${_fmt(g)}</td><td class="c" style="text-align:right">${_fmt(c)}</td><td style="text-align:right;font-weight:700;">${net > 0 ? '+' : ''}${_fmt(net)}</td></tr>`;
-          }).filter(r => r).join('')}
-        </tbody>
-      </table>
-      <p style="font-size:11px;color:#94a3b8;margin-top:20px;">STOKDEPO — Otomatik oluşturulmuş rapordur.</p>
-      <script>window.print();<\/script>
-    </body></html>
-  `);
-  w.document.close();
+  const headers = ['Ay', 'Giriş', 'Çıkış', 'Net'];
+  const rows = AYLAR.map((ayAdi, i) => {
+    const har = data.transactions.filter(t => {
+      const d = new Date(t.date);
+      return d.getFullYear() === yil && d.getMonth() === i && (!urunFiltre || t.productName === urunFiltre) && data.products[t.partiNo]?.active !== false;
+    });
+    if (!har.length) return '';
+    const g = har.filter(t => t.type === 'giris').reduce((s, t) => s + t.amount, 0);
+    const c = har.filter(t => t.type === 'cikis').reduce((s, t) => s + t.amount, 0);
+    const net = g - c;
+    return [ayAdi, _fmt(g), _fmt(c), (net > 0 ? '+' : '') + _fmt(net)];
+  }).filter(r => r);
+  _htmlExcelBlob(rows, headers, `${yil}_yillik_analiz_raporu.xls`);
+  toast('Excel dosyası indirildi.', 'success');
 }
 
 document.getElementById('year-select').addEventListener('change', refreshYearsView);
@@ -4132,31 +4018,12 @@ function exportXLSX_tenders() {
     const sozlesme = t.price * t.quantity;
     const teslim = t.price * t.delivered;
     const oran = sozlesme > 0 ? ((teslim / sozlesme) * 100).toFixed(1) : 0;
-    return `<tr><td>${htmlEscape(t.companyName)}</td><td>${t.year || ''}</td><td>${htmlEscape(t.product)}</td><td style="text-align:right">${_fmt(t.quantity)}</td><td style="text-align:right">${_fmt(t.delivered)}</td><td style="text-align:right">${_fmt(kalan)}</td><td style="text-align:right">${_fmt(t.price)} ₺</td><td style="text-align:right;font-weight:700">%${oran}</td></tr>`;
-  }).join('');
+    return [htmlEscape(t.companyName), t.year || '', htmlEscape(t.product), _fmt(t.quantity), _fmt(t.delivered), _fmt(kalan), _fmt(t.price) + ' ₺', '%' + oran];
+  });
   const baslik = `${yilFiltre || 'Tüm Yıllar'}${firmaFiltre ? ' — ' + firmaFiltre : ''}`;
-  const w = window.open('', '_blank');
-  w.document.write(`
-    <html><head><title>İhale Takip Listesi</title>
-    <style>
-      body { font-family:Arial; padding:24px; color:#1e293b; }
-      h2 { margin-bottom:4px; }
-      .sub { color:#64748b; margin-bottom:16px; font-size:13px; }
-      table { width:100%; border-collapse:collapse; font-size:12px; }
-      th, td { border:1px solid #cbd5e1; padding:6px 10px; text-align:left; }
-      th { background:#f1f5f9; text-transform:uppercase; font-size:11px; }
-    </style></head>
-    <body>
-      <h2>İhale Takip Listesi</h2>
-      <p class="sub">Filtre: ${htmlEscape(baslik)} &nbsp;|&nbsp; Toplam: ${filtreli.length} kayıt</p>
-      <table>
-        <thead><tr><th>Firma</th><th>Yıl</th><th>Ürün</th><th style="text-align:right">Anlaşma</th><th style="text-align:right">Teslim</th><th style="text-align:right">Kalan</th><th style="text-align:right">Birim Fiyat</th><th style="text-align:right">Oran</th></tr></thead>
-        <tbody>${satirlar}</tbody>
-      </table>
-      <script>window.print();<\/script>
-    </body></html>
-  `);
-  w.document.close();
+  const headers = ['Firma', 'Yıl', 'Ürün', 'Anlaşma', 'Teslim', 'Kalan', 'Birim Fiyat', 'Oran'];
+  _htmlExcelBlob(satirlar, headers, 'ihale_takip_listesi.xls');
+  toast('Excel dosyası indirildi.', 'success');
 }
 
 function openTenderModal(editId) {
@@ -4453,39 +4320,17 @@ function refreshProductNames() {
 function exportXLSX_suppliers() {
   const list = (data.companies || []).sort((a, b) => a.localeCompare(b));
   if (!list.length) { toast('Tedarikçi listesi boş.', 'info'); return; }
-  const w = window.open('', '_blank');
-  w.document.write(`<html><head><title>Tedarikçi Listesi</title><style>
-    body{font-family:Arial;padding:24px;color:#1e293b;}
-    h2{margin-bottom:4px;} .sub{color:#64748b;margin-bottom:16px;font-size:13px;}
-    table{width:100%;border-collapse:collapse;font-size:12px;}
-    th,td{border:1px solid #cbd5e1;padding:6px 10px;text-align:left;}
-    th{background:#f1f5f9;text-transform:uppercase;font-size:11px;}
-  </style></head><body>
-    <h2>Tedarikçi Listesi</h2>
-    <p class="sub">Toplam: ${list.length} tedarikçi</p>
-    <table><thead><tr><th>#</th><th>Tedarikçi Adı</th></tr></thead><tbody>
-    ${list.map((c, i) => `<tr><td>${i + 1}</td><td>${c}</td></tr>`).join('')}
-    </tbody></table><script>window.print();<\/script></body></html>`);
-  w.document.close();
+  const rows = list.map((c, i) => [i + 1, c]);
+  _htmlExcelBlob(rows, ['#', 'Tedarikçi Adı'], 'tedarikci_listesi.xls');
+  toast('Excel dosyası indirildi.', 'success');
 }
 
 function exportXLSX_prodnames() {
   const names = (data.productNames || []).sort((a, b) => a.localeCompare(b));
   if (!names.length) { toast('Ürün isim listesi boş.', 'info'); return; }
-  const w = window.open('', '_blank');
-  w.document.write(`<html><head><title>Ürün İsim Listesi</title><style>
-    body{font-family:Arial;padding:24px;color:#1e293b;}
-    h2{margin-bottom:4px;} .sub{color:#64748b;margin-bottom:16px;font-size:13px;}
-    table{width:100%;border-collapse:collapse;font-size:12px;}
-    th,td{border:1px solid #cbd5e1;padding:6px 10px;text-align:left;}
-    th{background:#f1f5f9;text-transform:uppercase;font-size:11px;}
-  </style></head><body>
-    <h2>Ürün İsim Listesi</h2>
-    <p class="sub">Toplam: ${names.length} ürün</p>
-    <table><thead><tr><th>#</th><th>Ürün Adı</th><th>Birim</th></tr></thead><tbody>
-    ${names.map((n, i) => `<tr><td>${i + 1}</td><td>${n}</td><td>${(data.productUnits || {})[n] || '—'}</td></tr>`).join('')}
-    </tbody></table><script>window.print();<\/script></body></html>`);
-  w.document.close();
+  const rows = names.map((n, i) => [i + 1, n, (data.productUnits || {})[n] || '—']);
+  _htmlExcelBlob(rows, ['#', 'Ürün Adı', 'Birim'], 'urun_adi_listesi.xls');
+  toast('Excel dosyası indirildi.', 'success');
 }
 
 function editProductName(enc) {
@@ -5850,31 +5695,12 @@ function exportXLSX_maliyet() {
     const tc = t.totalCost || (t.unitPrice ? t.amount * t.unitPrice : 0);
     const pp = t.costPerPerson || (t.personCount > 0 ? tc / t.personCount : 0);
     totalQty += t.amount; totalCost += tc; totalPersons += t.personCount || 0;
-    return `<tr><td>${htmlEscape(t.productName)}</td><td style="text-align:right">${_fmt(t.amount)} ${htmlEscape(t.unit || '')}</td><td style="text-align:right">${t.unitPrice ? _fmt(t.unitPrice) + ' ₺' : '—'}</td><td style="text-align:right">${_fmt(tc)} ₺</td><td style="text-align:right">${t.personCount ? _fmt(t.personCount) : '—'}</td><td style="text-align:right">${pp ? _fmt(pp) + ' ₺' : '—'}</td></tr>`;
-  }).join('');
-  const w = window.open('', '_blank');
-  w.document.write(`
-    <html><head><title>Günlük Maliyet - ${date}</title>
-    <style>
-      body { font-family:Arial; padding:24px; color:#1e293b; }
-      h2 { margin-bottom:4px; }
-      .sub { color:#64748b; margin-bottom:16px; font-size:13px; }
-      table { width:100%; border-collapse:collapse; font-size:12px; }
-      th, td { border:1px solid #cbd5e1; padding:6px 10px; text-align:left; }
-      th { background:#f1f5f9; text-transform:uppercase; font-size:11px; }
-      .toplam { font-weight:700; background:#f8fafc; }
-    </style></head>
-    <body>
-      <h2>Günlük Maliyet Raporu</h2>
-      <p class="sub">Tarih: ${date} &nbsp;|&nbsp; Toplam Çıkış: ${_fmt(totalQty)} &nbsp;|&nbsp; Toplam Maliyet: ${_fmt(totalCost)} ₺ &nbsp;|&nbsp; Toplam Kişi: ${_fmt(totalPersons)}</p>
-      <table>
-        <thead><tr><th>Ürün</th><th style="text-align:right">Miktar</th><th style="text-align:right">Birim Fiyat</th><th style="text-align:right">Toplam Maliyet</th><th style="text-align:right">Kişi Sayısı</th><th style="text-align:right">Kişi Başı</th></tr></thead>
-        <tbody>${satirlar}</tbody>
-      </table>
-      <script>window.print();<\/script>
-    </body></html>
-  `);
-  w.document.close();
+    return [htmlEscape(t.productName), _fmt(t.amount) + ' ' + htmlEscape(t.unit || ''), (t.unitPrice ? _fmt(t.unitPrice) + ' ₺' : '—'), _fmt(tc) + ' ₺', (t.personCount ? _fmt(t.personCount) : '—'), (pp ? _fmt(pp) + ' ₺' : '—')];
+  });
+  satirlar.push(['Toplam', _fmt(totalQty), '', _fmt(totalCost) + ' ₺', _fmt(totalPersons), '']);
+  const headers = ['Ürün', 'Miktar', 'Birim Fiyat', 'Toplam Maliyet', 'Kişi Sayısı', 'Kişi Başı'];
+  _htmlExcelBlob(satirlar, headers, `gunluk_maliyet_raporu_${date}.xls`);
+  toast('Excel dosyası indirildi.', 'success');
 }
 
 function _partiDurumHtml(partiNo) {
@@ -6033,55 +5859,22 @@ function exportXLSX_sr() {
     if (t.date > gruplar[key].sonTarih) { gruplar[key].sonTarih = t.date; gruplar[key].sonPartiNo = t.partiNo; }
   });
 
-  let satirHtml = '';
+  const headers = ['#', 'Parti No', 'Tedarikçi', 'Ürün Adı', 'Miktar', 'Birim'];
+  const rows = [];
   Object.values(gruplar).forEach((v, i) => {
-    const gunHtml = Object.entries(v.gunler)
+    rows.push([i + 1, _partiDurumHtml(v.sonPartiNo).replace(/<[^>]+>/g, ''), htmlEscape(v.tedarikci), htmlEscape(v.urun), _fmt(v.miktar), htmlEscape(v.birim) || '-']);
+    Object.entries(v.gunler)
       .sort((a, b) => a[0].localeCompare(b[0]))
-      .map(([tarih, entries]) => {
+      .forEach(([tarih, entries]) => {
         const d = tarih.split('-');
         const trTarih = d[2] + '.' + d[1] + '.' + d[0];
         const toplam = entries.reduce((s, e) => s + e.amount, 0);
         const partiler = [...new Set(entries.map(e => e.partiNo))].join(', ');
-        return `<tr style="background:#f8fafc;"><td></td><td style="font-size:11px;color:#64748b;">${htmlEscape(partiler)}</td><td></td><td style="padding-left:24px;font-size:13px;font-weight:500;color:#475569;">${trTarih}</td><td style="text-align:right;font-weight:700;font-size:13px;">${_fmt(toplam)}</td><td style="font-size:13px;">${v.birim || '-'}</td></tr>`;
-      }).join('');
-    const partiHtml = _partiDurumHtml(v.sonPartiNo);
-    satirHtml += `
-    <tr style="font-weight:600;">
-      <td>${i + 1}</td><td style="font-size:12px;font-weight:700;color:#1e293b;">${partiHtml}</td><td>${htmlEscape(v.tedarikci)}</td><td>${htmlEscape(v.urun)}</td>
-      <td style="text-align:right">${_fmt(v.miktar)}</td><td>${htmlEscape(v.birim) || '-'}</td>
-    </tr>${gunHtml}`;
+        rows.push(['', htmlEscape(partiler), '', trTarih, _fmt(toplam), v.birim || '-']);
+      });
   });
-
-  const w = window.open('', '_blank');
-  w.document.write(`
-    <html><head><title>${htmlEscape(baslik)}</title>
-    <style>
-      body { font-family:Arial; padding:24px; color:#1e293b; }
-      h2 { margin-bottom:4px; font-size:20px; }
-      .sub { color:#64748b; margin-bottom:8px; font-size:13px; }
-      .filters { color:#64748b; margin-bottom:16px; font-size:12px; }
-      table { width:100%; border-collapse:collapse; font-size:12px; }
-      th, td { border:1px solid #cbd5e1; padding:6px 10px; text-align:left; }
-      th { background:#f1f5f9; font-size:11px; text-transform:uppercase; }
-      .toplam { font-weight:700; background:#f8fafc; }
-      .footer { font-size:11px; color:#94a3b8; margin-top:20px; }
-      @media print { .no-print { display:none; } body { padding:12px; } }
-    </style></head>
-    <body>
-      <h2>${htmlEscape(baslik)}</h2>
-      <p class="sub">Oluşturulma: ${new Date().toLocaleDateString('tr-TR')}</p>
-      <p class="filters">Tedarikçi: ${htmlEscape(tedarikciAdi)} &nbsp;|&nbsp; Ürün: ${htmlEscape(urunAdi)}</p>
-      <table>
-        <thead><tr><th>#</th><th>Parti No</th><th>Tedarikçi</th><th>Ürün Adı</th><th style="text-align:right">Miktar</th><th>Birim</th></tr></thead>
-        <tbody>${satirHtml}</tbody>
-      </table>
-      <p class="footer">Oluşturulma: ${new Date().toLocaleString('tr-TR')} &nbsp;|&nbsp; ${htmlEscape(baslik)}</p>
-      <div class="no-print" style="text-align:center;margin-top:16px;">
-        <button onclick="window.print()" style="padding:8px 20px;cursor:pointer;"><i class="fa-solid fa-print"></i> Yazdır</button>
-      </div>
-    </body></html>
-  `);
-  w.document.close();
+  _htmlExcelBlob(rows, headers, `tedarikci_raporu_${yil}-${ayNum}.xls`);
+  toast('Excel dosyası indirildi.', 'success');
 }
 
 function exportXLSX_daily() {
@@ -6090,30 +5883,24 @@ function exportXLSX_daily() {
   const tablo = document.querySelector('#daily .minimal-table');
   const istatistik = document.querySelector('#daily .stats-grid');
 
-  // print dostu stil
-  const printStyle = document.createElement('style');
-  printStyle.id = 'pdf-style';
-  printStyle.textContent = `
-    @media print {
-      body * { visibility: hidden; }
-      #daily, #daily * { visibility: visible; }
-      #daily { position: absolute; left: 0; top: 0; width: 100%; }
-      .stats-grid { display: grid !important; grid-template-columns: repeat(3,1fr) !important; gap: 16px !important; margin-bottom: 20px !important; }
-      .stat-card { border: 1px solid #ccc !important; padding: 12px !important; border-radius: 8px !important; }
-      .minimal-table { width: 100% !important; border-collapse: collapse !important; }
-      .minimal-table th:last-child, .minimal-table td:last-child { display: none !important; }
-      .minimal-table th { background: #f1f5f9 !important; color: #000 !important; padding: 10px !important; border: 1px solid #ccc !important; }
-      .minimal-table td { padding: 8px 10px !important; border: 1px solid #ddd !important; color: #000 !important; }
-      .btn-ui, .theme-btn, .nav-menu, .sidebar, .top-bar, .info-cards { display: none !important; }
-      .panel-container { box-shadow: none !important; border: 1px solid #ccc !important; }
-      #daily-pdf-container { border: 1px solid #ccc !important; }
-      h3 { font-size: 18px !important; margin-bottom: 12px !important; }
-    }
-    @page { margin: 15mm; }
-  `;
-  document.head.appendChild(printStyle);
-  window.print();
-  setTimeout(() => { const ps = document.getElementById('pdf-style'); if (ps) ps.remove(); }, 500);
+  const headers = ['Sıra', 'İşlem', 'Parti No', 'Ürün', 'Miktar', 'Birim', 'İşlem Yapan', 'Açıklama'];
+  const rows = [];
+  if (istatistik) {
+    istatistik.querySelectorAll('.stat-card').forEach(card => {
+      const ad = (card.querySelector('h3')?.textContent || '').trim();
+      const deger = (card.querySelector('p')?.textContent || '').trim();
+      rows.push([ad, deger, '', '', '', '', '', '']);
+    });
+  }
+  if (tablo) {
+    Array.from(tablo.querySelectorAll('tbody tr')).forEach(tr => {
+      const cells = Array.from(tr.querySelectorAll('td')).slice(0, headers.length).map(td => td.textContent.trim());
+      while (cells.length < headers.length) cells.push('');
+      rows.push(cells);
+    });
+  }
+  _htmlExcelBlob(rows, headers, `gunluk_islemler_${dateStr || 'tumu'}.xls`);
+  toast('Excel dosyası indirildi.', 'success');
 }
 
 // ----- EVENT LISTENER'LAR (DOMContentLoaded öncesi tanımlar) -----
