@@ -382,14 +382,16 @@ async function heartbeatActiveSession() {
       if (_heartbeatInterval) { clearInterval(_heartbeatInterval); _heartbeatInterval = null; }
       return;
     }
-    const now = new Date().toISOString();
-    const idx = sessions.findIndex(s => s.user === data.activeUser);
-    if (idx >= 0) sessions[idx].time = now;
-    else sessions.push({ user: data.activeUser, time: now });
-    const cutoff = Date.now() - 120000;
-    sessions = sessions.filter(s => new Date(s.time).getTime() > cutoff);
-    data.settings._activeSessions = JSON.stringify(sessions);
-    await supabaseFetch('POST', 'settings', { on_conflict: 'key' }, [{ key: '_activeSessions', value: data.settings._activeSessions }]);
+    if (!isViewOnly()) {
+      const now = new Date().toISOString();
+      const idx = sessions.findIndex(s => s.user === data.activeUser);
+      if (idx >= 0) sessions[idx].time = now;
+      else sessions.push({ user: data.activeUser, time: now });
+      const cutoff = Date.now() - 120000;
+      sessions = sessions.filter(s => new Date(s.time).getTime() > cutoff);
+      data.settings._activeSessions = JSON.stringify(sessions);
+      await supabaseFetch('POST', 'settings', { on_conflict: 'key' }, [{ key: '_activeSessions', value: data.settings._activeSessions }]);
+    }
   } catch(e) { console.warn('⚠️ Heartbeat hatası:', e); }
 }
 
@@ -6064,7 +6066,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       const cloudUser = document.getElementById('cloud-user-text');
       if (cloudUser) { cloudUser.textContent = '• ' + foundUser.name; cloudUser.style.display = ''; }
       foundUser.lastLogin = new Date().toISOString();
-      saveData();
+      if (!isViewOnly()) saveData();
       refreshAll();
       startHeartbeat();
       var hashTarget = location.hash ? location.hash.slice(1) : 'dashboard';
