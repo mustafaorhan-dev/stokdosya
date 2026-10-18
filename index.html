@@ -1405,7 +1405,7 @@
             <div id="exit-edit-modal" class="modal">
                 <div class="form-card" style="width:420px;max-width:95vw;">
                     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem;border-bottom:1px solid var(--border-color);padding-bottom:1rem;">
-                        <h3 style="font-size:1.2rem;font-weight:700;"><i class="fa-solid fa-pen" style="color:var(--primary);"></i> Çıkış Düzelt</h3>
+                        <h3 style="font-size:1.2rem;font-weight:700;"><i class="fa-solid fa-pen" style="color:var(--primary);"></i> İşlem Düzelt (Giriş/Çıkış)</h3>
                         <i class="fa-solid fa-times" onclick="document.getElementById('exit-edit-modal').classList.remove('show')" style="cursor:pointer;font-size:1.2rem;color:var(--text-muted);"></i>
                     </div>
                     <form id="exit-edit-form">
@@ -1422,6 +1422,32 @@
                             <label>Düzeltme Notu</label>
                             <input type="text" id="exit-edit-note" class="form-control" placeholder="Sehven fazla çıkış yapıldı...">
                         </div>
+                        <button type="submit" class="btn-ui btn-primary" style="width:100%;padding:0.9rem;"><i class="fa-solid fa-save"></i> Düzelt</button>
+                    </form>
+                </div>
+            </div>
+
+            <div id="stock-adjust-modal" class="modal">
+                <div class="form-card" style="width:420px;max-width:95vw;">
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem;border-bottom:1px solid var(--border-color);padding-bottom:1rem;">
+                        <h3 style="font-size:1.2rem;font-weight:700;"><i class="fa-solid fa-scale-balanced" style="color:var(--warning);"></i> Stok Düzelt</h3>
+                        <i class="fa-solid fa-times" onclick="document.getElementById('stock-adjust-modal').classList.remove('show')" style="cursor:pointer;font-size:1.2rem;color:var(--text-muted);"></i>
+                    </div>
+                    <form id="stock-adjust-form">
+                        <input type="hidden" id="stock-adjust-parti">
+                        <div style="background:var(--bg-secondary);padding:12px;border-radius:var(--border-radius-sm);margin-bottom:1rem;">
+                            <div style="font-weight:600;" id="stock-adjust-product-info"></div>
+                            <div style="font-size:12px;color:var(--text-secondary);margin-top:4px;" id="stock-adjust-old-info"></div>
+                        </div>
+                        <div class="form-group">
+                            <label>Yeni Stok Miktarı</label>
+                            <input type="text" inputmode="decimal" id="stock-adjust-amount" class="form-control" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Not (opsiyonel)</label>
+                            <input type="text" id="stock-adjust-note" class="form-control" placeholder="Sayım sonucu düzeltildi...">
+                        </div>
+                        <div style="font-size:12px;color:var(--text-secondary);margin-bottom:1rem;">Fark kadar giriş/çıkış kaydı oluşturulur ve ihale takibi otomatik güncellenir.</div>
                         <button type="submit" class="btn-ui btn-primary" style="width:100%;padding:0.9rem;"><i class="fa-solid fa-save"></i> Düzelt</button>
                     </form>
                 </div>
@@ -1523,7 +1549,7 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="app.js?t=20260712z" charset="UTF-8"></script>
+    <script src="app.js?t=20260712z2" charset="UTF-8"></script>
 </body>
 
 </html>

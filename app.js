@@ -2402,6 +2402,20 @@ function sizeTenderChartHolder(holderId, count) {
   holder.style.height = Math.max(200, count * 34) + 'px';
 }
 
+function _ihaleStokFarkUygula(partiNo, fark) {
+  if (!fark || !data.tenders || !data.tenders.length) return 0;
+  const p = data.products[partiNo];
+  if (!p || !p.companyName || !p.name) return 0;
+  const yil = new Date().getFullYear();
+  const norm = s => (s || '').toLowerCase().replace(/\s+/g, ' ').trim();
+  const eslesen = data.tenders.filter(t => {
+    const tc = norm(t.companyName), tp = norm(t.product);
+    return tc === norm(p.companyName) && tp === norm(p.name) && (!t.year || t.year == yil);
+  });
+  eslesen.forEach(t => { t.delivered = Math.max(0, (t.delivered || 0) + fark); });
+  return eslesen.length;
+}
+
 function refreshWarehouse() {
   const prods = Object.values(data.products).filter(p => _showDeletedProducts ? true : p.active !== false);
   const searchEl = _el('anbar-search');
@@ -2463,7 +2477,8 @@ function refreshWarehouse() {
       <td>${_fmt(p.criticalLevel)}</td>
       <td style="${stt.cls}">${stt.text}</td>
       <td style="text-align:right;">
-        ${isViewOnly() ? '' : `<button class="btn-ui btn-sm btn-outline" onclick="editProduct('${htmlEscape(p.partiNo)}')" title="Düzenle"><i class="fa-solid fa-pen"></i></button>
+        ${isViewOnly() ? '' : `<button class="btn-ui btn-sm btn-outline" onclick="openStockAdjust('${htmlEscape(p.partiNo)}')" title="Stok Düzelt" style="color:var(--warning);margin-right:4px;"><i class="fa-solid fa-scale-balanced"></i></button>
+        <button class="btn-ui btn-sm btn-outline" onclick="editProduct('${htmlEscape(p.partiNo)}')" title="Düzenle"><i class="fa-solid fa-pen"></i></button>
         <button class="btn-ui btn-sm btn-outline" onclick="deleteProduct('${htmlEscape(p.partiNo)}')" title="Sil" style="color:var(--accent);"><i class="fa-solid fa-trash-can"></i></button>`}
       </td>
     </tr>`;
@@ -2937,6 +2952,49 @@ function openProductModal(editPartiNo) {
 
 function editProduct(partiNo) { openProductModal(partiNo); }
 
+function openStockAdjust(partiNo) {
+  if (isViewOnly()) { toast('Görüntüleme modunda düzeltme yapamazsınız.', 'error'); return; }
+  const p = data.products[partiNo];
+  if (!p) { toast('Ürün bulunamadı.', 'error'); return; }
+  document.getElementById('stock-adjust-parti').value = partiNo;
+  document.getElementById('stock-adjust-product-info').textContent = `${p.name} — ${p.partiNo}`;
+  document.getElementById('stock-adjust-old-info').textContent = `Mevcut stok: ${_fmt(p.stock)} ${p.unit}${p.companyName ? ' | Tedarikçi: ' + p.companyName : ''}`;
+  document.getElementById('stock-adjust-amount').value = _fmt(p.stock);
+  document.getElementById('stock-adjust-note').value = '';
+  document.getElementById('stock-adjust-modal').classList.add('show');
+}
+
+document.getElementById('stock-adjust-form').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  if (isViewOnly()) { toast('Görüntüleme modunda düzeltme yapamazsınız.', 'error'); return; }
+  const partiNo = document.getElementById('stock-adjust-parti').value;
+  const p = data.products[partiNo];
+  if (!p) { toast('Ürün bulunamadı.', 'error'); return; }
+  const yeni = _parseAmount(document.getElementById('stock-adjust-amount').value);
+  if (isNaN(yeni) || yeni < 0) { toast('Geçerli bir miktar girin.', 'error'); return; }
+  const not = document.getElementById('stock-adjust-note').value.trim();
+  const eski = p.stock || 0;
+  const fark = yeni - eski;
+  document.getElementById('stock-adjust-modal').classList.remove('show');
+  if (fark === 0) { toast('Miktar değişmedi.', 'info'); return; }
+  p.stock = yeni;
+  _ihaleStokFarkUygula(partiNo, fark);
+  data.transactions.push({
+    id: Math.floor(Date.now() + Math.random() * 1000), type: fark > 0 ? 'giris' : 'cikis',
+    partiNo: partiNo, productName: p.name, amount: Math.abs(fark), unit: p.unit, date: todayStr(),
+    note: `Stok düzeltme: ${_fmt(eski)} › ${_fmt(yeni)} (${data.activeUser || ''})${not ? ' — ' + not : ''}`,
+    timestamp: new Date().toISOString(), createdBy: data.activeUser || ''
+  });
+  await saveData();
+  toast(`Stok düzeltildi: ${_fmt(eski)} › ${_fmt(yeni)} ${p.unit}`, 'success');
+  refreshWarehouse();
+  refreshDashboard();
+  refreshAggregatedStock();
+  refreshCriticalStock();
+  refreshDailyView();
+  buildMonthMenu();
+});
+
 // Ürün modalını kapat
 document.getElementById('close-modal').addEventListener('click', () => {
   document.getElementById('new-product-modal').classList.remove('show');
@@ -3008,22 +3066,27 @@ document.getElementById('new-product-form').addEventListener('submit', async (e)
     const p = data.products[partiNo];
     if (p) {
       const fark = stock - p.stock;
+      const eskiAd = p.name, eskiFirma = p.companyName || '';
       p.name = name; p.category = category; p.unit = unit;
       p.stock = stock; p.criticalLevel = critical; p.stt = stt; p.companyName = companyName;
 
-      // Stok değişimini ihaleye işle (artış/azalış) - sadece aynı yıl
-      if (fark !== 0 && p.companyName && data.tenders && data.tenders.length) {
+      // İhale takibi: eski ad/firma ile eşleşen kayıtları bul (yeniden adlandırmayı da işle), stok farkını uygula
+      if (data.tenders && data.tenders.length && (eskiFirma || companyName)) {
         const _yil = new Date().getFullYear();
+        const norm = s => (s || '').toLowerCase().replace(/\s+/g, ' ').trim();
         const eslesen = data.tenders.filter(t => {
-          const tc = (t.companyName || '').toLowerCase().replace(/\s+/g, ' ').trim();
-          const tp = (t.product || '').toLowerCase().replace(/\s+/g, ' ').trim();
-          return tc === p.companyName.toLowerCase().replace(/\s+/g, ' ').trim() && tp === p.name.toLowerCase().replace(/\s+/g, ' ').trim() && (!t.year || t.year == _yil);
+          const tc = norm(t.companyName), tp = norm(t.product);
+          return ((tc === norm(eskiFirma) && tp === norm(eskiAd)) || (tc === norm(companyName) && tp === norm(name))) && (!t.year || t.year == _yil);
         });
-        eslesen.forEach(t => { t.delivered = Math.max(0, t.delivered + fark); });
+        eslesen.forEach(t => {
+          if (eskiAd && name && norm(t.product) === norm(eskiAd)) t.product = name;
+          if (eskiFirma && companyName && norm(t.companyName) === norm(eskiFirma)) t.companyName = companyName;
+          if (fark !== 0) t.delivered = Math.max(0, (t.delivered || 0) + fark);
+        });
         if (eslesen.length) {
           await saveData();
-          const yon = fark > 0 ? 'işlendi' : 'düşüldü';
-          toast(`${_fmt(Math.abs(fark))} ${p.unit} "${p.companyName}" ihaleye ${yon}.`, 'success');
+          const yon = fark > 0 ? 'işlendi' : (fark < 0 ? 'düşüldü' : 'güncellendi');
+          toast(`${eslesen.length} ihale kaydı güncellendi${fark !== 0 ? ` (${_fmt(Math.abs(fark))} ${p.unit} ${yon})` : ''}.`, 'success');
         }
       }
 
@@ -5681,7 +5744,7 @@ function refreshDailyView() {
         : '<span style="color:var(--accent);font-weight:700;">ÇIKIŞ</span>';
     const birim = t.unit || (data.products[t.partiNo] && data.products[t.partiNo].unit) || '';
     const adminUser = isAdmin();
-    const duzeltBtn = adminUser && t.type === 'cikis'
+    const duzeltBtn = adminUser && (t.type === 'cikis' || t.type === 'giris')
       ? `<button class="btn-ui btn-sm btn-outline" onclick="openExitEdit(${t.id})" style="padding:2px 6px;font-size:10px;" title="Düzelt"><i class="fa-solid fa-pen"></i></button>`
       : '';
     const silBtn = adminUser
@@ -5696,10 +5759,11 @@ function refreshDailyView() {
 function openExitEdit(id) {
   if (!isAdmin()) { toast('Bu işlem için yetkiniz yok.', 'error'); return; }
   const t = data.transactions.find(x => x.id === id);
-  if (!t || t.type !== 'cikis') return;
+  if (!t || (t.type !== 'cikis' && t.type !== 'giris')) return;
+  const tur = t.type === 'giris' ? 'Giriş' : 'Çıkış';
   document.getElementById('exit-edit-id').value = id;
-  document.getElementById('exit-edit-product-info').textContent = `${t.productName} — ${t.partiNo}`;
-  document.getElementById('exit-edit-old-info').textContent = `Çıkış: ${_fmt(t.amount)} ${t.unit || ''} | Tarih: ${formatDate(t.date)} | ${t.note || '-'}`;
+  document.getElementById('exit-edit-product-info').textContent = `${t.productName} — ${t.partiNo} (${tur})`;
+  document.getElementById('exit-edit-old-info').textContent = `${tur}: ${_fmt(t.amount)} ${t.unit || ''} | Tarih: ${formatDate(t.date)} | ${t.note || '-'}`;
   document.getElementById('exit-edit-amount').value = _fmt(t.amount);
   document.getElementById('exit-edit-note').value = '';
   document.getElementById('exit-edit-modal').classList.add('show');
@@ -5712,40 +5776,40 @@ document.getElementById('exit-edit-form').addEventListener('submit', (e) => {
 
   const id = parseFloat(document.getElementById('exit-edit-id').value);
   const t = data.transactions.find(x => x.id === id);
-  if (!t || t.type !== 'cikis') { toast('İşlem bulunamadı.', 'error'); return; }
+  if (!t || (t.type !== 'cikis' && t.type !== 'giris')) { toast('İşlem bulunamadı.', 'error'); return; }
+  const tur = t.type === 'giris' ? 'Giriş' : 'Çıkış';
 
   const yeniMiktar = _parseAmount(document.getElementById('exit-edit-amount').value);
   if (!yeniMiktar || yeniMiktar <= 0) { toast('Geçerli bir miktar girin.', 'error'); return; }
   const duzeltmeNotu = document.getElementById('exit-edit-note').value.trim();
   const eskiMiktar = t.amount;
 
-  // Delta hesaplama: negatif fark = stoğa iade, pozitif fark = ekstra düşüm
+  // Fark: girişte stoğa eklenir, çıkışta stoktan düşülür
   const fark = yeniMiktar - eskiMiktar;
   if (fark === 0) { toast('Miktar değişmedi.', 'info'); return; }
 
   const p = data.products[t.partiNo];
   if (!p) { toast('Ürün kartı bulunamadı.', 'error'); return; }
 
-  // Pozitif fark (çıkış artıyor) › ekstra stok düşümü, stok kontrolü gerek
-  if (fark > 0 && p.stock < fark) {
-    toast(`Yetersiz stok! Mevcut: ${_fmt(p.stock)} ${p.unit}`, 'error');
+  const stokEtkisi = (t.type === 'giris' ? fark : -fark);
+  if ((p.stock || 0) + stokEtkisi < 0) {
+    toast(`Yetersiz stok! Mevcut: ${_fmt(p.stock)} ${p.unit}. Bu düzeltme stoğu eksiye düşürür.`, 'error');
     return;
   }
+  p.stock = (p.stock || 0) + stokEtkisi;
+  _ihaleStokFarkUygula(t.partiNo, stokEtkisi);
 
-  // Delta kadar stok düzeltmesi (negatif fark otomatik iade eder)
-  p.stock -= fark;
-
-  // Çıkış kaydını güncelle ve cost'ları yeniden hesapla
+  // Kaydı güncelle ve cost'ları yeniden hesapla
   t.amount = yeniMiktar;
   t.totalCost = (t.unitPrice || 0) * yeniMiktar;
   t.costPerPerson = (t.personCount || 0) > 0 ? t.totalCost / t.personCount : 0;
-  t.note = (duzeltmeNotu ? duzeltmeNotu + ' | ' : '') + `Düzeltme: ${_fmt(eskiMiktar)} › ${_fmt(yeniMiktar)} (${data.activeUser})`;
+  t.note = (duzeltmeNotu ? duzeltmeNotu + ' | ' : '') + `${tur} düzeltme: ${_fmt(eskiMiktar)} › ${_fmt(yeniMiktar)} (${data.activeUser})`;
 
   // Denetim kaydı (duzeltme)
   data.transactions.push({
     id: Math.floor(Date.now() + Math.random() * 1000), type: 'duzeltme', partiNo: t.partiNo, productName: t.productName,
     amount: Math.abs(fark), unit: t.unit, date: todayStr(),
-    note: (fark < 0 ? 'İade' : 'Ek çıkış') + `: ${_fmt(eskiMiktar)} › ${_fmt(yeniMiktar)} | Delta: ${_fmt(Math.abs(fark))} ${t.unit} (${t.partiNo})${duzeltmeNotu ? ' — ' + duzeltmeNotu : ''}`,
+    note: `${tur} düzeltme: ${_fmt(eskiMiktar)} › ${_fmt(yeniMiktar)} | Fark: ${_fmt(Math.abs(fark))} ${t.unit} (${t.partiNo})${duzeltmeNotu ? ' — ' + duzeltmeNotu : ''}`,
     timestamp: new Date().toISOString(), createdBy: data.activeUser || '',
     personCount: t.personCount || 0, unitPrice: t.unitPrice || 0,
     totalCost: t.totalCost || 0, costPerPerson: t.costPerPerson || 0
@@ -5754,8 +5818,7 @@ document.getElementById('exit-edit-form').addEventListener('submit', (e) => {
   saveData();
   document.getElementById('exit-edit-modal').classList.remove('show');
 
-  const yon = fark < 0 ? 'iade edildi' : 'düzeltildi';
-  toast(`Çıkış ${yon}: ${_fmt(eskiMiktar)} › ${_fmt(yeniMiktar)} ${p.unit}`, 'success');
+  toast(`${tur} düzeltildi: ${_fmt(eskiMiktar)} › ${_fmt(yeniMiktar)} ${p.unit}`, 'success');
 
   // Tüm modülleri eşzamanlı güncelle
   refreshDailyView();
