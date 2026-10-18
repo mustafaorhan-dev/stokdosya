@@ -4226,7 +4226,7 @@ function refreshSettings() {
   if (su) su.value = data.activeUser || '';
   const aktifKullanici = data.users.find(u => u.name === data.activeUser);
   const sr = document.getElementById('settings-role');
-  if (sr) sr.value = aktifKullanici ? aktifKullanici.role : '';
+  if (sr) { sr.value = aktifKullanici ? aktifKullanici.role : ''; sr.disabled = !isAdmin(); }
 
   // Kullanici listesi
   const ul = document.getElementById('users-list-ul');
@@ -4464,19 +4464,28 @@ async function deleteProductName(enc) {
   toast(`"${name}" listeden kaldırıldı.`, 'success');
 }
 
-// Profil formu (unvan kaydet + şifre değiştir)
-document.getElementById('profile-form').addEventListener('submit', (e) => {
+// Profil formu (unvan kaydet + kendi şifresini değiştir)
+document.getElementById('profile-form').addEventListener('submit', async (e) => {
   e.preventDefault();
   const role = document.getElementById('settings-role').value.trim();
-  const yeniSifre = document.getElementById('settings-new-password').value.trim();
-  if (yeniSifre) {
-    toast('Şifre değişikliği artık Supabase üzerinden yapılır (Supabase > Authentication > Users).', 'warning');
-    document.getElementById('settings-new-password').value = '';
-    return;
+  const pwEl = document.getElementById('settings-new-password');
+  const pw2El = document.getElementById('settings-new-password2');
+  const yeniSifre = pwEl.value;
+  const yeniSifre2 = pw2El ? pw2El.value : '';
+
+  // Şifre değişikliği (yalnızca kendi hesabı — Supabase Auth)
+  if (yeniSifre || yeniSifre2) {
+    if (yeniSifre !== yeniSifre2) { toast('Şifreler eşleşmiyor.', 'error'); return; }
+    const ok = await _updatePassword(yeniSifre);
+    if (!ok) return;
+    pwEl.value = '';
+    if (pw2El) pw2El.value = '';
   }
-  if (data.activeUser) {
+
+  // Unvan güncelle (yalnızca yönetici değiştirebilir)
+  if (data.activeUser && isAdmin()) {
     const u = data.users.find(x => x.name === data.activeUser);
-    if (u) {
+    if (u && u.role !== role) {
       u.role = role;
       saveData();
       toast('Unvan güncellendi.', 'success');
@@ -4484,6 +4493,22 @@ document.getElementById('profile-form').addEventListener('submit', (e) => {
     }
   }
 });
+
+// Kendi şifresini güncelle (Supabase Auth)
+async function _updatePassword(yeniSifre) {
+  if (!_sb) { toast('Supabase Auth yüklenemedi (bağlantıyı kontrol edin).', 'error'); return false; }
+  yeniSifre = (yeniSifre || '').trim();
+  if (yeniSifre.length < 6) { toast('Şifre en az 6 karakter olmalı.', 'error'); return false; }
+  try {
+    const { error } = await _sb.auth.updateUser({ password: yeniSifre });
+    if (error) throw error;
+    toast('Şifreniz güncellendi.', 'success');
+    return true;
+  } catch (err) {
+    toast('Şifre güncellenemedi: ' + (err.message || err), 'error');
+    return false;
+  }
+}
 
 // Kullanici ekle (sadece admin)
 document.getElementById('add-user-btn').addEventListener('click', async () => {
@@ -4685,11 +4710,16 @@ async function deleteUserPermanently(name) {
 function refreshUserSelect() {}
 
 function editUserPassword(name) {
-  if (!isAdmin() && data.activeUser !== name) {
-    toast('Sadece kendi şifrenizi değiştirebilirsiniz.', 'error'); return;
+  if (data.activeUser !== name) {
+    alert('Başka bir kullanıcının şifresini buradan değiştiremezsiniz.\n\nSupabase > Authentication > Users bölümünden ilgili e-posta hesabının şifresini güncelleyin.');
+    return;
   }
-  alert('Şifreler artık Supabase üzerinden yönetilir.\n\nŞifre değiştirmek için Supabase > Authentication > Users bölümünden ilgili e-posta hesabının şifresini güncelleyin.');
-  toast('Şifre değişikliği Supabase > Authentication > Users üzerinden yapılır.', 'warning');
+  const p1 = prompt('Yeni şifrenizi girin (en az 6 karakter):');
+  if (p1 === null) return;
+  const p2 = prompt('Yeni şifrenizi tekrar girin:');
+  if (p2 === null) return;
+  if (p1 !== p2) { toast('Şifreler eşleşmiyor.', 'error'); return; }
+  _updatePassword(p1);
 }
 
 // ----- YEDEKLEME -----

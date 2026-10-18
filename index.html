@@ -1315,9 +1315,12 @@
                                     </div>
                                 </div>
                                 <div class="form-group" style="margin-bottom:1rem;">
-                                    <label>Şifre</label>
-                                    <input type="password" id="settings-new-password" class="form-control" placeholder="Supabase üzerinden yönetilir" style="max-width:250px;" disabled>
-                                    <small style="color:var(--text-secondary); font-size:0.75rem; display:block; margin-top:0.35rem;">Şifreler Supabase &gt; Authentication &gt; Users bölümünden değiştirilir.</small>
+                                    <label>Şifre Değiştir</label>
+                                    <div style="display:flex; gap:8px; flex-wrap:wrap;">
+                                        <input type="password" id="settings-new-password" class="form-control" placeholder="Yeni şifre (en az 6 karakter)" style="max-width:220px;" autocomplete="new-password">
+                                        <input type="password" id="settings-new-password2" class="form-control" placeholder="Yeni şifre (tekrar)" style="max-width:220px;" autocomplete="new-password">
+                                    </div>
+                                    <small style="color:var(--text-secondary); font-size:0.75rem; display:block; margin-top:0.35rem;">Boş bırakırsanız şifre değişmez. Sadece kendi şifrenizi değiştirebilirsiniz.</small>
                                 </div>
                                 <button type="submit" class="btn-ui btn-primary"><i class="fa-solid fa-floppy-disk"></i> Kaydet</button>
                             </form>
@@ -1514,7 +1517,7 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="app.js?t=20260712q" charset="UTF-8"></script>
+    <script src="app.js?t=20260712r" charset="UTF-8"></script>
 </body>
 
 </html>
