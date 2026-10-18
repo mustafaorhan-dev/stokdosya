@@ -7,7 +7,7 @@
     <title>STOKDEPO</title>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="icon" type="image/svg+xml" href="favicon.svg">
-    <link rel="stylesheet" href="style.css?v=20260712f">
+    <link rel="stylesheet" href="style.css?v=20260712g">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
 </head>
@@ -31,38 +31,48 @@
     </div>
 
     <!-- Login Screen -->
-    <div id="login-screen" style="position:fixed;top:0;left:0;width:100%;height:100%;z-index:10000;display:flex;justify-content:center;align-items:center;background:var(--bg-primary);">
-        <div style="position:relative;background:var(--bg-secondary);border-radius:var(--border-radius-lg);padding:3rem;width:420px;max-width:92vw;box-shadow:0 25px 60px rgba(0,0,0,0.3);border:1px solid var(--border-color);text-align:center;">
-            <i class="fa-solid fa-boxes-packing" style="font-size:3rem;color:var(--primary);margin-bottom:0.75rem;"></i>
-            <h2 style="margin:0 0 0.25rem;font-size:1.6rem;">STOKDEPO</h2>
-            <p style="color:var(--text-secondary);font-size:0.85rem;margin-bottom:1.75rem;">Stok Yönetim Sistemi</p>
-            <div style="display:flex;flex-direction:column;gap:14px;">
-                <input type="email" id="login-username" class="form-control" placeholder="E-posta" style="padding:14px 16px;font-size:16px;width:100%;" autocomplete="username">
-                <input type="password" id="login-password" class="form-control" placeholder="Şifre" style="padding:14px 16px;font-size:16px;width:100%;" autocomplete="off">
-                <button id="login-btn" class="btn-ui btn-primary" style="padding:14px;font-size:16px;font-weight:700;width:100%;text-transform:uppercase;justify-content:center;">Giriş Yap</button>
-                <p id="login-error" style="color:var(--accent);font-size:0.85rem;margin:0;display:none;"></p>
-                <span style="font-size:0.75rem;color:var(--text-muted);margin-top:4px;">Şifrenizi mi unuttunuz? <a href="#" id="forgot-password-link" style="color:var(--primary);text-decoration:underline;cursor:pointer;">Sıfırlama bağlantısı gönder</a></span>
-                <span style="position:absolute;bottom:8px;right:12px;font-size:9px;color:var(--text-muted);opacity:0.4;font-weight:600;letter-spacing:1px;user-select:none;">FMG</span>
+    <div id="login-screen" class="login-screen">
+        <div class="login-card">
+            <div class="login-badge"><i class="fa-solid fa-boxes-packing"></i></div>
+            <h2 class="login-title">STOKDEPO</h2>
+            <p class="login-subtitle">Stok Yönetim Sistemi</p>
+            <div class="login-field">
+                <i class="fa-solid fa-envelope login-ico"></i>
+                <input type="email" id="login-username" class="login-input" placeholder="E-posta" autocomplete="username">
             </div>
+            <div class="login-field">
+                <i class="fa-solid fa-lock login-ico"></i>
+                <input type="password" id="login-password" class="login-input" placeholder="Şifre" autocomplete="off">
+                <button type="button" id="login-toggle-pass" class="login-eye" title="Şifreyi göster"><i class="fa-solid fa-eye"></i></button>
+            </div>
+            <button id="login-btn" class="btn-ui btn-primary login-btn"><i class="fa-solid fa-right-to-bracket"></i> Giriş Yap</button>
+            <p id="login-error" class="login-msg" style="margin-top:.7rem;"></p>
+            <div class="login-foot">
+                Şifrenizi mi unuttunuz?
+                <a href="#" id="forgot-password-link"><i class="fa-solid fa-key"></i> Sıfırlama bağlantısı gönder</a>
+            </div>
+            <span class="login-brand-mark">FMG</span>
         </div>
     </div>
 
     <!-- Password Recovery Modal -->
     <div id="recovery-modal" class="modal">
-        <div class="form-card" style="width:420px;max-width:92vw;">
-            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem;border-bottom:1px solid var(--border-color);padding-bottom:1rem;">
-                <h3 style="font-size:1.2rem;font-weight:700;"><i class="fa-solid fa-key" style="color:var(--primary);"></i> Yeni Şifre Belirle</h3>
+        <div class="form-card" style="width:400px;max-width:92vw;">
+            <div style="text-align:center;margin-bottom:1.4rem;">
+                <div class="login-badge" style="margin-bottom:.75rem;"><i class="fa-solid fa-key"></i></div>
+                <h3 style="font-size:1.25rem;font-weight:800;margin:0;">Yeni Şifre Belirle</h3>
+                <p style="color:var(--text-secondary);font-size:.8rem;margin:.3rem 0 0;">Hesabınız için yeni bir şifre oluşturun.</p>
             </div>
-            <div class="form-group">
-                <label>Yeni Şifre</label>
-                <input type="password" id="recovery-pass1" class="form-control" placeholder="En az 6 karakter" autocomplete="new-password">
+            <div class="login-field">
+                <i class="fa-solid fa-lock login-ico"></i>
+                <input type="password" id="recovery-pass1" class="login-input" placeholder="Yeni şifre (en az 6 karakter)" autocomplete="new-password">
             </div>
-            <div class="form-group">
-                <label>Yeni Şifre (tekrar)</label>
-                <input type="password" id="recovery-pass2" class="form-control" placeholder="Tekrar girin" autocomplete="new-password">
+            <div class="login-field">
+                <i class="fa-solid fa-lock login-ico"></i>
+                <input type="password" id="recovery-pass2" class="login-input" placeholder="Yeni şifre (tekrar)" autocomplete="new-password">
             </div>
-            <p id="recovery-error" style="color:var(--accent);font-size:0.85rem;display:none;"></p>
-            <button type="button" id="recovery-save-btn" class="btn-ui btn-primary" style="width:100%;justify-content:center;"><i class="fa-solid fa-floppy-disk"></i> Şifreyi Güncelle</button>
+            <p id="recovery-error" class="login-msg" style="margin:.2rem 0 .7rem;"></p>
+            <button type="button" id="recovery-save-btn" class="btn-ui btn-primary login-btn"><i class="fa-solid fa-floppy-disk"></i> Şifreyi Güncelle</button>
         </div>
     </div>
 
@@ -1536,7 +1546,7 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="app.js?t=20260712t" charset="UTF-8"></script>
+    <script src="app.js?t=20260712u" charset="UTF-8"></script>
 </body>
 
 </html>

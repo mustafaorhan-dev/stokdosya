@@ -347,27 +347,57 @@ function ceviriAuthHata(msg) {
 }
 
 // ---------- ŞİFRE SIFIRLAMA ----------
+// Giriş ekranı mesaj kutusu (tip: false=hata, true=başarı)
+function _showLoginMsg(el, msg, ok) {
+  if (!el) return;
+  el.style.display = '';
+  el.className = 'login-msg show ' + (ok ? 'ok' : 'err');
+  el.textContent = '';
+  const i = document.createElement('i');
+  i.className = 'fa-solid ' + (ok ? 'fa-circle-check' : 'fa-circle-exclamation');
+  const s = document.createElement('span');
+  s.textContent = msg;
+  el.appendChild(i); el.appendChild(s);
+}
+function _hideLoginMsg(el) { if (el) { el.style.display = ''; el.className = 'login-msg'; el.textContent = ''; } }
+
 // Giriş ekranından sıfırlama bağlantısı gönder (e-posta kayıtlı olsa da olmasa da aynı mesaj verilir)
 async function _sendPasswordReset() {
   const emailEl = document.getElementById('login-username');
   const errEl = document.getElementById('login-error');
+  const link = document.getElementById('forgot-password-link');
   const email = (emailEl?.value || '').trim();
-  const show = (msg, ok) => {
-    if (!errEl) return;
-    errEl.style.color = ok ? 'var(--success)' : 'var(--accent)';
-    errEl.textContent = msg;
-    errEl.style.display = 'block';
-  };
   if (!email || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) {
-    show('Lütfen yukarıdaki alana e-posta adresinizi yazın.', false);
+    _showLoginMsg(errEl, 'Lütfen yukarıdaki alana e-posta adresinizi yazın.', false);
+    if (emailEl) emailEl.focus();
     return;
   }
-  if (!_sb) { show('Bağlantı kurulamadı. İnterneti kontrol edin.', false); return; }
+  if (!_sb) { _showLoginMsg(errEl, 'Bağlantı kurulamadı. İnterneti kontrol edin.', false); return; }
+  if (link && link.dataset.busy === '1') return;
+
+  const restoreLink = () => { if (link) link.innerHTML = '<i class="fa-solid fa-key"></i> Sıfırlama bağlantısı gönder'; };
+  const startCooldown = () => {
+    if (!link) return;
+    let s = 30;
+    link.dataset.busy = '1';
+    link.setAttribute('aria-disabled', 'true');
+    const tick = () => {
+      if (s <= 0) { link.dataset.busy = '0'; link.removeAttribute('aria-disabled'); restoreLink(); return; }
+      link.textContent = 'Yeniden gönder (' + s + 'sn)';
+      s--;
+      setTimeout(tick, 1000);
+    };
+    tick();
+  };
+
   try {
+    if (link) link.innerHTML = '<span class="login-spinner"></span> Gönderiliyor...';
     await _sb.auth.resetPasswordForEmail(email, { redirectTo: APP_RESET_URL });
-    show('Eğer bu e-posta kayıtlıysa, şifre sıfırlama bağlantısı gönderildi. Gelen kutunuzu (ve spam klasörünü) kontrol edin.', true);
+    _showLoginMsg(errEl, 'Eğer bu e-posta kayıtlıysa, şifre sıfırlama bağlantısı gönderildi. Gelen kutunuzu (ve spam klasörünü) kontrol edin.', true);
+    startCooldown();
   } catch (e) {
-    show('İşlem şu an yapılamadı. Lütfen biraz sonra tekrar deneyin.', false);
+    _showLoginMsg(errEl, 'İşlem şu an yapılamadı. Lütfen biraz sonra tekrar deneyin.', false);
+    if (link) { link.dataset.busy = '0'; link.removeAttribute('aria-disabled'); restoreLink(); }
   }
 }
 
@@ -392,23 +422,28 @@ async function _saveRecoveredPassword() {
   const p1El = document.getElementById('recovery-pass1');
   const p2El = document.getElementById('recovery-pass2');
   const errEl = document.getElementById('recovery-error');
+  const btn = document.getElementById('recovery-save-btn');
   const p1 = p1El ? p1El.value : '';
   const p2 = p2El ? p2El.value : '';
-  const fail = (msg) => { if (errEl) { errEl.textContent = msg; errEl.style.display = 'block'; } };
-  if (errEl) errEl.style.display = 'none';
+  const fail = (msg) => _showLoginMsg(errEl, msg, false);
+  _hideLoginMsg(errEl);
   if (p1.length < 6) { fail('Şifre en az 6 karakter olmalı.'); return; }
   if (p1 !== p2) { fail('Şifreler eşleşmiyor.'); return; }
   if (!_sb) { fail('Bağlantı kurulamadı.'); return; }
+  const restoreBtn = () => { if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Şifreyi Güncelle'; } };
   try {
+    if (btn) { btn.disabled = true; btn.innerHTML = '<span class="login-spinner"></span> Kaydediliyor...'; }
     const { error } = await _sb.auth.updateUser({ password: p1 });
     if (error) throw error;
     await _sb.auth.signOut();
     _accessToken = null;
     if (p1El) p1El.value = '';
     if (p2El) p2El.value = '';
+    restoreBtn();
     _hideRecoveryForm();
     toast('Şifreniz güncellendi. Yeni şifrenizle giriş yapabilirsiniz.', 'success');
   } catch (e) {
+    restoreBtn();
     fail('Şifre güncellenemedi: ' + (e.message || e));
   }
 }
@@ -6114,25 +6149,22 @@ document.addEventListener('DOMContentLoaded', async () => {
     var pass = document.getElementById('login-password').value.trim();
     var errEl = document.getElementById('login-error');
     var btn = document.getElementById('login-btn');
-    errEl.style.color = 'var(--accent)';
 
     if (!email || !pass) {
-      errEl.textContent = 'E-posta ve şifre girin.';
-      errEl.style.display = 'block';
+      _showLoginMsg(errEl, 'E-posta ve şifre girin.', false);
       return;
     }
 
     try {
       btn.disabled = true;
-      btn.textContent = 'Kontrol ediliyor...';
-      errEl.style.display = 'none';
+      btn.innerHTML = '<span class="login-spinner"></span> Kontrol ediliyor...';
+      _hideLoginMsg(errEl);
 
       var foundUser = null;
       var authErr = null;
 
       if (!_sb) {
-        errEl.textContent = 'Supabase Auth yüklenemedi. İnternet bağlantınızı kontrol edin.';
-        errEl.style.display = 'block';
+        _showLoginMsg(errEl, 'Supabase Auth yüklenemedi. İnternet bağlantınızı kontrol edin.', false);
         return;
       }
 
@@ -6143,22 +6175,19 @@ document.addEventListener('DOMContentLoaded', async () => {
         foundUser = data.users.find(function(u) { return (u.email || '').toLowerCase() === email.toLowerCase(); });
         if (!foundUser) {
           await authSignOut();
-          errEl.textContent = 'Giriş başarılı ancak bu e-posta için kullanıcı tanımı bulunamadı. Yöneticinizden stok_users tablosuna e-posta eklemesini isteyin.';
-          errEl.style.display = 'block';
+          _showLoginMsg(errEl, 'Giriş başarılı ancak bu e-posta için kullanıcı tanımı bulunamadı. Yöneticinizden stok_users tablosuna e-posta eklemesini isteyin.', false);
           return;
         }
       } catch (ae) { authErr = ae; }
 
       if (!foundUser) {
-        errEl.textContent = authErr ? authErr.message : 'Hatalı e-posta veya şifre.';
-        errEl.style.display = 'block';
+        _showLoginMsg(errEl, authErr ? authErr.message : 'Hatalı e-posta veya şifre.', false);
         return;
       }
 
       if (foundUser.active === false) {
         await authSignOut();
-        errEl.textContent = 'Bu kullanıcı pasif durumda. Giriş yapılamaz.';
-        errEl.style.display = 'block';
+        _showLoginMsg(errEl, 'Bu kullanıcı pasif durumda. Giriş yapılamaz.', false);
         return;
       }
 
@@ -6183,11 +6212,10 @@ document.addEventListener('DOMContentLoaded', async () => {
       navigateTo(validViews.includes(hashTarget) ? hashTarget : 'dashboard');
     } catch (e) {
       console.error('Login error:', e);
-      errEl.textContent = 'Sistem hatası: ' + e.message;
-      errEl.style.display = 'block';
+      _showLoginMsg(errEl, 'Sistem hatası: ' + e.message, false);
     } finally {
       btn.disabled = false;
-      btn.textContent = 'Giriş';
+      btn.innerHTML = '<i class="fa-solid fa-right-to-bracket"></i> Giriş Yap';
     }
   });
 
@@ -6203,6 +6231,16 @@ document.addEventListener('DOMContentLoaded', async () => {
   document.getElementById('forgot-password-link')?.addEventListener('click', (e) => {
     e.preventDefault();
     _sendPasswordReset();
+  });
+
+  // Şifreyi göster / gizle
+  document.getElementById('login-toggle-pass')?.addEventListener('click', () => {
+    const pw = document.getElementById('login-password');
+    const ico = document.querySelector('#login-toggle-pass i');
+    if (!pw) return;
+    const show = pw.type === 'password';
+    pw.type = show ? 'text' : 'password';
+    if (ico) ico.className = 'fa-solid ' + (show ? 'fa-eye-slash' : 'fa-eye');
   });
 
   // Sıfırlama ekranı → yeni şifreyi kaydet
