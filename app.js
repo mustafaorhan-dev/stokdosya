@@ -6316,6 +6316,19 @@ document.addEventListener('DOMContentLoaded', async () => {
   const loginScreen = document.getElementById('login-screen');
   const appContainer = document.getElementById('app-container');
 
+  // Tema ve saati ağ/Supabase beklenmeden ANINDA uygula (ilk açılışta ikon ve tarih boş kalmasın).
+  try {
+    var _ilkTema = localStorage.getItem('stokdosya_theme') || 'light';
+    document.documentElement.setAttribute('data-theme', _ilkTema);
+    const _ttEl = document.getElementById('theme-toggle');
+    if (_ttEl) {
+      _ttEl.textContent = _ilkTema === 'light' ? '🌙' : '☀️';
+      if (!_ttEl._boundTheme) { _ttEl.addEventListener('click', toggleTheme); _ttEl._boundTheme = true; }
+    }
+    updateClock();
+    setInterval(updateClock, 10000);
+  } catch (e) { /* sessiz */ }
+
   // Supabase oturumunu geri yükle (geçerliyse access token alınır)
   await authInit();
 
@@ -6553,17 +6566,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (appContainer) appContainer.style.display = 'none';
   } else {
   if (loadingEl) loadingEl.style.display = 'flex';
-  // Tema ve saati veri yüklenmesini beklemeden hemen uygula (ikon ilk açılışta boş kalmasın).
-  // Not: isAdmin() data.users'a bağlı olduğundan burada getTheme() kullanılmaz; ham değer okunur.
-  var _ilkTema = localStorage.getItem('stokdosya_theme') || 'light';
-  document.documentElement.setAttribute('data-theme', _ilkTema);
-  const _ttEl = document.getElementById('theme-toggle');
-  if (_ttEl) {
-    _ttEl.textContent = _ilkTema === 'light' ? '🌙' : '☀️';
-    if (!_ttEl._boundTheme) { _ttEl.addEventListener('click', toggleTheme); _ttEl._boundTheme = true; }
-  }
-  updateClock();
-  setInterval(updateClock, 10000);
   loadData().then(async () => {
     if (loadingEl) loadingEl.style.display = 'none';
     if (!data.settings._migrated) {
