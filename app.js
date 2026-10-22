@@ -611,7 +611,10 @@ function getTheme() {
 function applyTheme(theme) {
   document.documentElement.setAttribute('data-theme', theme);
   const tt = document.getElementById('theme-toggle');
-  if (tt) tt.textContent = theme === 'light' ? '🌙' : '☀️';
+  if (tt) {
+    tt.textContent = theme === 'light' ? '🌙' : '☀️';
+    tt.style.display = isAdmin() ? '' : 'none';
+  }
   localStorage.setItem('stokdosya_theme', theme);
   document.body.style.setProperty('color', theme === 'dark' ? '#f1f5f9' : '#0f172a', 'important');
 }
@@ -6550,10 +6553,15 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (appContainer) appContainer.style.display = 'none';
   } else {
   if (loadingEl) loadingEl.style.display = 'flex';
-  // Tema ve saati veri yüklenmesini beklemeden hemen uygula (ilk açılışta buton/saat boş kalmasın)
-  applyTheme(getTheme());
+  // Tema ve saati veri yüklenmesini beklemeden hemen uygula (ikon ilk açılışta boş kalmasın).
+  // Not: isAdmin() data.users'a bağlı olduğundan burada getTheme() kullanılmaz; ham değer okunur.
+  var _ilkTema = localStorage.getItem('stokdosya_theme') || 'light';
+  document.documentElement.setAttribute('data-theme', _ilkTema);
   const _ttEl = document.getElementById('theme-toggle');
-  if (_ttEl && !_ttEl._boundTheme) { _ttEl.addEventListener('click', toggleTheme); _ttEl._boundTheme = true; }
+  if (_ttEl) {
+    _ttEl.textContent = _ilkTema === 'light' ? '🌙' : '☀️';
+    if (!_ttEl._boundTheme) { _ttEl.addEventListener('click', toggleTheme); _ttEl._boundTheme = true; }
+  }
   updateClock();
   setInterval(updateClock, 10000);
   loadData().then(async () => {
@@ -6563,8 +6571,6 @@ document.addEventListener('DOMContentLoaded', async () => {
       saveData();
     }
     applyTheme(getTheme());
-    const _ttEl2 = document.getElementById('theme-toggle');
-    if (_ttEl2 && !_ttEl2._boundTheme) { _ttEl2.addEventListener('click', toggleTheme); _ttEl2._boundTheme = true; }
     refreshAll();
     updateClock();
     // Kalıcı depolama iste — geçmiş temizliğinde verilerin silinmesini engeller
