@@ -1054,11 +1054,11 @@ input[type="file"].form-control { padding: 8px; }
   transition: background 0.12s ease;
 }
 #tender-tracking .minimal-table tbody tr.tender-row-warn td {
-  background: #fffafa !important;
-  color: #b06a66 !important;
+  background: #fffdfd !important;
+  color: #a97b78 !important;
 }
 #tender-tracking .minimal-table tbody tr.tender-row-warn:hover td {
-  background: #fff0f0 !important;
+  background: #fff7f7 !important;
 }
 #tender-tracking .minimal-table tbody tr.tender-row:hover td:first-child {
   box-shadow: inset 3px 0 0 #2563eb;
@@ -1102,9 +1102,9 @@ input[type="file"].form-control { padding: 8px; }
 }
 [data-theme="dark"] #tender-tracking #tender-count-badge { color: var(--text-secondary); }
 [data-theme="dark"] #tender-tracking .minimal-table tbody tr.tender-row-warn td {
-  background: rgba(239,68,68,0.05) !important;
-  color: #f0b3b3 !important;
+  background: rgba(239,68,68,0.035) !important;
+  color: #e6bdbd !important;
 }
 [data-theme="dark"] #tender-tracking .minimal-table tbody tr.tender-row-warn:hover td {
-  background: rgba(239,68,68,0.10) !important;
+  background: rgba(239,68,68,0.07) !important;
 }
