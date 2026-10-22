@@ -1086,6 +1086,11 @@
                             <tbody id="tender-body"></tbody>
                         </table>
                     </div>
+                    <div id="tender-pagination" style="display:none;align-items:center;justify-content:center;gap:12px;flex-wrap:wrap;padding:12px 8px 16px;">
+                        <button type="button" class="btn-ui btn-outline btn-sm" id="tender-prev-btn" onclick="tenderGoPage(-1)"><i class="fa-solid fa-chevron-left"></i> Önceki</button>
+                        <span id="tender-page-info" style="font-size:13px;color:var(--text-secondary);font-weight:600;"></span>
+                        <button type="button" class="btn-ui btn-outline btn-sm" id="tender-next-btn" onclick="tenderGoPage(1)">Sonraki <i class="fa-solid fa-chevron-right"></i></button>
+                    </div>
                 </div>
             </div>
 

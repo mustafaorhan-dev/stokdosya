@@ -1085,6 +1085,10 @@ function renderYearChart(yil) {
 let _yearCompareChart = null;
 let _tenderYearCompareChart = null;
 
+const TENDER_PAGE_SIZE = 200;
+window._tenderPage = 1;
+window._tenderFiltreli = [];
+
 function refreshYearCompare() {
   const select = document.getElementById('yc-product');
   const canvas = document.getElementById('year-compare-canvas');
@@ -4108,8 +4112,16 @@ function exportTenderCSV() {
   toast('CSV indiriliyor...', 'success');
 }
 
-function refreshTenders() {
+function tenderGoPage(delta) {
+  const toplam = (window._tenderFiltreli || []).length;
+  const maxPage = Math.max(1, Math.ceil(toplam / TENDER_PAGE_SIZE));
+  window._tenderPage = Math.min(maxPage, Math.max(1, (window._tenderPage || 1) + delta));
+  refreshTenders(true);
+}
+
+function refreshTenders(sayfaKoru) {
   if (!data.tenders) data.tenders = [];
+  if (!sayfaKoru) window._tenderPage = 1;
   const tbody = document.getElementById('tender-body');
   // Yıl filtresini güncelle
   const yilFilter = document.getElementById('tender-year-filter');
@@ -4145,12 +4157,38 @@ function refreshTenders() {
     else countBadge.textContent = toplam > 0 ? `${toplam} kayıt` : '';
   }
 
+  window._tenderFiltreli = filtreli;
+  const paginationEl = document.getElementById('tender-pagination');
+
   if (!filtreli.length) {
     tbody.innerHTML = '<tr><td colspan="12" style="text-align:center;color:var(--text-muted);padding:40px;">Filtreye uygun ihale kaydı bulunamadı.</td></tr>';
+    if (paginationEl) paginationEl.style.display = 'none';
     refreshTenderChart();
     return;
   }
-  tbody.innerHTML = filtreli.map(t => {
+
+  const totalTender = filtreli.length;
+  const totalPages = Math.max(1, Math.ceil(totalTender / TENDER_PAGE_SIZE));
+  if (!window._tenderPage || window._tenderPage < 1) window._tenderPage = 1;
+  if (window._tenderPage > totalPages) window._tenderPage = totalPages;
+  const pageStart = (window._tenderPage - 1) * TENDER_PAGE_SIZE;
+  const sayfaKayitlari = filtreli.slice(pageStart, pageStart + TENDER_PAGE_SIZE);
+
+  if (paginationEl) {
+    if (totalTender > TENDER_PAGE_SIZE) {
+      paginationEl.style.display = 'flex';
+      const info = document.getElementById('tender-page-info');
+      if (info) info.textContent = `Sayfa ${window._tenderPage} / ${totalPages} (${totalTender} kayıt)`;
+      const prevBtn = document.getElementById('tender-prev-btn');
+      const nextBtn = document.getElementById('tender-next-btn');
+      if (prevBtn) prevBtn.disabled = window._tenderPage === 1;
+      if (nextBtn) nextBtn.disabled = window._tenderPage === totalPages;
+    } else {
+      paginationEl.style.display = 'none';
+    }
+  }
+
+  tbody.innerHTML = sayfaKayitlari.map(t => {
     const kalan = t.quantity - t.delivered;
     const sozlesmeTutar = t.price * t.quantity;
     const teslimTutar = t.price * t.delivered;
