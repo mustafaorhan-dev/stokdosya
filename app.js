@@ -6550,6 +6550,12 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (appContainer) appContainer.style.display = 'none';
   } else {
   if (loadingEl) loadingEl.style.display = 'flex';
+  // Tema ve saati veri yüklenmesini beklemeden hemen uygula (ilk açılışta buton/saat boş kalmasın)
+  applyTheme(getTheme());
+  const _ttEl = document.getElementById('theme-toggle');
+  if (_ttEl && !_ttEl._boundTheme) { _ttEl.addEventListener('click', toggleTheme); _ttEl._boundTheme = true; }
+  updateClock();
+  setInterval(updateClock, 10000);
   loadData().then(async () => {
     if (loadingEl) loadingEl.style.display = 'none';
     if (!data.settings._migrated) {
@@ -6557,10 +6563,10 @@ document.addEventListener('DOMContentLoaded', async () => {
       saveData();
     }
     applyTheme(getTheme());
-    document.getElementById('theme-toggle')?.addEventListener('click', toggleTheme);
+    const _ttEl2 = document.getElementById('theme-toggle');
+    if (_ttEl2 && !_ttEl2._boundTheme) { _ttEl2.addEventListener('click', toggleTheme); _ttEl2._boundTheme = true; }
     refreshAll();
     updateClock();
-    setInterval(updateClock, 10000);
     // Kalıcı depolama iste — geçmiş temizliğinde verilerin silinmesini engeller
     try {
       if (navigator.storage && navigator.storage.persist) {
