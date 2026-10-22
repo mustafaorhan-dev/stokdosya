@@ -1053,11 +1053,58 @@ input[type="file"].form-control { padding: 8px; }
   background: #e2e8f0;
   transition: background 0.12s ease;
 }
+#tender-tracking .minimal-table tbody tr.tender-row-warn td {
+  background: #fee2e2 !important;
+  color: #991b1b !important;
+}
+#tender-tracking .minimal-table tbody tr.tender-row-warn:hover td {
+  background: #fecaca !important;
+}
 #tender-tracking .minimal-table tbody tr.tender-row:hover td:first-child {
   box-shadow: inset 3px 0 0 #2563eb;
+}
+#tender-tracking .minimal-table tbody tr.tender-row-warn:hover td:first-child {
+  box-shadow: inset 3px 0 0 #dc2626;
 }
 #tender-tracking .minimal-table td[style*="color:var(--text-secondary)"],
 #tender-tracking .minimal-table td[style*="color:var(--text-muted)"] {
   color: #475569 !important;
 }
 #tender-tracking #tender-count-badge { color: #475569; }
+
+/* ---- İhale Takip Listesi: gece modunda koyu ---- */
+[data-theme="dark"] #tender-tracking .panel-container {
+  background: var(--bg-card);
+  border-color: var(--border-color);
+}
+[data-theme="dark"] #tender-tracking .panel-header {
+  background: var(--bg-card);
+  border-bottom-color: var(--border-color);
+}
+[data-theme="dark"] #tender-tracking .panel-header h3 { color: var(--text-primary); }
+[data-theme="dark"] #tender-tracking .minimal-table { background: var(--bg-card); }
+[data-theme="dark"] #tender-tracking .minimal-table th {
+  background: #334155;
+  color: var(--text-secondary);
+  border-bottom-color: var(--border-color);
+}
+[data-theme="dark"] #tender-tracking .minimal-table td {
+  background: var(--bg-card);
+  color: var(--text-primary);
+  border-bottom-color: var(--border-color);
+}
+[data-theme="dark"] #tender-tracking .minimal-table tbody tr.tender-row:hover td {
+  background: var(--bg-hover);
+}
+[data-theme="dark"] #tender-tracking .minimal-table td[style*="color:var(--text-secondary)"],
+[data-theme="dark"] #tender-tracking .minimal-table td[style*="color:var(--text-muted)"] {
+  color: var(--text-secondary) !important;
+}
+[data-theme="dark"] #tender-tracking #tender-count-badge { color: var(--text-secondary); }
+[data-theme="dark"] #tender-tracking .minimal-table tbody tr.tender-row-warn td {
+  background: rgba(239,68,68,0.22) !important;
+  color: #fecaca !important;
+}
+[data-theme="dark"] #tender-tracking .minimal-table tbody tr.tender-row-warn:hover td {
+  background: rgba(239,68,68,0.32) !important;
+}
