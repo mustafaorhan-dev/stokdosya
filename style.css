@@ -1027,3 +1027,37 @@ input[type="file"].form-control { padding: 8px; }
   .login-shell { width: 400px; max-width: 94vw; min-height: 0; }
   .login-form-side { padding: 2.2rem 1.6rem 2.4rem; }
 }
+
+/* ---- İhale Takip Listesi: her zaman aydınlık (beyaz zemin, koyu yazı) ---- */
+#tender-tracking .panel-container {
+  background: #ffffff;
+  border-color: #e2e8f0;
+}
+#tender-tracking .panel-header {
+  background: #ffffff;
+  border-bottom-color: #e2e8f0;
+}
+#tender-tracking .panel-header h3 { color: #0f172a; }
+#tender-tracking .minimal-table { background: #ffffff; }
+#tender-tracking .minimal-table th {
+  background: #f1f5f9;
+  color: #475569;
+  border-bottom-color: #e2e8f0;
+}
+#tender-tracking .minimal-table td {
+  background: #ffffff;
+  color: #0f172a;
+  border-bottom-color: #e2e8f0;
+}
+#tender-tracking .minimal-table tbody tr.tender-row:hover td {
+  background: #e2e8f0;
+  transition: background 0.12s ease;
+}
+#tender-tracking .minimal-table tbody tr.tender-row:hover td:first-child {
+  box-shadow: inset 3px 0 0 #2563eb;
+}
+#tender-tracking .minimal-table td[style*="color:var(--text-secondary)"],
+#tender-tracking .minimal-table td[style*="color:var(--text-muted)"] {
+  color: #475569 !important;
+}
+#tender-tracking #tender-count-badge { color: #475569; }

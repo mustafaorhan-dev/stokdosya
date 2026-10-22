@@ -4157,8 +4157,7 @@ function refreshTenders() {
     const oran = sozlesmeTutar > 0 ? ((teslimTutar / sozlesmeTutar) * 100).toFixed(1) : 0;
     const oranRenk = oran >= 100 ? 'var(--accent)' : (oran >= 80 ? 'var(--accent)' : (oran >= 70 ? '#f97316' : (oran >= 50 ? '#eab308' : 'var(--success)')));
     const uyari80 = (oran >= 80 && oran < 100) ? '<span style="background:rgba(239,68,68,0.15);color:var(--accent);font-size:11px;padding:2px 8px;border-radius:999px;font-weight:700;margin-left:6px;white-space:nowrap;">⚠️ %80+</span>' : (oran >= 100 ? '<span style="color:var(--accent);margin-left:4px;">✅ TAMAM</span>' : '');
-    const satirBg = (oran >= 80 && oran < 100) ? ' style="background:rgba(239,68,68,0.06);"' : (oran >= 100 ? ' style="background:rgba(239,68,68,0.03);"' : '');
-    return `<tr${satirBg}>
+    return `<tr class="tender-row">
       <td style="white-space:nowrap;"><strong>${htmlEscape(t.companyName)}</strong></td>
       <td style="white-space:nowrap;color:var(--text-secondary);font-size:12px;">${t.year || new Date().getFullYear()}</td>
       <td style="white-space:nowrap;">${htmlEscape(t.product)}</td>
