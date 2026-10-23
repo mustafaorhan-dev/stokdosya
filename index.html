@@ -142,17 +142,6 @@
                     </a>
                 </div>
 
-                    <div class="user-profile-card" style="margin-top: auto; padding: 0.75rem; background: var(--secondary); border-radius: var(--border-radius-md); margin-bottom: 0.75rem; display: flex; align-items: center; gap: 0.75rem; border: 1px solid var(--border-color);">
-                        <div class="user-avatar" style="width: 32px; height: 32px; border-radius: 50%; background: var(--primary-light); color: var(--primary); display: flex; align-items: center; justify-content: center; font-size: 1rem; font-weight: 700; flex-shrink: 0;">
-                            <i class="fa-regular fa-user"></i>
-                        </div>
-                        <div class="user-details" style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1;">
-                            <h5 id="display-username" style="margin: 0; font-weight: 700; font-size: 0.8rem; color: var(--text-primary); text-align: left;">MUSTAFA ORHAN</h5>
-                            <span id="display-role" style="font-size: 0.7rem; color: var(--text-secondary); display: block; text-align: left;">Yönetici</span>
-                        </div>
-                        <button id="logout-btn" class="btn-ui btn-sm btn-outline" title="Çıkış Yap" style="padding:6px 10px;font-size:12px;"><i class="fa-solid fa-right-from-bracket"></i></button>
-                    </div>
-
                 <div class="nav-group">
                     <h4>Sistem</h4>
                     <a href="#settings-view" class="nav-item" data-target="settings-view">
@@ -186,6 +175,7 @@
                         <span id="header-date"></span>
                     </div>
                     <button class="theme-btn" id="theme-toggle" title="Tema değiştir"></button>
+                    <span id="display-username" style="font-size:0.75rem;font-weight:600;color:var(--text-secondary);white-space:nowrap;"></span>
                     <button id="logout-btn-header" class="btn-ui btn-sm btn-outline" title="Çıkış Yap" style="padding:6px 10px;font-size:12px;"><i class="fa-solid fa-right-from-bracket"></i></button>
                 </div>
             </header>
@@ -214,11 +204,18 @@
                             <p id="critical-count">0</p>
                         </div>
                     </div>
-                    <div class="stat-card stat-card-compact" style="border-left:3px solid #1d4ed8;">
-                        <div style="width:22px;height:22px;border-radius:var(--border-radius-sm);display:flex;align-items:center;justify-content:center;font-size:11px;flex-shrink:0;color:#1d4ed8;"><i class="fa-solid fa-right-left"></i></div>
+                    <div class="stat-card stat-card-compact" style="border-left:3px solid #22c55e;">
+                        <div style="width:22px;height:22px;border-radius:var(--border-radius-sm);display:flex;align-items:center;justify-content:center;font-size:11px;flex-shrink:0;color:#22c55e;"><i class="fa-solid fa-arrow-down"></i></div>
                         <div class="stat-details">
-                            <h3>Bugünkü Hareket</h3>
-                            <p id="today-transactions">0</p>
+                            <h3>Bugünkü Giriş</h3>
+                            <p id="today-entries">0</p>
+                        </div>
+                    </div>
+                    <div class="stat-card stat-card-compact" style="border-left:3px solid #ef4444;">
+                        <div style="width:22px;height:22px;border-radius:var(--border-radius-sm);display:flex;align-items:center;justify-content:center;font-size:11px;flex-shrink:0;color:#ef4444;"><i class="fa-solid fa-arrow-up"></i></div>
+                        <div class="stat-details">
+                            <h3>Bugünkü Çıkış</h3>
+                            <p id="today-exits">0</p>
                         </div>
                     </div>
                 </div>
@@ -386,12 +383,12 @@
 
             <!-- 3. ENTRY (GİRİŞ) = YENİ ÜRÜN & PARTİ TANIMI -->
             <div id="entry" class="view-section">
-                <div class="form-card">
-                    <div style="display:flex; align-items:center; gap:0.75rem; margin-bottom: 1.5rem;">
+                <div class="form-card" style="max-width:900px;width:100%;margin:0;">
+                    <div style="display:flex; align-items:center; gap:0.75rem; margin-bottom: 1.2rem;">
                         <div class="icon-box st-green" style="width:40px; height:40px; font-size:1.1rem;"><i class="fa-solid fa-box-open"></i></div>
                         <h3 style="margin: 0; font-size:1.3rem;">Ürün Girişi</h3>
                     </div>
-                    <form id="entry-form">
+                    <form id="entry-form" style="display:flex;flex-direction:column;gap:0.9rem;">
                         <div class="form-group">
                             <label>Ürün Adı</label>
                             <div style="display:flex;gap:5px;">
@@ -456,19 +453,19 @@
                                 <input type="text" id="entry-note" class="form-control" placeholder="Opsiyonel">
                             </div>
                         </div>
-                        <button type="submit" class="btn-ui btn-primary" style="width:100%"><i class="fa-solid fa-file-invoice"></i> Ürünü Kaydet ve Stoğa Ekle</button>
+                        <button type="submit" class="btn-ui btn-primary" style="width:100%;padding:0.7rem;"><i class="fa-solid fa-file-invoice"></i> Ürünü Kaydet ve Stoğa Ekle</button>
                     </form>
                 </div>
             </div>
 
             <!-- 4. EXIT (ÇIKIŞ) -->
             <div id="exit" class="view-section">
-                <div class="form-card">
-                    <div style="display:flex; align-items:center; gap:0.75rem; margin-bottom: 1.5rem;">
+                <div class="form-card" style="max-width:900px;width:100%;margin:0;">
+                    <div style="display:flex; align-items:center; gap:0.75rem; margin-bottom: 1.2rem;">
                         <div class="icon-box st-orange" style="width:40px; height:40px; font-size:1.1rem;"><i class="fa-solid fa-dolly"></i></div>
                         <h3 style="margin: 0; font-size:1.3rem;">Ürün Çıkış Formu</h3>
                     </div>
-                    <form id="exit-form">
+                    <form id="exit-form" style="display:flex;flex-direction:column;gap:0.9rem;">
                         <div class="form-group">
                             <label>Ürün / Parti Seçimi</label>
                             <select id="exit-product" class="form-control" required></select>
@@ -500,7 +497,7 @@
                             <span id="exit-cost-per-person-display" style="font-size:14px;font-weight:700;color:var(--success);">—</span>
                         </div>
                         <button type="submit" class="btn-ui btn-primary"
-                            style="width:100%; background: linear-gradient(135deg, var(--accent), hsl(12, 88%, 65%)); box-shadow: 0 8px 24px -6px rgba(239, 68, 68, 0.35);"><i class="fa-solid fa-truck-dispatch"></i> Çıkış Yap</button>
+                            style="width:100%;padding:0.7rem;background: linear-gradient(135deg, var(--accent), hsl(12, 88%, 65%)); box-shadow: 0 8px 24px -6px rgba(239, 68, 68, 0.35);"><i class="fa-solid fa-truck-dispatch"></i> Çıkış Yap</button>
                     </form>
                 </div>
             </div>
@@ -1123,10 +1120,6 @@
                     <div class="panel-header">
                         <h3><i class="fa-solid fa-truck"></i> Tedarikçi Listesi <span id="supplier-count" style="font-size:0.8rem;font-weight:400;color:var(--text-muted);margin-left:6px;"></span></h3>
                         <div style="display:flex;gap:8px;flex-wrap:wrap;">
-                            <div style="display:flex;gap:6px;">
-                                <input type="text" id="new-supplier-input" class="form-control" placeholder="Yeni tedarikçi adı..." style="min-width:180px;">
-                                <button class="btn-ui btn-primary" id="add-supplier-btn"><i class="fa-solid fa-plus"></i> Ekle</button>
-                            </div>
                             <button class="btn-ui btn-primary" onclick="exportXLSX_suppliers()" title="Excel İndir"><i class="fa-solid fa-file-excel"></i> Excel İndir</button>
                             <button type="button" id="download-suppliers-btn" class="btn-ui btn-outline"><i class="fa-solid fa-download"></i> Liste İndir</button>
                             <button type="button" id="upload-suppliers-btn" class="btn-ui btn-secondary"><i class="fa-solid fa-upload"></i> Liste Yükle</button>
@@ -1312,29 +1305,29 @@
                             <h3><i class="fa-regular fa-id-card"></i> Kullanıcı Yönetimi</h3>
                         </div>
                         <div style="padding: clamp(6px, 1vh, 12px) clamp(8px, 1vw, 14px); display: flex; flex-direction: column; gap: 1.5rem;">
-                            <form id="profile-form" style="border-bottom: 1px solid var(--border-color); padding-bottom: 1.5rem;">
-                                <h4 style="font-size:0.85rem; font-weight:700; margin-bottom:1rem; color:var(--primary);"><i class="fa-solid fa-user-gear"></i> Profil Ayarları</h4>
-                                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
-                                    <div class="form-group" style="margin-bottom:0;">
-                                        <label>Görünen İsim</label>
-                                        <input type="text" id="settings-username" class="form-control" required readonly style="background:var(--secondary); cursor:not-allowed;">
-                                        <small style="color:var(--text-secondary); font-size:0.75rem;">Giriş yapan kullanıcı adı.</small>
+                                <form id="profile-form" style="border-bottom: 1px solid var(--border-color); padding-bottom: 1.5rem;">
+                                    <h4 style="font-size:0.85rem; font-weight:700; margin-bottom:1rem; color:var(--primary);"><i class="fa-solid fa-user-gear"></i> Profil Ayarları</h4>
+                                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
+                            <div class="form-group" style="margin-bottom:0;">
+                                <label>Görünen İsim</label>
+                                <input type="text" id="settings-username" class="form-control" required readonly style="background:var(--secondary); cursor:not-allowed;">
+                                <small style="color:var(--text-secondary); font-size:0.75rem;">Giriş yapan kullanıcı adı.</small>
+                            </div>
+                            <div class="form-group" style="margin-bottom:0;">
+                                <label>Unvan / Rol</label>
+                                <input type="text" id="settings-role" class="form-control" required readonly disabled style="background:var(--secondary); cursor:not-allowed;">
+                            </div>
                                     </div>
-                                    <div class="form-group" style="margin-bottom:0;">
-                                        <label>Unvan / Rol</label>
-                                        <input type="text" id="settings-role" class="form-control" required>
+                                    <div class="form-group" style="margin-bottom:1rem;">
+                                        <label>Şifre Değiştir</label>
+                                        <div style="display:flex; gap:8px; flex-wrap:wrap;">
+                                            <input type="password" id="settings-new-password" class="form-control" placeholder="Yeni şifre (en az 6 karakter)" style="max-width:220px;" autocomplete="new-password">
+                                            <input type="password" id="settings-new-password2" class="form-control" placeholder="Yeni şifre (tekrar)" style="max-width:220px;" autocomplete="new-password">
+                                        </div>
+                                        <small style="color:var(--text-secondary); font-size:0.75rem; display:block; margin-top:0.35rem;">Boş bırakırsanız şifre değişmez. Sadece kendi şifrenizi değiştirebilirsiniz.</small>
                                     </div>
-                                </div>
-                                <div class="form-group" style="margin-bottom:1rem;">
-                                    <label>Şifre Değiştir</label>
-                                    <div style="display:flex; gap:8px; flex-wrap:wrap;">
-                                        <input type="password" id="settings-new-password" class="form-control" placeholder="Yeni şifre (en az 6 karakter)" style="max-width:220px;" autocomplete="new-password">
-                                        <input type="password" id="settings-new-password2" class="form-control" placeholder="Yeni şifre (tekrar)" style="max-width:220px;" autocomplete="new-password">
-                                    </div>
-                                    <small style="color:var(--text-secondary); font-size:0.75rem; display:block; margin-top:0.35rem;">Boş bırakırsanız şifre değişmez. Sadece kendi şifrenizi değiştirebilirsiniz.</small>
-                                </div>
-                                <button type="submit" class="btn-ui btn-primary"><i class="fa-solid fa-floppy-disk"></i> Kaydet</button>
-                            </form>
+                                    <button type="submit" class="btn-ui btn-primary"><i class="fa-solid fa-floppy-disk"></i> Kaydet</button>
+                                </form>
 
                             <div id="admin-only-users">
                                 <h4 style="font-size:0.85rem; font-weight:700; margin-bottom:0.75rem; color:var(--primary);"><i class="fa-solid fa-users-gear"></i> Sistem Kullanıcı Listesi</h4>
@@ -1354,6 +1347,18 @@
                                 </div>
                                 <ul id="users-list-ul" style="list-style: none; display: flex; flex-direction: column; gap: 0.5rem; max-height: 340px; overflow-y: auto; padding-right: 5px;"></ul>
 
+                            </div>
+
+                            <div id="admin-only-role-perms" style="border-top:1px solid var(--border-color);padding-top:1.5rem;margin-top:1.5rem;">
+                                <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:0.75rem;">
+                                    <h4 style="font-size:0.85rem; font-weight:700; color:var(--primary);margin:0;"><i class="fa-solid fa-shield-halved"></i> Rol Bazlı Yetkiler</h4>
+                                    <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+                                        <select id="role-perm-select" class="form-control" style="width:auto;padding:4px 10px;font-size:12px;"></select>
+                                        <button type="button" id="role-perm-save" class="btn-ui btn-primary" style="padding:6px 14px;"><i class="fa-solid fa-floppy-disk"></i> Kaydet</button>
+                                    </div>
+                                </div>
+                                <p style="font-size:0.8rem;color:var(--text-secondary);margin-bottom:0.9rem;">"Yönetici" rolü her zaman tam yetkilidir. Diğer rollere modül bazlı görme/düzenleme/silme yetkileri verebilirsiniz.</p>
+                                <div id="role-perm-grid" style="display:flex;flex-direction:column;gap:10px;"></div>
                             </div>
                         </div>
                     </div>
@@ -1384,22 +1389,6 @@
                                     <span id="backup-status-msg" style="display:block; margin-top: 10px; font-size: 0.85rem; font-weight:600; color: var(--success);"></span>
                                 </div>
                             </div>
-                        </div>
-                    </div>
-
-                    <!-- Veri Sıfırlama -->
-                    <div class="panel-container full-width" id="admin-only-reset" style="border-color: var(--accent);">
-                        <div class="panel-header" style="border-bottom-color: var(--accent);">
-                            <h3 style="color: var(--accent);"><i class="fa-solid fa-bomb"></i> Veri Sıfırlama</h3>
-                        </div>
-                        <div style="padding: clamp(6px, 1vh, 12px) clamp(8px, 1vw, 14px);">
-                            <p style="font-size: 0.9rem; color: var(--text-secondary); margin-bottom: 1rem; line-height: 1.4;">
-                                <strong style="color: var(--accent);">⚠ Uyarı:</strong> Tüm ürün kartlarını, stok hareketlerini, STT kayıtlarını, ihale ve tedarikçi verilerini kalıcı olarak siler.
-                                Kullanıcılar ve ayarlar korunur. Bu işlem geri alınamaz.
-                            </p>
-                            <button type="button" id="reset-all-btn" class="btn-ui" style="background: var(--accent); color: #fff; border: none;">
-                                <i class="fa-solid fa-bomb"></i> Depoyu Sıfırla & Baştan Başla
-                            </button>
                         </div>
                     </div>
 

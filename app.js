@@ -18,7 +18,7 @@ const _sb = (typeof supabase !== 'undefined' && supabase.createClient)
 let _accessToken = null;   // oturum JWT'si (isteklerde kullanılır)
 let _authUserEmail = '';   // giriş yapan Auth e-postası
 
-let data = { products: {}, transactions: [], users: [], activeUser: '', tenders: [], companies: [], settings: {}, productNames: [], productUnits: {} };
+let data = { products: {}, transactions: [], users: [], activeUser: '', tenders: [], companies: [], settings: {}, productNames: [], productUnits: {}, rolePermissions: {} };
 let nextPartiCounter = 1;
 let _syncLock = false;
 let _formDirty = false;
@@ -28,9 +28,161 @@ function isSupabaseReady() {
   return SUPABASE_URL && SUPABASE_ANON;
 }
 
+const DEFAULT_ROLE_PERMS = {
+  'Yönetici': {
+    modules: {
+      dashboard: { view: true, edit: true, delete: true },
+      products: { view: true, edit: true, delete: true },
+      entry: { view: true, edit: true, delete: true },
+      exit: { view: true, edit: true, delete: true },
+      daily: { view: true, edit: true, delete: true },
+      reports: { view: true, edit: true, delete: true },
+      stt: { view: true, edit: true, delete: true },
+      tenders: { view: true, edit: true, delete: true },
+      suppliers: { view: true, edit: true, delete: true },
+      critical: { view: true, edit: true, delete: true },
+      guide: { view: true, edit: true, delete: true },
+      settings: { view: true, edit: true, delete: true }
+    }
+  },
+  'Depo Kullanıcısı': {
+    modules: {
+      dashboard: { view: true, edit: false, delete: false },
+      products: { view: true, edit: true, delete: false },
+      entry: { view: true, edit: true, delete: false },
+      exit: { view: true, edit: true, delete: false },
+      daily: { view: true, edit: false, delete: false },
+      reports: { view: true, edit: false, delete: false },
+      stt: { view: true, edit: false, delete: false },
+      tenders: { view: true, edit: true, delete: false },
+      suppliers: { view: true, edit: true, delete: false },
+      critical: { view: true, edit: false, delete: false },
+      guide: { view: true, edit: false, delete: false },
+      settings: { view: true, edit: true, delete: false }
+    }
+  },
+  'Sadece Görüntüleme': {
+    modules: {
+      dashboard: { view: true, edit: false, delete: false },
+      products: { view: true, edit: false, delete: false },
+      entry: { view: false, edit: false, delete: false },
+      exit: { view: false, edit: false, delete: false },
+      daily: { view: true, edit: false, delete: false },
+      reports: { view: true, edit: false, delete: false },
+      stt: { view: true, edit: false, delete: false },
+      tenders: { view: true, edit: false, delete: false },
+      suppliers: { view: true, edit: false, delete: false },
+      critical: { view: true, edit: false, delete: false },
+      guide: { view: true, edit: false, delete: false },
+      settings: { view: true, edit: false, delete: false }
+    }
+  }
+};
+
+function getRolePermissions(role) {
+  if (role === 'Yönetici') return DEFAULT_ROLE_PERMS['Yönetici'];
+  if (data.rolePermissions && data.rolePermissions[role]) return data.rolePermissions[role];
+  if (DEFAULT_ROLE_PERMS[role]) return DEFAULT_ROLE_PERMS[role];
+  return { modules: {} };
+}
+
+function can(role, module, action) {
+  if (!role) return false;
+  if (role === 'Yönetici') return true;
+  const p = getRolePermissions(role);
+  const m = p.modules && p.modules[module];
+  if (!m) return false;
+  if (action === 'view') return !!m.view;
+  if (action === 'edit') return !!m.edit;
+  if (action === 'delete') return !!m.delete;
+  return false;
+}
+
+function isEditAllowed(module) {
+  try {
+    const u = data.users.find(x => x.name === data.activeUser);
+    const role = u ? u.role : '';
+    if (role === 'Yönetici') return true;
+    if (role === 'Sadece Görüntüleme') return false;
+    return can(role, module, 'edit');
+  } catch(e) { return false; }
+}
+
+function isDeleteAllowed(module) {
+  try {
+    const u = data.users.find(x => x.name === data.activeUser);
+    const role = u ? u.role : '';
+    if (role === 'Yönetici') return true;
+    if (role === 'Sadece Görüntüleme') return false;
+    return can(role, module, 'delete');
+  } catch(e) { return false; }
+}
+
+function applyRoleBasedUI() {
+  try {
+    const u = data.users.find(x => x.name === data.activeUser);
+    const role = u ? u.role : '';
+    if (role === 'Yönetici') {
+      document.querySelectorAll('.nav-item').forEach(a => { a.style.display = ''; });
+      try {
+        const addUserSection = document.getElementById('add-user-section');
+        if (addUserSection) addUserSection.style.display = '';
+        ['admin-only-users','admin-only-backup','admin-only-logs','admin-only-role-perms'].forEach(id => {
+          const blk = document.getElementById(id);
+          if (blk) blk.style.display = '';
+        });
+      } catch(e){}
+      const sr2 = document.getElementById('settings-role');
+      if (sr2) { sr2.readOnly = true; sr2.style.background = 'var(--secondary)'; sr2.style.cursor = 'not-allowed'; }
+      return;
+    }
+    const map = {
+      'dashboard': 'dashboard',
+      'warehouse': 'products',
+      'aggregated-stock': 'products',
+      'entry': 'entry',
+      'exit': 'exit',
+      'daily': 'daily',
+      'month-view': 'reports',
+      'year-view': 'reports',
+      'year-compare': 'reports',
+      'tender-year-compare': 'reports',
+      'cost-report': 'reports',
+      'stt-view': 'stt',
+      'tender-tracking': 'tenders',
+      'suppliers': 'suppliers',
+      'critical-stock-view': 'critical',
+      'guide-view': 'guide',
+      'settings-view': 'settings'
+    };
+    document.querySelectorAll('.nav-item').forEach(a => {
+      const t = a.getAttribute('data-target');
+      const m = map[t];
+      if (!m) return;
+      if (!can(role, m, 'view')) a.style.display = 'none';
+      else a.style.display = '';
+    });
+    try {
+      const addUserSection = document.getElementById('add-user-section');
+      if (addUserSection) addUserSection.style.display = 'none';
+      ['admin-only-users','admin-only-backup','admin-only-logs','admin-only-role-perms'].forEach(id => {
+        const blk = document.getElementById(id);
+        if (blk) blk.style.display = 'none';
+      });
+    } catch(e){}
+    const sr3 = document.getElementById('settings-role');
+    if (sr3) { sr3.readOnly = true; sr3.style.background = 'var(--secondary)'; sr3.style.cursor = 'not-allowed'; }
+  } catch (e) {}
+}
+
 function isAdmin() {
   const u = data.users.find(x => x.name === data.activeUser);
   return u && u.role === 'Yönetici';
+}
+
+function isViewOnly() {
+  const u = data.users.find(x => x.name === data.activeUser);
+  return u && u.role === 'Sadece Görüntüleme';
 }
 
 async function supabaseFetch(method, table, params, body) {
@@ -563,6 +715,11 @@ function initData() {
 }
 
 async function loadData() {
+  try {
+    if (data.settings && typeof data.settings === 'object' && data.settings._rolePermissions && !data.rolePermissions) {
+      try { data.rolePermissions = JSON.parse(data.settings._rolePermissions); } catch(e) {}
+    }
+  } catch(e){}
   if (isSupabaseReady()) {
     const remoteData = await supabaseLoad();
     if (remoteData) {
@@ -1952,6 +2109,7 @@ function navigateTo(target) {
   };
   document.getElementById('page-title').textContent = titles[target] || 'STOKDEPO';
 
+  try { applyRoleBasedUI(); } catch(e){}
   // view'e ozel yenilemeler (try/catch ile korunuyor)
   if (target === 'dashboard') _safe(refreshDashboard);
   if (target === 'warehouse') _safe(refreshWarehouse);
@@ -1962,7 +2120,16 @@ function navigateTo(target) {
   if (target === 'tender-year-compare') requestAnimationFrame(() => _safe(refreshYearCompareTender));
   if (target === 'stt-tracking') requestAnimationFrame(() => _safe(refreshSttTracking));
   if (target === 'tender-tracking') requestAnimationFrame(() => _safe(refreshTenders));
-  if (target === 'suppliers') { _safe(refreshSuppliers); _safe(refreshProductNames); }
+    if (target === 'suppliers') { 
+      try {
+        const u2 = data.users.find(x => x.name === data.activeUser);
+        const r2 = u2 ? u2.role : '';
+        if (r2 !== 'Yönetici' && !can(r2, 'suppliers', 'edit')) {
+          toast('Bu sayfada düzenleme yetkiniz yok.', 'warning');
+        }
+      } catch(e){}
+      _safe(refreshSuppliers); _safe(refreshProductNames); 
+    }
   if (target === 'critical-stock-view') _safe(refreshCriticalStock);
   if (target === 'entry') _safe(refreshEntryForm);
   if (target === 'exit') _safe(refreshExitForm);
@@ -2056,7 +2223,11 @@ function refreshDashboard() {
 
   const bugun = todayStr();
   const bugunHareket = data.transactions.filter(t => t.date === bugun);
+  const girisBugun = bugunHareket.filter(t => t.type === 'giris').length;
+  const cikisBugun = bugunHareket.filter(t => t.type === 'cikis').length;
   if (el('today-transactions')) el('today-transactions').textContent = bugunHareket.length;
+  if (el('today-entries')) el('today-entries').textContent = girisBugun;
+  if (el('today-exits')) el('today-exits').textContent = cikisBugun;
 
   // Son hareketler tablosu (tümü, en yeniler üstte)
   const tbody = document.getElementById('recent-transactions-body');
@@ -3042,6 +3213,11 @@ if (modalAddNameBtn) {
 document.getElementById('new-product-form').addEventListener('submit', async (e) => {
   e.preventDefault();
   if (isViewOnly()) { toast('Görüntüleme modunda ürün ekleyemezsiniz.', 'error'); return; }
+  try {
+    const u2 = data.users.find(x => x.name === data.activeUser);
+    const r2 = u2 ? u2.role : '';
+    if (r2 !== 'Yönetici' && !can(r2, 'suppliers', 'edit')) { toast('Ürün kartı ekleme/düzenleme yetkiniz yok.', 'error'); return; }
+  } catch(e){}
 
   // Not: supabaseLoad veri kaybına yol açabileceği için kaldırıldı
 
@@ -3228,7 +3404,11 @@ function refreshSuppliers() {
 
 async function deleteSupplier(enc) {
   const name = decodeURIComponent(enc);
-  if (!isAdmin()) { toast('Tedarikçi silme için yönetici yetkisi gerekli.', 'error'); return; }
+  try {
+    const u2 = data.users.find(x => x.name === data.activeUser);
+    const r2 = u2 ? u2.role : '';
+    if (r2 !== 'Yönetici' && !can(r2, 'suppliers', 'delete')) { toast('Tedarikçi silme yetkiniz yok.', 'error'); return; }
+  } catch(e) { if (!isAdmin()) { toast('Tedarikçi silme için yönetici yetkisi gerekli.', 'error'); return; } }
   if (!confirm(`"${name}" tedarikçisini silmek istediğinize emin misiniz?`)) return;
   data.companies = (data.companies || []).filter(c => c !== name);
   if (isSupabaseReady()) {
@@ -3248,7 +3428,11 @@ async function deleteSupplier(enc) {
 
 function editSupplier(enc) {
   const name = decodeURIComponent(enc);
-  if (!isAdmin()) { toast('Tedarikçi düzenleme için yönetici yetkisi gerekli.', 'error'); return; }
+  try {
+    const u2 = data.users.find(x => x.name === data.activeUser);
+    const r2 = u2 ? u2.role : '';
+    if (r2 !== 'Yönetici' && !can(r2, 'suppliers', 'edit')) { toast('Tedarikçi düzenleme yetkiniz yok.', 'error'); return; }
+  } catch(e) { if (!isAdmin()) { toast('Tedarikçi düzenleme için yönetici yetkisi gerekli.', 'error'); return; } }
   const yeni = prompt(`"${name}" için yeni ad girin:`, name);
   if (!yeni || yeni.trim().toUpperCase() === name) return;
   const yeniAd = yeni.trim().toUpperCase();
@@ -3287,7 +3471,11 @@ function editSupplier(enc) {
   const input = document.getElementById('new-supplier-input');
   if (!addBtn || !input) return;
   const addSupplier = () => {
-    if (!isAdmin()) { toast('Tedarikçi ekleme için yönetici yetkisi gerekli.', 'error'); return; }
+    try {
+    const u2 = data.users.find(x => x.name === data.activeUser);
+    const r2 = u2 ? u2.role : '';
+    if (r2 !== 'Yönetici' && !can(r2, 'suppliers', 'edit')) { toast('Tedarikçi ekleme yetkiniz yok.', 'error'); return; }
+  } catch(e) { if (!isAdmin()) { toast('Tedarikçi ekleme için yönetici yetkisi gerekli.', 'error'); return; } }
     const name = input.value.trim().toUpperCase();
     if (!name) { toast('Tedarikçi adı girin.', 'error'); return; }
     if ((data.companies || []).includes(name)) { toast('Bu tedarikçi zaten var!', 'error'); return; }
@@ -3318,9 +3506,9 @@ function refreshEntryForm() {
   // Ürün adı dropdown'ını doldur
   const nameSelect = document.getElementById('entry-name');
   if (nameSelect) {
-    const secili = nameSelect.value;
-    nameSelect.innerHTML = '<option value="">Ürün Adı Seçin</option>' +
-      (data.productNames || []).map(n => `<option value="${htmlEscape(n)}"${n === secili ? ' selected' : ''}>${htmlEscape(n)}</option>`).join('');
+    const current = nameSelect.value;
+  nameSelect.innerHTML = '<option value="">Ürün Adı Seçin veya Yeni Girin</option>' +
+    data.productNames.map(n => `<option value="${htmlEscape(n)}"${n === current ? ' selected' : ''}>${htmlEscape(n)}</option>`).join('');
     _csRefresh('entry-name');
   }
   _csRefresh('entry-category');
@@ -4021,7 +4209,11 @@ function refreshTenderChart() {
 function importTenderCSV(event) {
   const file = event.target.files[0];
   if (!file) return;
-  if (!isAdmin()) { toast('CSV yükleme için yönetici yetkisi gerekli.', 'error'); event.target.value = ''; return; }
+  try {
+    const u2 = data.users.find(x => x.name === data.activeUser);
+    const r2 = u2 ? u2.role : '';
+    if (r2 !== 'Yönetici' && !can(r2, 'suppliers', 'edit')) { toast('CSV yükleme için yetkiniz yok.', 'error'); event.target.value = ''; return; }
+  } catch(e) { if (!isAdmin()) { toast('CSV yükleme için yönetici yetkisi gerekli.', 'error'); event.target.value = ''; return; } }
   const reader = new FileReader();
   reader.onload = function(e) {
     try {
@@ -4097,7 +4289,11 @@ function importTenderCSV(event) {
 }
 
 function exportTenderCSV() {
-  if (!isAdmin()) { toast('CSV indirme için yönetici yetkisi gerekli.', 'error'); return; }
+  try {
+    const u2 = data.users.find(x => x.name === data.activeUser);
+    const r2 = u2 ? u2.role : '';
+    if (r2 !== 'Yönetici' && !can(r2, 'suppliers', 'view')) { toast('CSV indirme için yetkiniz yok.', 'error'); return; }
+  } catch(e) { if (!isAdmin()) { toast('CSV indirme için yönetici yetkisi gerekli.', 'error'); return; } }
   if (!data.tenders || !data.tenders.length) { toast('İhale kaydı yok.', 'info'); return; }
   const BOM = '\uFEFF';
   const lines = ['Firma Adı;Yıl;Ürün;Miktar;Birim;Teslim Alınan;Birim Fiyat'];
@@ -4491,13 +4687,82 @@ document.getElementById('log-clear-btn')?.addEventListener('click', clearLogs);
 document.getElementById('log-export-btn')?.addEventListener('click', exportLogs);
 
 // ----- AYARLAR -----
+function renderRolePermissions() {
+  if (!isAdmin()) return;
+  const sel = document.getElementById('role-perm-select');
+  const grid = document.getElementById('role-perm-grid');
+  if (!sel || !grid) return;
+  const roles = ['Depo Kullanıcısı', 'Sadece Görüntüleme'];
+  sel.innerHTML = roles.map(r => `<option value="${r}">${r}</option>`).join('');
+  const role = sel.value || roles[0];
+  const p = getRolePermissions(role);
+  const mods = [
+    { key: 'dashboard', label: 'Genel Bakış' },
+    { key: 'products', label: 'Anbar Listesi' },
+    { key: 'entry', label: 'Ürün Girişi' },
+    { key: 'exit', label: 'Ürün Çıkış' },
+    { key: 'daily', label: 'Günlük İşlemler' },
+    { key: 'reports', label: 'Raporlar' },
+    { key: 'stt', label: 'STT Takibi' },
+    { key: 'tenders', label: 'İhale Takip' },
+    { key: 'suppliers', label: 'Tedarikçi & Ürün Tanımla' },
+    { key: 'critical', label: 'Kritik Stok' },
+    { key: 'guide', label: 'Kullanım Kılavuzu' },
+    { key: 'settings', label: 'Ayarlar' }
+  ];
+  grid.innerHTML = mods.map(m => {
+    const mv = (p.modules[m.key] && p.modules[m.key].view) ? 'checked' : '';
+    const me = (p.modules[m.key] && p.modules[m.key].edit) ? 'checked' : '';
+    const md = (p.modules[m.key] && p.modules[m.key].delete) ? 'checked' : '';
+    return `<div style="display:grid;grid-template-columns:1.2fr 0.8fr 0.8fr 0.8fr;gap:10px;align-items:center;padding:8px 10px;background:var(--bg-primary);border:1px solid var(--border-color);border-radius:var(--border-radius-sm);">
+      <div style="font-weight:600;font-size:0.85rem;">${m.label}</div>
+      <label style="display:flex;align-items:center;gap:6px;font-size:0.8rem;"><input type="checkbox" data-role="${role}" data-mod="${m.key}" data-act="view" ${mv}> Görüntüle</label>
+      <label style="display:flex;align-items:center;gap:6px;font-size:0.8rem;"><input type="checkbox" data-role="${role}" data-mod="${m.key}" data-act="edit" ${me}> Düzenle</label>
+      <label style="display:flex;align-items:center;gap:6px;font-size:0.8rem;"><input type="checkbox" data-role="${role}" data-mod="${m.key}" data-act="delete" ${md}> Sil</label>
+    </div>`;
+  }).join('');
+}
+
+async function saveRolePermissions() {
+  if (!isAdmin()) return;
+  const sel = document.getElementById('role-perm-select');
+  const grid = document.getElementById('role-perm-grid');
+  if (!sel || !grid) return;
+  const role = sel.value;
+  if (!data.rolePermissions) data.rolePermissions = {};
+  if (!data.rolePermissions[role]) data.rolePermissions[role] = { modules: {} };
+  const boxes = grid.querySelectorAll('input[type=checkbox]');
+  boxes.forEach(cb => {
+    const r = cb.getAttribute('data-role');
+    const m = cb.getAttribute('data-mod');
+    const a = cb.getAttribute('data-act');
+    if (r !== role) return;
+    if (!data.rolePermissions[r].modules[m]) data.rolePermissions[r].modules[m] = { view: false, edit: false, delete: false };
+    data.rolePermissions[r].modules[m][a] = !!cb.checked;
+  });
+  if (data.settings) {
+    try { data.settings._rolePermissions = JSON.stringify(data.rolePermissions); } catch (e) {}
+  }
+  try { localStorage.setItem('stokdosya_data', JSON.stringify(data)); } catch(e){}
+  try { localStorage.setItem('stokdosya_data', JSON.stringify(data)); } catch(e){}
+  try { localStorage.setItem('stokdosya_data', JSON.stringify(data)); } catch(e){}
+  try {
+    if (typeof isSupabaseReady === 'function' && isSupabaseReady() && typeof supabaseFetch === 'function') {
+      try { await supabaseFetch('POST', 'settings', { on_conflict: 'key' }, [{ key: '_rolePermissions', value: data.settings && data.settings._rolePermissions || '{}' }]); } catch(e){}
+    }
+  } catch(e){}
+  try { logKaydet('kullanici', `Rol yetkileri güncellendi: ${role}`); } catch(e){}
+  try { applyRoleBasedUI(); } catch(e){}
+  toast('Rol yetkileri kaydedildi.', 'success');
+}
+
 function refreshSettings() {
   // Kullanici adi
   const su = document.getElementById('settings-username');
   if (su) su.value = data.activeUser || '';
   const aktifKullanici = data.users.find(u => u.name === data.activeUser);
   const sr = document.getElementById('settings-role');
-  if (sr) { sr.value = aktifKullanici ? aktifKullanici.role : ''; sr.disabled = !isAdmin(); }
+  if (sr) { sr.value = aktifKullanici ? aktifKullanici.role : ''; sr.disabled = true; sr.readOnly = true; sr.style.background = 'var(--secondary)'; sr.style.cursor = 'not-allowed'; }
 
   // Kullanici listesi
   const ul = document.getElementById('users-list-ul');
@@ -4505,11 +4770,12 @@ function refreshSettings() {
   // Admin değilse ekleme formunu gizle
   const addUserSection = document.getElementById('add-user-section');
   if (addUserSection) addUserSection.style.display = admin ? '' : 'none';
-  ['admin-only-users','admin-only-backup','admin-only-reset','admin-only-logs'].forEach(id => {
+  ['admin-only-users','admin-only-backup','admin-only-logs','admin-only-role-perms'].forEach(id => {
     const blk = document.getElementById(id);
     if (blk) blk.style.display = admin ? '' : 'none';
   });
-  if (admin) { try { refreshLogs(); } catch (e) {} }
+  if (admin) { try { refreshLogs(); } catch (e) {} try { renderRolePermissions(); } catch (e) {} }
+  try { applyRoleBasedUI(); } catch(e){}
   if (!ul) return;
   ul.innerHTML = data.users.map(u => {
     const aktif = u.name === data.activeUser;
@@ -4578,6 +4844,22 @@ function refreshSettings() {
   if (abtog) abtog.checked = data.settings.autoBackupEnabled || false;
   updateBackupDirLabel();
 
+  try {
+    if (data.settings && data.settings._rolePermissions && !data.rolePermissions) {
+      try { data.rolePermissions = JSON.parse(data.settings._rolePermissions); } catch(e) {}
+    }
+  } catch(e){}
+  try { renderRolePermissions(); } catch(e){}
+  try {
+    const rpSel2 = document.getElementById('role-perm-select');
+    if (rpSel2 && !rpSel2.dataset.bound) { rpSel2.dataset.bound = '1'; rpSel2.onchange = renderRolePermissions; }
+  } catch(e){}
+  try {
+    const rpSave2 = document.getElementById('role-perm-save');
+    if (rpSave2 && !rpSave2.dataset.bound) { rpSave2.dataset.bound = '1'; rpSave2.onclick = async () => { try { await saveRolePermissions(); } catch(e){} }; }
+  } catch(e){}
+
+  try { applyRoleBasedUI(); } catch(e){}
   // Ürün isim listesini güncelle
   refreshProductNames();
 }
@@ -4598,7 +4880,7 @@ function refreshProductNames() {
   const _e = s => encodeURIComponent(s).replace(/'/g, '%27').replace(/"/g, '%22');
 
   container.innerHTML = '<table class="minimal-table" style="width:100%;"><thead><tr><th style="text-align:left;">Ürün Adı</th><th style="text-align:center;width:80px;">Birim</th><th style="text-align:right;width:160px;">' +
-    (isViewOnly() ? 'İşlem' : 'İşlem <input type="checkbox" id="bulk-select-all" style="width:16px;height:16px;cursor:pointer;vertical-align:middle;margin-left:6px;" title="Tümünü Seç">') +
+    ((function(){ try{ const u2=data.users.find(x=>x.name===data.activeUser); const r2=u2?u2.role:''; return (r2==='Yönetici'); }catch(e){ return !isViewOnly(); }})() ? 'İşlem <input type="checkbox" id="bulk-select-all" style="width:16px;height:16px;cursor:pointer;vertical-align:middle;margin-left:6px;" title="Tümünü Seç">' : 'İşlem') +
     '</th></tr></thead><tbody>' +
     data.productNames.map(n => {
       const enc = _e(n);
@@ -4607,14 +4889,14 @@ function refreshProductNames() {
       <td><strong>${htmlEscape(n)}</strong></td>
       <td style="text-align:center;color:var(--text-secondary);font-size:0.85rem;">${htmlEscape(unit)}</td>
       <td style="text-align:right;white-space:nowrap;">
-        ${isAdmin() ? `<button class="btn-ui btn-sm btn-outline" onclick="editProductName('${enc}')" title="Düzenle" style="color:var(--warning);margin-right:4px;"><i class="fa-solid fa-pen"></i></button>` : ''}
-        ${isAdmin() ? `<button class="btn-ui btn-sm btn-outline" onclick="deleteProductName('${enc}')" title="Sil" style="color:var(--accent);margin-right:4px;"><i class="fa-solid fa-trash-can"></i></button>` : ''}
-        ${isAdmin() ? `<input type="checkbox" class="bulk-product-cb" data-enc="${enc}" style="width:16px;height:16px;cursor:pointer;vertical-align:middle;">` : ''}
+        ${(function(){ try{ const u2=data.users.find(x=>x.name===data.activeUser); const r2=u2?u2.role:''; return (r2==='Yönetici'||can(r2,'suppliers','edit')); }catch(e){ return isAdmin(); }})() ? `<button class="btn-ui btn-sm btn-outline" onclick="editProductName('${enc}')" title="Düzenle" style="color:var(--warning);margin-right:4px;"><i class="fa-solid fa-pen"></i></button>` : ''}
+        ${(function(){ try{ const u2=data.users.find(x=>x.name===data.activeUser); const r2=u2?u2.role:''; return (r2==='Yönetici'||can(r2,'suppliers','delete')); }catch(e){ return isAdmin(); }})() ? `<button class="btn-ui btn-sm btn-outline" onclick="deleteProductName('${enc}')" title="Sil" style="color:var(--accent);margin-right:4px;"><i class="fa-solid fa-trash-can"></i></button>` : ''}
+        ${(function(){ try{ const u2=data.users.find(x=>x.name===data.activeUser); const r2=u2?u2.role:''; return (r2==='Yönetici'); }catch(e){ return isAdmin(); }})() ? `<input type="checkbox" class="bulk-product-cb" data-enc="${enc}" style="width:16px;height:16px;cursor:pointer;vertical-align:middle;">` : ''}
       </td>
     </tr>`;
     }).join('') +
     '</tbody></table>' +
-    (isAdmin() ? `<div style="margin-top:8px;display:flex;gap:6px;align-items:center;">
+    ((function(){ try{ const u2=data.users.find(x=>x.name===data.activeUser); const r2=u2?u2.role:''; return (r2==='Yönetici'); }catch(e){ return isAdmin(); }})() ? `<div style="margin-top:8px;display:flex;gap:6px;align-items:center;">
       <button id="bulk-delete-products-btn" class="btn-ui btn-sm btn-accent"><i class="fa-solid fa-trash-can"></i> Seçilenleri Sil</button>
       <span id="bulk-product-count" style="font-size:0.85rem;color:var(--text-muted);">0 seçili</span>
     </div>` : '');
@@ -4623,8 +4905,8 @@ function refreshProductNames() {
   const nameSelect = document.getElementById('np-name');
   if (nameSelect) {
     const secili = nameSelect.value;
-    nameSelect.innerHTML = '<option value="">Ürün Adı Seçin</option>' +
-      data.productNames.map(n => `<option value="${htmlEscape(n)}"${n === secili ? ' selected' : ''}>${htmlEscape(n)}</option>`).join('');
+    nameSelect.innerHTML = '<option value="" style="font-size:0.98rem;">Ürün Adı Seçin</option>' +
+      data.productNames.map(n => `<option value="${htmlEscape(n)}" style="font-size:0.98rem;"${n === secili ? ' selected' : ''}>${htmlEscape(n)}</option>`).join('');
     _csRefresh('np-name');
   }
   // tender-product için select'i güncelle
@@ -4656,7 +4938,11 @@ function exportXLSX_prodnames() {
 
 function editProductName(enc) {
   const name = decodeURIComponent(enc);
-  if (!isAdmin()) { toast('Ürün adı düzenleme için yönetici yetkisi gerekli.', 'error'); return; }
+  try {
+    const u2 = data.users.find(x => x.name === data.activeUser);
+    const r2 = u2 ? u2.role : '';
+    if (r2 !== 'Yönetici' && !can(r2, 'suppliers', 'edit')) { toast('Ürün adı düzenleme yetkiniz yok.', 'error'); return; }
+  } catch(e) { if (!isAdmin()) { toast('Ürün adı düzenleme için yönetici yetkisi gerekli.', 'error'); return; } }
   const yeni = prompt(`"${name}" için yeni ad girin:`, name);
   if (!yeni || yeni.trim() === name) {
     // ad değişmedi, sadece birim güncelleme dene
@@ -4701,7 +4987,11 @@ function editProductName(enc) {
 }
 
 function addProductName() {
-  if (!isAdmin()) { toast('Ürün adı ekleme için yönetici yetkisi gerekli.', 'error'); return; }
+  try {
+    const u2 = data.users.find(x => x.name === data.activeUser);
+    const r2 = u2 ? u2.role : '';
+    if (r2 !== 'Yönetici' && !can(r2, 'suppliers', 'edit')) { toast('Ürün adı ekleme yetkiniz yok.', 'error'); return; }
+  } catch(e) { if (!isAdmin()) { toast('Ürün adı ekleme için yönetici yetkisi gerekli.', 'error'); return; } }
   const input = document.getElementById('new-product-name-input');
   const unitInput = document.getElementById('new-product-unit-input');
   const name = input.value.trim();
@@ -4723,7 +5013,11 @@ function addProductName() {
 
 async function deleteProductName(enc) {
   const name = decodeURIComponent(enc);
-  if (!isAdmin()) { toast('Ürün adı silme için yönetici yetkisi gerekli.', 'error'); return; }
+  try {
+    const u2 = data.users.find(x => x.name === data.activeUser);
+    const r2 = u2 ? u2.role : '';
+    if (r2 !== 'Yönetici' && !can(r2, 'suppliers', 'delete')) { toast('Ürün adı silme yetkiniz yok.', 'error'); return; }
+  } catch(e) { if (!isAdmin()) { toast('Ürün adı silme için yönetici yetkisi gerekli.', 'error'); return; } }
   if (!confirm(`"${name}" ürün ismini listeden kaldırmak istediğinize emin misiniz?`)) return;
   data.productNames = data.productNames.filter(n => n !== name);
   if (data.productUnits) delete data.productUnits[name];
@@ -4742,6 +5036,8 @@ async function deleteProductName(enc) {
 }
 
 // Profil formu (unvan kaydet + kendi şifresini değiştir)
+  document.getElementById('role-perm-select')?.addEventListener('change', () => { try { renderRolePermissions(); } catch(e){} });
+  document.getElementById('role-perm-save')?.addEventListener('click', async () => { try { await saveRolePermissions(); } catch(e){} });
 document.getElementById('profile-form').addEventListener('submit', async (e) => {
   e.preventDefault();
   const role = document.getElementById('settings-role').value.trim();
@@ -4812,8 +5108,10 @@ document.getElementById('add-user-btn').addEventListener('click', async () => {
 });
 
 // Ürün isim listesi
-document.getElementById('add-product-name-btn').addEventListener('click', addProductName);
-document.getElementById('new-product-name-input').addEventListener('keydown', (e) => {
+const _addProdNameBtn = document.getElementById('add-product-name-btn');
+if (_addProdNameBtn) _addProdNameBtn.addEventListener('click', addProductName);
+const _newProdNameInput = document.getElementById('new-product-name-input');
+if (_newProdNameInput) _newProdNameInput.addEventListener('keydown', (e) => {
   if (e.key === 'Enter') { e.preventDefault(); addProductName(); }
 });
 document.getElementById('upload-names-btn').addEventListener('click', () => {
@@ -4990,6 +5288,7 @@ async function changeUserRole(name, newRole) {
   u.role = newRole;
   const ok = await saveData();
   if (data.activeUser === name && typeof applyPermissions === 'function') applyPermissions();
+  try { applyRoleBasedUI(); } catch(e){}
   if (ok) toast(`"${name}" rolü "${newRole}" olarak güncellendi.`, 'success');
   logKaydet('kullanici', `Rol değişti: "${name}" › ${newRole}`);
   refreshSettings();
@@ -5465,7 +5764,8 @@ function resetAllData() {
   }, 300);
 }
 
-document.getElementById('reset-all-btn').addEventListener('click', resetAllData);
+const _resetBtn = document.getElementById('reset-all-btn');
+if (_resetBtn) _resetBtn.addEventListener('click', resetAllData);
 
 // Otomatik yedekleme
 document.getElementById('auto-backup-toggle').addEventListener('change', (e) => {
