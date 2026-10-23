@@ -1,4 +1,4 @@
-:root {
+﻿:root {
   --text-primary: #f1f5f9;
   --text-secondary: #94a3b8;
   --text-muted: #475569;
@@ -259,6 +259,83 @@ input[type="file"].form-control { padding: 8px; }
 .btn-outline:hover { border-color: var(--primary); color: var(--text-primary); }
 .btn-outline.active { border-color: var(--primary); background: var(--primary-light); color: var(--primary); }
 .btn-sm { padding: clamp(3px, 0.4vh, 5px) clamp(6px, 0.6vw, 9px); font-size: clamp(8px, 0.55vw, 9.5px); }
+/* ÜRÜN GİRİŞİ - ARAMA KUTUSU VE GİRİŞ BUTONU */
+.entry-search-input {
+  width: 100%;
+  padding: clamp(9px, 1.1vh, 11px) clamp(12px, 1.2vw, 15px);
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius-md);
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  font-size: clamp(11px, 0.7vw, 12px);
+  font-family: inherit;
+  outline: none;
+  transition: var(--transition);
+}
+.entry-search-input::placeholder { color: var(--text-muted); }
+.entry-search-input:focus { border-color: var(--success); box-shadow: 0 0 0 3px var(--success-light); }
+.entry-search-wrap { position: relative; width: 100%; }
+.entry-name-dd {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 600;
+  width: calc(100% + 16px);
+  max-width: calc(100vw - 24px);
+  max-height: 280px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 4px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius-md);
+  box-shadow: 0 12px 32px rgba(0,0,0,0.22);
+}
+.entry-name-dd[hidden] { display: none; }
+.entry-name-dd::-webkit-scrollbar { width: 6px; }
+.entry-name-dd::-webkit-scrollbar-thumb { background: var(--border-color); border-radius: 6px; }
+.entry-name-option {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: clamp(7px, 0.9vh, 10px) clamp(10px, 1vw, 13px);
+  border-radius: var(--border-radius-sm);
+  font-size: clamp(11px, 0.7vw, 12px);
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+.entry-name-option:hover,
+.entry-name-option.active { background: var(--success-light); color: var(--success); font-weight: 600; }
+.entry-name-empty {
+  padding: clamp(10px, 1.2vh, 14px) clamp(10px, 1vw, 13px);
+  font-size: clamp(10px, 0.65vw, 11px);
+  color: var(--text-muted);
+  text-align: center;
+}
+.btn-entry-in {
+  background: var(--success);
+  color: #fff;
+  border-radius: var(--border-radius-md);
+  padding: clamp(9px, 1.1vh, 11px) clamp(16px, 1.6vw, 22px);
+  font-size: clamp(11px, 0.7vw, 12px);
+  font-weight: 700;
+  box-shadow: 0 4px 14px rgba(22,163,74,0.25);
+}
+.btn-entry-in:hover { background: var(--success); filter: brightness(1.07); box-shadow: 0 6px 18px rgba(22,163,74,0.35); }
+[data-theme="dark"] .btn-entry-in { color: #052e16; }
+.btn-exit-out {
+  background: var(--accent);
+  color: #fff;
+  border-radius: var(--border-radius-md);
+  padding: clamp(9px, 1.1vh, 11px) clamp(16px, 1.6vw, 22px);
+  font-size: clamp(11px, 0.7vw, 12px);
+  font-weight: 700;
+  box-shadow: 0 4px 14px rgba(239,68,68,0.25);
+}
+.btn-exit-out:hover { background: var(--accent); filter: brightness(1.07); box-shadow: 0 6px 18px rgba(239,68,68,0.35); }
+[data-theme="dark"] .btn-exit-out { color: #450a0a; }
 .export-option:hover { background: var(--primary-light) !important; }
 .stt-export-option:hover { background: var(--primary-light) !important; }
 /* SEARCH */
@@ -325,7 +402,7 @@ input[type="file"].form-control { padding: 8px; }
 @keyframes mtOut { from { opacity: 1; transform: translateX(0) scale(1); } to { opacity: 0; transform: translateX(48px) scale(.9); } }
 @keyframes mtBar { from { width: 100%; } to { width: 0; } }
 /* EKSİK ALAN İŞARETİ */
-.input-error .form-control, .input-error .cs-btn {
+.input-error .form-control, .input-error .cs-btn, .input-error .entry-search-input {
   border-color: #ef4444 !important;
   box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.22) !important;
 }
