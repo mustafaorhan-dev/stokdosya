@@ -294,6 +294,28 @@ input[type="file"].form-control { padding: 8px; }
 }
 .entry-name-dd[hidden] { display: none; }
 #exit-product-dd[hidden] { display: none !important; }
+.exit-stock-info {
+  margin-top: 8px;
+  padding: 10px 12px;
+  border: 1px solid color-mix(in srgb, var(--orange) 35%, transparent);
+  border-radius: var(--border-radius-sm);
+  background: var(--orange-light);
+  color: var(--orange);
+  font-size: 13px;
+  font-weight: 700;
+}
+.exit-stock-info[hidden] { display: none !important; }
+.entry-stock-info {
+  margin-top: 8px;
+  padding: 10px 12px;
+  border: 1px solid color-mix(in srgb, var(--success) 35%, transparent);
+  border-radius: var(--border-radius-sm);
+  background: var(--success-light);
+  color: var(--success);
+  font-size: 13px;
+  font-weight: 700;
+}
+.entry-stock-info[hidden] { display: none !important; }
 #exit-product {
   display: none !important;
   visibility: hidden !important;

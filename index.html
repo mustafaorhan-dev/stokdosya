@@ -402,6 +402,7 @@
                                     <div id="entry-name-options" class="entry-name-options"></div>
                                 </div>
                             </div>
+                            <div id="entry-stock-info" class="entry-stock-info" role="status" aria-live="polite" hidden></div>
                         </div>
                         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
                             <div class="form-group">
@@ -475,11 +476,12 @@
                         <div class="form-group">
                             <label>Ürün / Parti Seçimi</label>
                             <div class="entry-search-wrap exit-product-picker">
-                                <input type="text" id="exit-product-search" class="entry-search-input" placeholder="Ürün ara..." autocomplete="off" spellcheck="false">
+                                <input type="text" id="exit-product-search" class="entry-search-input" placeholder="Ürün seçin veya arayın..." autocomplete="off" spellcheck="false">
                                 <div id="exit-product-dd" class="entry-name-dd" hidden>
                                     <div id="exit-product-options" class="entry-name-options"></div>
                                 </div>
                             </div>
+                            <div id="exit-stock-info" class="exit-stock-info" role="status" aria-live="polite" hidden></div>
                             <select id="exit-product" hidden aria-hidden="true" tabindex="-1"></select>
                         </div>
                         <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem;">
@@ -1066,11 +1068,15 @@
                             <input type="file" id="csv-tender-input" accept=".csv" style="display:none;" onchange="importTenderCSV(event)">
                             <button id="csv-tender-download-btn" class="btn-ui btn-outline" onclick="exportTenderCSV()"><i class="fa-solid fa-download"></i> CSV İndir</button>
                             <button id="add-tender-btn" class="btn-ui btn-primary"><i class="fa-solid fa-plus"></i> Yeni İhale</button>
+                            <input type="search" id="tender-product-search" class="form-control" placeholder="Ürün ara..." autocomplete="off" style="width:150px;font-size:12px;">
                             <select id="tender-company-filter" class="form-control" style="width:auto;min-width:130px;font-size:12px;">
                                 <option value="">Tüm Firmalar</option>
                             </select>
                             <select id="tender-year-filter" class="form-control" style="width:auto;min-width:90px;font-size:12px;">
                                 <option value="">Tüm Yıllar</option>
+                            </select>
+                            <select id="tender-rate-filter" class="form-control" style="width:auto;min-width:120px;font-size:12px;" aria-label="Teslim oranına göre filtrele">
+                                <option value="">Tüm Oranlar</option>
                             </select>
                             <span id="tender-count-badge" style="font-size:12px;color:var(--text-muted);font-weight:600;"></span>
                         </div>
@@ -1582,7 +1588,7 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="app.js?t=20261026f" charset="UTF-8"></script>
+    <script src="app.js?t=20261027c" charset="UTF-8"></script>
 </body>
 
 </html>

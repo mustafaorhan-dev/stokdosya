@@ -2791,6 +2791,18 @@ function _ihaleStokFarkUygula(partiNo, fark) {
   return eslesen.length;
 }
 
+function _tenderRemainingForProduct(product, year = new Date().getFullYear()) {
+  if (!product || !product.companyName || !product.name) return 0;
+  const norm = value => String(value || '').toLocaleLowerCase('tr').replace(/\s+/g, ' ').trim();
+  return (data.tenders || [])
+    .filter(t =>
+      norm(t.companyName) === norm(product.companyName) &&
+      norm(t.product) === norm(product.name) &&
+      (!t.year || Number(t.year) === year)
+    )
+    .reduce((total, t) => total + ((Number(t.quantity) || 0) - (Number(t.delivered) || 0)), 0);
+}
+
 function warehouseGoPage(delta) {
   _warehousePage = Math.max(1, _warehousePage + delta);
   refreshWarehouse();
@@ -2849,8 +2861,7 @@ function refreshWarehouse() {
     const kritik = p.criticalLevel > 0 && p.stock <= p.criticalLevel;
     const stokClass = kritik ? 'color:var(--accent);font-weight:800;' : '';
     const stt = sttDurum(p.stt);
-    const eslesenIhale = (data.tenders || []).filter(t => t.companyName.toLowerCase().replace(/\s+/g,' ').trim() === (p.companyName||'').toLowerCase().replace(/\s+/g,' ').trim() && t.product.toLowerCase() === p.name.toLowerCase());
-    const ihaleKalan = eslesenIhale.reduce((top, t) => top + (t.quantity - t.delivered), 0);
+    const ihaleKalan = _tenderRemainingForProduct(p);
     const ihaleGoster = ihaleKalan > 0 ? `<span style="color:var(--primary);font-weight:600;">${_fmt(ihaleKalan)} ${htmlEscape(p.unit)}</span>` : '<span style="color:var(--text-muted);font-size:12px;">—</span>';
     return `<tr>
       <td style="font-weight:600;color:var(--primary);">${htmlEscape(p.partiNo)}</td>
@@ -3030,8 +3041,7 @@ function _exportData() {
     const fark = p.stt ? Math.ceil((new Date(p.stt+'T00:00:00') - now) / (1000*60*60*24)) : '';
     const sttDurum = fark !== '' ? (fark < 0 ? 'GEÇTİ' : fark + ' gün') : '—';
     const stokBitti = p.stock <= 0 ? ' STOKTA BİTTİ' : '';
-    const eslesenIhale = (data.tenders || []).filter(t => t.companyName.toLowerCase().replace(/\s+/g,' ').trim() === (p.companyName||'').toLowerCase().replace(/\s+/g,' ').trim() && t.product.toLowerCase() === p.name.toLowerCase());
-    const ihaleKalan = eslesenIhale.reduce((top, t) => top + (t.quantity - t.delivered), 0);
+    const ihaleKalan = _tenderRemainingForProduct(p);
     return { ...p, sttDurum, stokBitti, ihaleKalan };
   });
 }
@@ -3775,7 +3785,26 @@ function _entryNameSelect(value) {
   const unitEl = document.getElementById('entry-unit');
   if (unit && unitEl) unitEl.value = unit;
   _entryNameHide();
+  refreshEntryStockInfo();
   input.dispatchEvent(new Event('change', { bubbles: true }));
+}
+
+function refreshEntryStockInfo() {
+  const info = document.getElementById('entry-stock-info');
+  const input = document.getElementById('entry-name');
+  if (!info || !input) return;
+  const name = (input.value || '').trim();
+  const match = (data.productNames || []).find(n => n.toLocaleLowerCase('tr') === name.toLocaleLowerCase('tr'));
+  if (!match) {
+    info.hidden = true;
+    info.textContent = '';
+    return;
+  }
+  const products = Object.values(data.products).filter(p => p.active !== false && p.name === match);
+  const totalStock = products.reduce((sum, p) => sum + (Number(p.stock) || 0), 0);
+  const unit = products.find(p => p.unit)?.unit || (data.productUnits || {})[match] || '';
+  info.textContent = `Mevcut toplam stok: ${_fmt(totalStock)}${unit ? ` ${unit}` : ''}.`;
+  info.hidden = false;
 }
 
 function _initEntryPicker(config) {
@@ -3929,6 +3958,7 @@ function refreshEntryForm() {
     if (match) companyInput.value = match;
     else if (current) companyInput.value = '';
   }
+  refreshEntryStockInfo();
 }
 
 // Kategori seçilince otomatik birim ata
@@ -3948,6 +3978,7 @@ document.addEventListener('DOMContentLoaded', () => {
   document.querySelectorAll('#entry-name, #np-name').forEach(sel => {
     sel.addEventListener('change', function() {
       const name = this.value;
+      if (this.id === 'entry-name') refreshEntryStockInfo();
       const unit = (data.productUnits || {})[name];
       if (unit) {
         const target = this.id === 'entry-name' ? 'entry-unit' : 'np-unit';
@@ -3958,6 +3989,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // Ürün adı yazıldığında listedeki adla birebir eşleştir (yoksa temizle)
   const entryNameInput = document.getElementById('entry-name');
   if (entryNameInput) {
+    entryNameInput.addEventListener('input', refreshEntryStockInfo);
     entryNameInput.addEventListener('blur', function() {
       const v = (this.value || '').trim();
       if (!v) return;
@@ -4131,21 +4163,19 @@ document.getElementById('entry-form').addEventListener('submit', async (e) => {
     console.error('İhale ekleme hatası:', err);
   }
 
-  await saveData();
-
   // Yeni firma adını hafızaya ekle
   if (companyName && !data.companies.includes(companyName)) {
     data.companies.push(companyName);
     data.companies.sort((a, b) => a.localeCompare(b));
-    await saveData();
   }
 
   // Yeni ürün adını isim listesine ekle
   if (name && !data.productNames.includes(name)) {
     data.productNames.push(name);
     data.productNames.sort((a, b) => a.localeCompare(b));
-    await saveData();
   }
+
+  if (!await saveData()) return;
 
   logKaydet('giris', `${name}: ${_fmt(amount)} ${unit} giriş — ${companyName}`);
 
@@ -4153,7 +4183,11 @@ document.getElementById('entry-form').addEventListener('submit', async (e) => {
     .filter(p => p.active !== false && p.name === name)
     .reduce((s, p) => s + (p.stock || 0), 0);
   showMovementToast('IN', name, amount, unit, _newStockIn, ihaleMsg ? ihaleMsg.replace(/^\s*\|\s*/, '').trim() : '');
+  document.getElementById('entry-form').reset();
   refreshEntryForm();
+  ['entry-name-dd', 'entry-category-dd', 'entry-company-dd'].forEach(id => {
+    document.getElementById(id).hidden = true;
+  });
   refreshDashboard();
   buildMonthMenu();
 });
@@ -4188,24 +4222,38 @@ function _exitProductOptions() {
     .sort((a, b) => a.name.localeCompare(b.name))
     .map(g => ({
       name: g.name,
-      label: `${g.name} (Toplam Stok: ${_fmt(g.totalStock)} ${g.unit})`
+      label: g.name,
+      totalStock: g.totalStock,
+      unit: g.unit
     }));
+}
+
+function refreshExitStockInfo() {
+  const info = document.getElementById('exit-stock-info');
+  const select = document.getElementById('exit-product');
+  if (!info || !select) return;
+  const selected = _exitProductOptions().find(o => o.name === select.value);
+  if (!selected) {
+    info.hidden = true;
+    info.textContent = '';
+    return;
+  }
+  info.textContent = `Toplam stok: ${_fmt(selected.totalStock)} ${selected.unit} bulunmaktadır.`;
+  info.hidden = false;
 }
 
 function refreshExitForm() {
   const select = document.getElementById('exit-product');
   const options = _exitProductOptions();
-  select.innerHTML = options.length
+  select.innerHTML = '<option value="">Ürün seçin...</option>' + (options.length
     ? options.map(o => `<option value="${htmlEscape(o.name)}">${htmlEscape(o.label)}</option>`).join('')
-    : '<option value="">Önce ürün ekleyin</option>';
+    : '<option value="" disabled>Önce ürün ekleyin</option>');
+  select.value = '';
   const search = document.getElementById('exit-product-search');
-  if (search) {
-    const found = options.find(o => o.name === select.value);
-    search.value = found ? found.name : '';
-    if (!found) select.value = '';
-  }
+  if (search) search.value = '';
   document.getElementById('exit-date').value = todayStr();
   document.getElementById('exit-person-count').value = '';
+  refreshExitStockInfo();
   updateExitCostPreview();
 }
 
@@ -4230,6 +4278,7 @@ function _initExitPicker() {
     const changed = select.value !== value;
     select.value = value;
     if (changed) select.dispatchEvent(new Event('change', { bubbles: true }));
+    refreshExitStockInfo();
   }
 
   function render(forceAll) {
@@ -4249,6 +4298,7 @@ function _initExitPicker() {
     const current = (select.value || '').toLocaleLowerCase('tr');
     const currentIdx = visible.findIndex(o => o.name.toLocaleLowerCase('tr') === current);
     if (currentIdx >= 0 && (forceAll || !q)) active = currentIdx;
+    else if (forceAll && !q) active = -1;
     else if (active < 0 || active >= visible.length) active = 0;
     optsEl.innerHTML = visible.map((o, i) =>
       `<div class="entry-name-option${i === active ? ' active' : ''}" data-value="${htmlEscape(o.name)}">${htmlEscape(o.label)}</div>`
@@ -4308,8 +4358,10 @@ function _initExitPicker() {
   input.addEventListener('keydown', (e) => {
     if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
       e.preventDefault();
-      if (dd.hidden) { active = 0; render(true); return; }
-      setActive(active + (e.key === 'ArrowDown' ? 1 : -1));
+      if (dd.hidden) render(true);
+      const items = optsEl.querySelectorAll('.entry-name-option');
+      if (active < 0) setActive(e.key === 'ArrowDown' ? 0 : items.length - 1);
+      else setActive(active + (e.key === 'ArrowDown' ? 1 : -1));
       return;
     }
     if (e.key === 'Enter') {
@@ -5000,6 +5052,12 @@ function tenderGoPage(delta) {
   refreshTenders(true);
 }
 
+function _tenderDeliveryRate(tender) {
+  const contractAmount = (Number(tender.price) || 0) * (Number(tender.quantity) || 0);
+  const deliveredAmount = (Number(tender.price) || 0) * (Number(tender.delivered) || 0);
+  return contractAmount > 0 ? (deliveredAmount / contractAmount) * 100 : 0;
+}
+
 function refreshTenders(sayfaKoru) {
   if (!data.tenders) data.tenders = [];
   if (!sayfaKoru) window._tenderPage = 1;
@@ -5020,12 +5078,23 @@ function refreshTenders(sayfaKoru) {
     firmaFilter.innerHTML = '<option value="">Tüm Firmalar</option>' +
       mevcutFirmalar.map(f => `<option value="${htmlEscape(f)}"${f === seciliFirma ? ' selected' : ''}>${htmlEscape(f)}</option>`).join('');
   }
+  const rateFilter = document.getElementById('tender-rate-filter');
+  if (rateFilter) {
+    const seciliOran = rateFilter.value;
+    rateFilter.innerHTML = '<option value="">Tüm Oranlar</option>' +
+      Array.from({ length: 101 }, (_, oran) => `<option value="${oran}">%${oran}</option>`).join('');
+    rateFilter.value = seciliOran;
+  }
   // Filtrelere göre süz
   const yilFiltre = yilFilter?.value || '';
   const firmaFiltre = firmaFilter?.value || '';
+  const urunArama = (document.getElementById('tender-product-search')?.value || '').trim().toLocaleLowerCase('tr');
+  const oranFiltre = rateFilter?.value ?? '';
   let filtreli = data.tenders;
   if (yilFiltre) filtreli = filtreli.filter(t => String(t.year || new Date().getFullYear()) === yilFiltre);
   if (firmaFiltre) filtreli = filtreli.filter(t => t.companyName === firmaFiltre);
+  if (urunArama) filtreli = filtreli.filter(t => String(t.product || '').toLocaleLowerCase('tr').includes(urunArama));
+  if (oranFiltre !== '') filtreli = filtreli.filter(t => Math.min(100, Math.round(_tenderDeliveryRate(t))) === Number(oranFiltre));
 
   // Ürün kalem sayısını göster
   const countBadge = document.getElementById('tender-count-badge');
@@ -5033,7 +5102,8 @@ function refreshTenders(sayfaKoru) {
     const toplam = filtreli.length;
     const firmaAdi = firmaFiltre || (firmaFilter?.options[firmaFilter.selectedIndex]?.textContent || '');
     const urunCesidi = [...new Set(filtreli.map(t => t.product))].length;
-    if (firmaFiltre) countBadge.textContent = `${toplam} kalem (${urunCesidi} ürün)`;
+    if (urunArama || oranFiltre !== '') countBadge.textContent = `${toplam} sonuç`;
+    else if (firmaFiltre) countBadge.textContent = `${toplam} kalem (${urunCesidi} ürün)`;
     else if (yilFiltre) countBadge.textContent = `${toplam} kayıt`;
     else countBadge.textContent = toplam > 0 ? `${toplam} kayıt` : '';
   }
@@ -5073,7 +5143,7 @@ function refreshTenders(sayfaKoru) {
     const kalan = t.quantity - t.delivered;
     const sozlesmeTutar = t.price * t.quantity;
     const teslimTutar = t.price * t.delivered;
-    const oran = sozlesmeTutar > 0 ? ((teslimTutar / sozlesmeTutar) * 100).toFixed(1) : 0;
+    const oran = _tenderDeliveryRate(t).toFixed(1);
     const oranRenk = oran >= 100 ? 'var(--accent)' : (oran >= 80 ? 'var(--accent)' : (oran >= 70 ? '#f97316' : (oran >= 50 ? '#eab308' : 'var(--success)')));
     const uyari80 = (oran >= 80 && oran < 100) ? '<span style="background:rgba(239,68,68,0.15);color:var(--accent);font-size:11px;padding:2px 8px;border-radius:999px;font-weight:700;margin-left:6px;white-space:nowrap;">⚠️ %80+</span>' : (oran >= 100 ? '<span style="color:var(--accent);margin-left:4px;">✅ TAMAM</span>' : '');
     const rowCls = (oran >= 80) ? 'tender-row tender-row-warn' : 'tender-row';
@@ -5102,14 +5172,18 @@ function exportXLSX_tenders() {
   if (!data.tenders || !data.tenders.length) { toast('Yazdırılacak ihale kaydı yok.', 'info'); return; }
   const yilFiltre = document.getElementById('tender-year-filter')?.value || '';
   const firmaFiltre = document.getElementById('tender-company-filter')?.value || '';
+  const urunArama = (document.getElementById('tender-product-search')?.value || '').trim().toLocaleLowerCase('tr');
+  const oranFiltre = document.getElementById('tender-rate-filter')?.value ?? '';
   let filtreli = data.tenders;
   if (yilFiltre) filtreli = filtreli.filter(t => String(t.year || new Date().getFullYear()) === yilFiltre);
   if (firmaFiltre) filtreli = filtreli.filter(t => t.companyName === firmaFiltre);
+  if (urunArama) filtreli = filtreli.filter(t => String(t.product || '').toLocaleLowerCase('tr').includes(urunArama));
+  if (oranFiltre !== '') filtreli = filtreli.filter(t => Math.min(100, Math.round(_tenderDeliveryRate(t))) === Number(oranFiltre));
   const satirlar = filtreli.map(t => {
     const kalan = t.quantity - t.delivered;
     const sozlesme = t.price * t.quantity;
     const teslim = t.price * t.delivered;
-    const oran = sozlesme > 0 ? ((teslim / sozlesme) * 100).toFixed(1) : 0;
+    const oran = _tenderDeliveryRate(t).toFixed(1);
     return [htmlEscape(t.companyName), t.year || '', htmlEscape(t.product), _fmt(t.quantity), _fmt(t.delivered), _fmt(kalan), _fmt(t.price) + ' ₺', '%' + oran];
   });
   const baslik = `${yilFiltre || 'Tüm Yıllar'}${firmaFiltre ? ' — ' + firmaFiltre : ''}`;
@@ -5266,6 +5340,8 @@ document.getElementById('tender-form').addEventListener('submit', (e) => {
 // İhale filtreleri değişince listeyi güncelle
 document.getElementById('tender-year-filter')?.addEventListener('change', refreshTenders);
 document.getElementById('tender-company-filter')?.addEventListener('change', refreshTenders);
+document.getElementById('tender-product-search')?.addEventListener('input', () => refreshTenders());
+document.getElementById('tender-rate-filter')?.addEventListener('change', () => refreshTenders());
 
 // ----- LOG KAYITLARI (Supabase) -----
 var _logTurEtiket = { giris: 'GİRİŞ', cikis: 'ÇIKIŞ', duzeltme: 'DÜZELTME', silme: 'SİLME', kullanici: 'KULLANICI', oturum: 'OTURUM' };
