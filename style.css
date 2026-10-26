@@ -293,8 +293,24 @@ input[type="file"].form-control { padding: 8px; }
   box-shadow: 0 12px 32px rgba(0,0,0,0.22);
 }
 .entry-name-dd[hidden] { display: none; }
+#exit-product-dd[hidden] { display: none !important; }
+#exit-product {
+  display: none !important;
+  visibility: hidden !important;
+  position: absolute !important;
+  width: 0 !important;
+  height: 0 !important;
+}
 .entry-name-dd::-webkit-scrollbar { width: 6px; }
 .entry-name-dd::-webkit-scrollbar-thumb { background: var(--border-color); border-radius: 6px; }
+#exit-product-dd {
+  top: calc(100% + 6px);
+}
+#exit-product-dd .entry-name-option:hover,
+#exit-product-dd .entry-name-option.active {
+  background: var(--orange-light);
+  color: var(--orange);
+}
 .entry-name-option {
   display: flex;
   align-items: center;

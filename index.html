@@ -7,7 +7,7 @@
     <title>DEPO STOK</title>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="icon" type="image/svg+xml" href="favicon.svg">
-    <link rel="stylesheet" href="style.css?v=20261026m">
+    <link rel="stylesheet" href="style.css?v=20261026r">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
 </head>
@@ -474,13 +474,13 @@
                     <form id="exit-form" style="display:flex;flex-direction:column;gap:0.9rem;">
                         <div class="form-group">
                             <label>Ürün / Parti Seçimi</label>
-                            <div class="entry-search-wrap">
+                            <div class="entry-search-wrap exit-product-picker">
                                 <input type="text" id="exit-product-search" class="entry-search-input" placeholder="Ürün ara..." autocomplete="off" spellcheck="false">
                                 <div id="exit-product-dd" class="entry-name-dd" hidden>
                                     <div id="exit-product-options" class="entry-name-options"></div>
                                 </div>
                             </div>
-                            <select id="exit-product" style="display:none"></select>
+                            <select id="exit-product" hidden aria-hidden="true" tabindex="-1"></select>
                         </div>
                         <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem;">
                             <div class="form-group">
@@ -1582,7 +1582,7 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="app.js?t=20261023q" charset="UTF-8"></script>
+    <script src="app.js?t=20261026f" charset="UTF-8"></script>
 </body>
 
 </html>

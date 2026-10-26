@@ -3281,10 +3281,11 @@ document.addEventListener('click', (e) => {
 // ----- PARTI NO (BATCH) OLUŞTURMA -----
 function generateBatchPrefix() {
   const now = new Date();
-  const yil = String(now.getFullYear()).slice(-2);
-  const baslangic = new Date(Date.UTC(now.getFullYear(), 0, 4));
-  const gunFarki = ((now.getTime() - baslangic.getTime()) / 86400000 + baslangic.getDay() + 1) / 7;
-  const hafta = String(Math.ceil(gunFarki)).padStart(2, '0');
+  const isoDate = new Date(Date.UTC(now.getFullYear(), now.getMonth(), now.getDate()));
+  isoDate.setUTCDate(isoDate.getUTCDate() + 4 - (isoDate.getUTCDay() || 7));
+  const yil = String(isoDate.getUTCFullYear()).slice(-2);
+  const yilBaslangici = new Date(Date.UTC(isoDate.getUTCFullYear(), 0, 1));
+  const hafta = String(Math.ceil(((isoDate - yilBaslangici) / 86400000 + 1) / 7)).padStart(2, '0');
   const gun = now.getDay() === 0 ? 7 : now.getDay();
   return 'A' + yil + hafta + gun + '1';
 }
@@ -3466,7 +3467,6 @@ document.getElementById('new-product-form').addEventListener('submit', async (e)
     return;
   }
   if (stt && !isValidDate(stt)) { toast('Geçersiz STT tarihi!', 'error'); return; }
-
   if (isEdit) {
     const p = data.products[partiNo];
     if (p) {
@@ -4215,12 +4215,14 @@ function _initExitPicker() {
   const optsEl = document.getElementById('exit-product-options');
   const select = document.getElementById('exit-product');
   if (!input || !dd || !optsEl || !select) return;
+  const picker = input.closest('.exit-product-picker');
   let active = -1;
   let blurTimer = null;
 
   function hide() {
     clearTimeout(blurTimer);
     dd.hidden = true;
+    if (picker) picker.classList.remove('is-open');
     active = -1;
   }
 
@@ -4241,6 +4243,7 @@ function _initExitPicker() {
       optsEl.innerHTML = '<div class="entry-name-empty">Sonuç bulunamadı</div>';
       active = -1;
       dd.hidden = false;
+      if (picker) picker.classList.add('is-open');
       return;
     }
     const current = (select.value || '').toLocaleLowerCase('tr');
@@ -4251,6 +4254,7 @@ function _initExitPicker() {
       `<div class="entry-name-option${i === active ? ' active' : ''}" data-value="${htmlEscape(o.name)}">${htmlEscape(o.label)}</div>`
     ).join('');
     dd.hidden = false;
+    if (picker) picker.classList.add('is-open');
   }
 
   function setActive(idx) {
@@ -7610,7 +7614,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   } catch(e) { console.warn('☁️ Buton bağlantı hatası:', e); }
 
   try {
-    ['sr-supplier', 'sr-product', 'np-company', 'np-name', 'tender-company', 'tender-year', 'exit-company', 'exit-product'].forEach(id => {
+    ['sr-supplier', 'sr-product', 'np-company', 'np-name', 'tender-company', 'tender-year', 'exit-company'].forEach(id => {
       const el = document.getElementById(id);
       if (el && el.tagName === 'SELECT' && el.dataset.csReady !== '1') _createCustomSelect(id);
     });
