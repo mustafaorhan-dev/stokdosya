@@ -1014,8 +1014,8 @@ input[type="file"].form-control { padding: 8px; }
   display: flex; justify-content: center; align-items: center;
   padding: 1.25rem; overflow-y: auto;
   background:
-    radial-gradient(1000px 540px at 6% -12%, var(--primary-light), transparent 60%),
-    radial-gradient(820px 600px at 110% 118%, var(--purple-light), transparent 55%),
+    linear-gradient(rgba(7, 16, 34, 0.16), rgba(7, 16, 34, 0.16)),
+    url("Depo Arka Plan.png") center / cover no-repeat,
     var(--bg-primary);
 }
 .login-shell {
