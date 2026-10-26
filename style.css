@@ -1018,38 +1018,67 @@ input[type="file"].form-control { padding: 8px; }
     url("Depo Arka Plan.png") center / cover no-repeat,
     var(--bg-primary);
 }
+.login-card-group {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  width: 400px;
+  max-width: 94vw;
+}
 .login-shell {
   position: relative;
   display: flex; flex-direction: column; justify-content: center;
   width: 400px; max-width: 94vw; min-height: 500px;
-  background: var(--bg-secondary);
-  border: 1px solid var(--border-color);
+  background: #102344;
+  border: 1px solid rgba(255, 255, 255, .88);
   border-radius: 22px; overflow: hidden;
-  box-shadow: 0 16px 40px rgba(0,0,0,0.28);
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, .12), 0 0 16px rgba(255, 255, 255, .32), 0 0 36px rgba(255, 255, 255, .2), 0 16px 40px rgba(0,0,0,0.28);
   animation: loginIn .4s ease both;
 }
 .login-university-credit {
   margin: 0;
-  padding: 0 1rem 1.15rem;
-  color: var(--text-muted);
+  padding: 0 .5rem 1.05rem;
+  background: #fff;
+  color: #6b7280;
   font-size: .68rem;
   font-weight: 600;
   letter-spacing: .035em;
   text-align: center;
 }
+.login-university-credit span {
+  display: block;
+  margin-top: .2rem;
+  color: #6b7280;
+  font-size: .58rem;
+  font-weight: 400;
+  letter-spacing: 0;
+}
 .login-shell::before {
-  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 4px;
-  background: linear-gradient(90deg, var(--primary), var(--purple));
+  content: none;
 }
 @keyframes loginIn { from { opacity: 0; transform: translateY(18px) scale(.985); } to { opacity: 1; transform: none; } }
-.login-form-side { padding: 2.4rem; display: flex; flex-direction: column; justify-content: center; text-align: center; }
+.login-form-side { padding: 2.4rem 2.4rem 1rem; display: flex; flex-direction: column; justify-content: center; text-align: center; background: #fff; color: #111827; }
 .login-form-side .login-title { text-align: center; margin: 0 0 .2rem; }
 .login-form-side .login-subtitle { text-align: center; margin: 0 0 1.5rem; }
+.login-form-side .login-title {
+  color: #2563eb;
+  font-family: 'Outfit', 'Plus Jakarta Sans', sans-serif;
+  font-size: 1.62rem;
+  font-weight: 800;
+  letter-spacing: .075em;
+}
+.login-form-side .login-title span:last-child { color: inherit; }
+.login-form-side .login-subtitle { color: #2563eb; font-size: .76rem; }
+.login-logo-band {
+  margin: -2.4rem -2.4rem 1.15rem;
+  padding: 1.3rem 0 1.15rem;
+  background: #102344;
+}
 .login-university-logo {
   display: block;
-  width: 78px;
-  height: 78px;
-  margin: 0 auto .9rem;
+  width: 88px;
+  height: 88px;
+  margin: 0 auto;
   padding: 2px;
   border: 1px solid rgba(15, 23, 42, .08);
   border-radius: 50%;
@@ -1064,25 +1093,33 @@ input[type="file"].form-control { padding: 8px; }
   position: absolute; left: 14px; top: 50%; transform: translateY(-50%);
   color: var(--text-muted); font-size: .9rem; pointer-events: none; transition: var(--transition);
 }
-.login-field:focus-within > .login-ico { color: var(--primary); }
+.login-field:focus-within > .login-ico { color: #111827; }
 .login-input {
   width: 100%; padding: 13px 44px 13px 40px;
-  border: 1px solid var(--border-color); border-radius: var(--border-radius-sm);
-  background: var(--bg-primary); color: var(--text-primary);
+  border: 1px solid #cbd5e1; border-radius: var(--border-radius-sm);
+  background: #fff; color: #111827;
   font-size: .95rem; font-family: inherit; outline: none; transition: var(--transition);
 }
-.login-input::placeholder { color: var(--text-muted); }
-.login-input:focus { border-color: var(--primary); box-shadow: 0 0 0 3px var(--primary-light); }
+.login-input::placeholder { color: #6b7280; }
+.login-input:focus { border-color: #6b7280; box-shadow: 0 0 0 3px rgba(107, 114, 128, .12); }
 .login-eye {
   position: absolute; right: 6px; top: 50%; transform: translateY(-50%);
-  background: none; border: none; color: var(--text-muted); cursor: pointer;
+  background: none; border: none; color: #4b5563; cursor: pointer;
   padding: 7px 9px; border-radius: 6px; font-size: .9rem; transition: var(--transition);
 }
-.login-eye:hover { color: var(--text-primary); background: var(--bg-hover); }
+.login-eye:hover { color: #111827; background: #f3f4f6; }
 .login-btn {
   width: 100%; justify-content: center; padding: 13px; margin-top: .4rem;
   font-size: .95rem; font-weight: 700; text-transform: uppercase; letter-spacing: .6px;
   border-radius: var(--border-radius-sm);
+  border: 1px solid #2563eb;
+  background: #2563eb !important;
+  color: #fff !important;
+  box-shadow: 0 5px 14px rgba(37, 99, 235, .2) !important;
+}
+.login-btn:hover {
+  background: #1d4ed8 !important;
+  color: #fff !important;
 }
 .login-btn:disabled { opacity: .75; cursor: default; }
 .login-msg {
@@ -1117,6 +1154,7 @@ input[type="file"].form-control { padding: 8px; }
 @media (max-width: 760px) {
   .login-shell { width: 400px; max-width: 94vw; min-height: 0; }
   .login-form-side { padding: 2.2rem 1.6rem 2.4rem; }
+  .login-logo-band { margin: -2.2rem -1.6rem 1.15rem; }
 }
 
 /* ---- İhale Takip Listesi: her zaman aydınlık (beyaz zemin, koyu yazı) ---- */

@@ -4,10 +4,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>STOKDEPO</title>
+    <title>DEPO STOK</title>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="icon" type="image/svg+xml" href="favicon.svg">
-    <link rel="stylesheet" href="style.css?v=20261026a">
+    <link rel="stylesheet" href="style.css?v=20261026m">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
 </head>
@@ -32,24 +32,31 @@
 
     <!-- Login Screen -->
     <div id="login-screen" class="login-screen">
-        <div class="login-shell">
-            <div class="login-form-side">
-                <img src="KAEU_Logo.png" alt="Kırşehir Ahi Evran Üniversitesi logosu" class="login-university-logo">
-                <h2 class="login-title">STOKDEPO</h2>
-                <p class="login-subtitle">SKSDB Stok Depo ve Analiz Programı</p>
-                <div class="login-field">
-                    <i class="fa-solid fa-envelope login-ico"></i>
-                    <input type="email" id="login-username" class="login-input" placeholder="E-posta" autocomplete="username">
+        <div class="login-card-group">
+            <div class="login-shell">
+                <div class="login-form-side">
+                    <div class="login-logo-band">
+                        <img src="KAEU_Logo.png" alt="Kırşehir Ahi Evran Üniversitesi logosu" class="login-university-logo">
+                    </div>
+                    <h2 class="login-title"><span>DEPO</span> <span>STOK</span></h2>
+                    <p class="login-subtitle">SKSDB Depo Stok ve Analiz Programı</p>
+                    <div class="login-field">
+                        <i class="fa-solid fa-envelope login-ico"></i>
+                        <input type="email" id="login-username" class="login-input" placeholder="E-posta" autocomplete="username">
+                    </div>
+                    <div class="login-field">
+                        <i class="fa-solid fa-lock login-ico"></i>
+                        <input type="password" id="login-password" class="login-input" placeholder="Şifre" autocomplete="off">
+                        <button type="button" id="login-toggle-pass" class="login-eye" title="Şifreyi göster"><i class="fa-solid fa-eye"></i></button>
+                    </div>
+                    <p id="login-error" class="login-msg" style="margin:.2rem 0 .7rem;"></p>
+                    <button id="login-btn" class="btn-ui btn-primary login-btn"><i class="fa-solid fa-right-to-bracket"></i> Giriş Yap</button>
                 </div>
-                <div class="login-field">
-                    <i class="fa-solid fa-lock login-ico"></i>
-                    <input type="password" id="login-password" class="login-input" placeholder="Şifre" autocomplete="off">
-                    <button type="button" id="login-toggle-pass" class="login-eye" title="Şifreyi göster"><i class="fa-solid fa-eye"></i></button>
-                </div>
-                <p id="login-error" class="login-msg" style="margin:.2rem 0 .7rem;"></p>
-                <button id="login-btn" class="btn-ui btn-primary login-btn"><i class="fa-solid fa-right-to-bracket"></i> Giriş Yap</button>
+                <p class="login-university-credit">
+                    2026 · Kırşehir Ahi Evran Üniversitesi
+                    <span>Program SKSDB tarafından geliştirilmiştir.</span>
+                </p>
             </div>
-            <p class="login-university-credit">2026 · Kırşehir Ahi Evran Üniversitesi</p>
         </div>
         <span class="login-brand-mark">FMG</span>
     </div>
@@ -61,7 +68,7 @@
         <aside class="sidebar">
             <div class="brand">
                 <i class="fa-solid fa-boxes-packing logo-icon"></i>
-                <h1>STOKDEPO</h1>
+                <h1>DEPO STOK</h1>
             </div>
 
             <nav class="nav-menu">
@@ -1199,7 +1206,7 @@
                     </div>
                     <div id="user-guide-content" style="padding:2rem;max-width:800px;margin:0 auto;line-height:1.8;font-size:15px;color:var(--text-primary);">
 
-                        <h2 style="margin-bottom:0.25rem;">STOKDEPO — Stok Yönetim Sistemi</h2>
+                        <h2 style="margin-bottom:0.25rem;">DEPO STOK — Stok Yönetim Sistemi</h2>
                         <p style="color:var(--text-secondary);margin-bottom:2rem;font-size:0.85rem;">Versiyon 2.2 — Kullanım Kılavuzu</p>
 
                         <h3>1. Genel Bakış (Dashboard)</h3>
