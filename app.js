@@ -39,6 +39,7 @@ const DEFAULT_ROLE_PERMS = {
       reports: { view: true, edit: true, delete: true },
       stt: { view: true, edit: true, delete: true },
       tenders: { view: true, edit: true, delete: true },
+      scenario: { view: true, edit: true, delete: true },
       tendercsv: { view: true, edit: true, delete: true },
       suppliers: { view: true, edit: true, delete: true },
       critical: { view: true, edit: true, delete: true },
@@ -57,6 +58,7 @@ const DEFAULT_ROLE_PERMS = {
       reports: { view: true, edit: false, delete: false },
       stt: { view: true, edit: false, delete: false },
       tenders: { view: true, edit: false, delete: false },
+      scenario: { view: false, edit: false, delete: false },
       tendercsv: { view: false, edit: false, delete: false },
       suppliers: { view: true, edit: false, delete: false },
       critical: { view: true, edit: false, delete: false },
@@ -75,6 +77,7 @@ const DEFAULT_ROLE_PERMS = {
       reports: { view: true, edit: false, delete: false },
       stt: { view: true, edit: false, delete: false },
       tenders: { view: true, edit: false, delete: false },
+      scenario: { view: false, edit: false, delete: false },
       tendercsv: { view: false, edit: false, delete: false },
       suppliers: { view: true, edit: false, delete: false },
       critical: { view: true, edit: false, delete: false },
@@ -109,6 +112,7 @@ const VIEW_MODULE_MAP = {
   'stt-tracking': 'stt',
   'stt-view': 'stt',
   'tender-tracking': 'tenders',
+  'tender-scenario': 'scenario',
   'suppliers': 'suppliers',
   'critical-stock-view': 'critical',
   'user-guide-view': 'guide',
@@ -196,6 +200,7 @@ function applyRoleBasedUI() {
       if (!can(role, m, 'view')) a.style.display = 'none';
       else a.style.display = '';
     });
+    // İhale Senaryo, kendi yetki satırına (scenario) göre gösterilir/gizlenir.
     const reportsAllowed = can(role, 'reports', 'view');
     document.querySelectorAll('.nav-item[data-month]').forEach(a => { a.style.display = reportsAllowed ? '' : 'none'; });
     const monthsYear = document.getElementById('months-year-select');
@@ -215,12 +220,16 @@ function applyRoleBasedUI() {
   } catch (e) {}
 }
 
+function canViewTarget(target, role) {
+  const m = VIEW_MODULE_MAP[target];
+  return !!m && can(role, m, 'view');
+}
+
 function firstAllowedView(role) {
   const links = Array.from(document.querySelectorAll('.nav-item[data-target]'));
   for (const a of links) {
     const target = a.getAttribute('data-target');
-    const m = VIEW_MODULE_MAP[target];
-    if (m && can(role, m, 'view')) return target;
+    if (canViewTarget(target, role)) return target;
   }
   return 'dashboard';
 }
@@ -231,8 +240,7 @@ function enforceCurrentViewPermission() {
     if (!u || u.role === 'Yönetici') return;
     const active = document.querySelector('.view-section.active');
     if (!active) return;
-    const m = VIEW_MODULE_MAP[active.id];
-    if (m && !can(u.role, m, 'view')) {
+    if (!canViewTarget(active.id, u.role)) {
       const target = firstAllowedView(u.role);
       if (target !== active.id) navigateTo(target);
     }
@@ -1364,6 +1372,7 @@ let _yearCompareChart = null;
 let _tenderYearCompareChart = null;
 
 const TENDER_PAGE_SIZE = 20;
+const SCENARIO_PAGE_SIZE = 50;
 window._tenderPage = 1;
 window._tenderFiltreli = [];
 
@@ -2209,7 +2218,13 @@ function _fieldWarn(el, msg) {
 
 // ----- NAVIGASYON -----
 function navigateTo(target) {
-
+  // İhale Senaryo, yetkisi yoksa URL hash'i ile de açılamaz.
+  const currentUser = data.users.find(x => x.name === data.activeUser);
+  const currentRole = currentUser ? currentUser.role : '';
+  if (target === 'tender-scenario' && !canViewTarget(target, currentRole)) {
+    toast('İhale Senaryo sayfasına erişim yetkiniz yok.', 'warning');
+    target = firstAllowedView(currentRole);
+  }
   _formDirty = false;
   document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
   document.querySelectorAll('.view-section').forEach(v => v.classList.remove('active'));
@@ -2223,7 +2238,7 @@ function navigateTo(target) {
   const titles = {
     'dashboard': 'Genel Bakış', 'warehouse': 'Depoya Giren Ürünler', 'aggregated-stock': 'Depodaki Ürün Miktarları', 'entry': 'Ürün Girişi',
     'exit': 'Ürün Çıkış', 'daily': 'Günlük İşlemler', 'month-view': 'Aylık Rapor',
-    'years-view': 'Yıllık Raporlar', 'year-compare': 'Yıllık Karşılaştırma (Stok)', 'tender-year-compare': 'Yıllık Karşılaştırma (İhale)', 'stt-tracking': 'STT Takibi', 'tender-tracking': 'İhale Takip', 'suppliers': 'Tedarikçiler',     'supplier-report-view': 'Aylık Tedarikçi Raporu', 'critical-stock-view': 'Kritik Stok Listesi', 'user-guide-view': 'Kullanım Kılavuzu', 'settings-view': 'Ayarlar & Bulut', 'daily-cost': 'Günlük Maliyet'
+    'years-view': 'Yıllık Raporlar', 'year-compare': 'Yıllık Karşılaştırma (Stok)', 'tender-year-compare': 'Yıllık Karşılaştırma (İhale)', 'stt-tracking': 'STT Takibi', 'tender-tracking': 'İhale Takip', 'tender-scenario': 'İhale Senaryo Simülasyonu', 'suppliers': 'Tedarikçiler',     'supplier-report-view': 'Aylık Tedarikçi Raporu', 'critical-stock-view': 'Kritik Stok Listesi', 'user-guide-view': 'Kullanım Kılavuzu', 'settings-view': 'Ayarlar & Bulut', 'daily-cost': 'Günlük Maliyet'
   };
   document.getElementById('page-title').textContent = titles[target] || 'STOKDEPO';
 
@@ -2238,6 +2253,7 @@ function navigateTo(target) {
   if (target === 'tender-year-compare') requestAnimationFrame(() => _safe(refreshYearCompareTender));
   if (target === 'stt-tracking') requestAnimationFrame(() => _safe(refreshSttTracking));
   if (target === 'tender-tracking') requestAnimationFrame(() => _safe(refreshTenders));
+  if (target === 'tender-scenario') requestAnimationFrame(() => _safe(refreshTenderScenario));
     if (target === 'suppliers') { 
       try {
         const u2 = data.users.find(x => x.name === data.activeUser);
@@ -5168,6 +5184,673 @@ function refreshTenders(sayfaKoru) {
   refreshTenderChart();
 }
 
+// ----- IHALE SENARYO (SIMULASYON) -----
+// Yöneticiye özel, tek ortak senaryo. Gerçek ihale/stok verisine dokunmaz.
+// Senaryo girişleri Supabase'deki tender_scenario tablosuna otomatik kaydedilir.
+// SaveData() çağrılmaz; yalnızca senaryo tabloları okunur/yazılır.
+let _scenarioState = {}; // tenderId -> { baseDelivered, plannedExtra }
+window._scenarioPage = 1;
+window._scenarioPageRows = [];
+window._scenarioTableList = [];
+window._scenarioSummaryList = [];
+window._scenarioChartRaf = null;
+let _scenarioLoaded = false;
+let _scenarioLoading = null;
+let _scenarioLoadWarned = false;
+let _scenarioSaveWarned = false;
+let _scenarioSaveTimer = null;
+let _scenarioTargetTimer = null;
+const _scenarioPending = new Map();
+
+function _scenarioEntry(id) {
+  const entry = _scenarioState[String(id)];
+  return (entry && typeof entry === 'object') ? entry : null;
+}
+
+function _scenarioSetStatus(mesaj, ok) {
+  const el = document.getElementById('sc-save-status');
+  if (!el) return;
+  el.textContent = mesaj || '';
+  el.style.color = ok === true ? 'var(--success)' : (ok === false ? 'var(--accent)' : 'var(--text-muted)');
+}
+
+function canScenario(action) {
+  try {
+    const u = data.users.find(x => x.name === data.activeUser);
+    const role = u ? u.role : '';
+    if (role === 'Yönetici') return true;
+    if (!role) return false;
+    return can(role, 'scenario', action || 'view');
+  } catch (e) { return false; }
+}
+
+function _scenarioCanPersist() {
+  try { return canScenario('edit') && isSupabaseReady(); } catch (e) { return false; }
+}
+
+async function _scenarioEnsureLoaded() {
+  if (_scenarioLoaded) return;
+  if (_scenarioLoading) return _scenarioLoading;
+  _scenarioLoading = (async () => {
+    if (!(canScenario('view') && isSupabaseReady())) return;
+    try {
+      const [rows, meta] = await Promise.all([
+        supabaseFetch('GET', 'tender_scenario', { select: 'tender_id,base_delivered,planned_extra' }),
+        supabaseFetch('GET', 'tender_scenario_meta', { select: 'target_rate', id: 'eq.1', limit: '1' })
+      ]);
+      const yuklenen = {};
+      (rows || []).forEach(r => {
+        const id = String(r.tender_id);
+        const planned = Number(r.planned_extra) || 0;
+        if (planned > 0) {
+          yuklenen[id] = {
+            baseDelivered: Number(r.base_delivered) || 0,
+            plannedExtra: planned
+          };
+        }
+      });
+      _scenarioState = yuklenen;
+      _scenarioLoadWarned = false;
+      const targetInput = document.getElementById('sc-target-rate');
+      const target = meta && meta[0] ? Number(meta[0].target_rate) : 0;
+      if (targetInput) targetInput.value = (isFinite(target) && target > 0) ? String(Math.min(100, target)) : '';
+    } catch (e) {
+      console.warn('Senaryo kayıtları yüklenemedi:', e);
+      if (!_scenarioLoadWarned) {
+        _scenarioLoadWarned = true;
+        toast('Senaryo kayıtları yüklenemedi. Bağlantıyı ve supabase_senaryo_kurulum.sql kurulumunu kontrol edin.', 'warning');
+      }
+    } finally {
+      _scenarioLoaded = true;
+    }
+  })();
+  try { await _scenarioLoading; } finally { _scenarioLoading = null; }
+}
+
+function _scenarioQueueSave(id, entry) {
+  _scenarioPending.set(String(id), entry
+    ? { baseDelivered: entry.baseDelivered, plannedExtra: entry.plannedExtra }
+    : null);
+  _scenarioSetStatus('Kaydedilecek…');
+  if (_scenarioSaveTimer) clearTimeout(_scenarioSaveTimer);
+  _scenarioSaveTimer = setTimeout(_scenarioFlushSaves, 700);
+}
+
+async function _scenarioFlushSaves() {
+  _scenarioSaveTimer = null;
+  if (!_scenarioCanPersist()) return false;
+  const entries = Array.from(_scenarioPending.entries());
+  _scenarioPending.clear();
+  let hata = false;
+  for (const [id, entry] of entries) {
+    try {
+      if (entry) {
+        await supabaseFetch('POST', 'tender_scenario', { on_conflict: 'tender_id' }, [{
+          tender_id: id,
+          base_delivered: entry.baseDelivered,
+          planned_extra: entry.plannedExtra,
+          updated_at: new Date().toISOString()
+        }]);
+      } else {
+        await supabaseFetch('DELETE', 'tender_scenario', { tender_id: `eq.${id}` });
+      }
+    } catch (e) {
+      hata = true;
+      console.error('Senaryo satırı kaydedilemedi:', e);
+      if (!_scenarioSaveWarned) {
+        _scenarioSaveWarned = true;
+        toast('Senaryo kaydedilemedi. İnternet/Supabase bağlantısını kontrol edin.', 'warning');
+      }
+    }
+  }
+  if (!hata) {
+    _scenarioSaveWarned = false;
+    if (entries.length) _scenarioSetStatus('Kaydedildi', true);
+  } else {
+    _scenarioSetStatus('Kaydedilemedi', false);
+  }
+  return !hata;
+}
+
+function _scenarioQueueTargetSave() {
+  _scenarioSetStatus('Kaydedilecek…');
+  if (_scenarioTargetTimer) clearTimeout(_scenarioTargetTimer);
+  _scenarioTargetTimer = setTimeout(_scenarioFlushTarget, 700);
+}
+
+async function _scenarioFlushTarget() {
+  _scenarioTargetTimer = null;
+  if (!_scenarioCanPersist()) return false;
+  const target = _scenarioTargetRate();
+  try {
+    await supabaseFetch('POST', 'tender_scenario_meta', { on_conflict: 'id' }, [{
+      id: 1,
+      target_rate: target > 0 ? target : null,
+      updated_at: new Date().toISOString()
+    }]);
+    _scenarioSaveWarned = false;
+    _scenarioSetStatus('Kaydedildi', true);
+    return true;
+  } catch (e) {
+    console.error('Senaryo hedef oranı kaydedilemedi:', e);
+    _scenarioSetStatus('Kaydedilemedi', false);
+    if (!_scenarioSaveWarned) {
+      _scenarioSaveWarned = true;
+      toast('Senaryo hedefi kaydedilemedi. Bağlantıyı kontrol edin.', 'warning');
+    }
+    return false;
+  }
+}
+
+function _scenarioTargetRate() {
+  const el = document.getElementById('sc-target-rate');
+  if (!el) return 0;
+  const raw = String(el.value || '').replace(',', '.').trim();
+  if (!raw) return 0;
+  const v = parseFloat(raw);
+  return isFinite(v) && v > 0 ? Math.min(100, v) : 0;
+}
+
+function _scPct(v) {
+  const n = Number(v);
+  return isFinite(n) ? _fmt(Math.round(n * 10) / 10) : '0';
+}
+
+function _scenarioCalc(t) {
+  const quantity = Number(t.quantity) || 0;
+  const delivered = Number(t.delivered) || 0;
+  const price = Number(t.price) || 0;
+  const entry = _scenarioEntry(t.id);
+  const planned = entry ? Math.max(0, Number(entry.plannedExtra) || 0) : 0;
+  const base = entry ? Math.max(0, Number(entry.baseDelivered) || 0) : 0;
+  // Girilen ilave teslim, o tarihten sonra gelen gerçek teslimlerle otomatik azalır.
+  const consumed = entry ? Math.max(0, delivered - base) : 0;
+  const extra = Math.max(0, planned - consumed);
+  const yeniTeslim = delivered + extra;
+  const mevcutOran = quantity > 0 ? (delivered / quantity) * 100 : 0;
+  const yeniOran = quantity > 0 ? (yeniTeslim / quantity) * 100 : 0;
+  const hedef = _scenarioTargetRate();
+  const hedefKalan = (hedef > 0 && quantity > 0) ? Math.max(0, (hedef / 100) * quantity - yeniTeslim) : null;
+  return {
+    quantity, delivered, price, extra, yeniTeslim, mevcutOran, yeniOran,
+    kalan: quantity - yeniTeslim,
+    sozlesmeTutari: quantity * price,
+    teslimTutari: delivered * price,
+    senaryoOnceTutari: delivered * price,
+    senaryoSonraTutari: yeniTeslim * price,
+    hedefKalan,
+    asim: quantity > 0 && yeniTeslim > quantity + 0.0001
+  };
+}
+
+function _scenarioRateColor(rate, asim) {
+  if (asim || rate >= 100) return 'var(--accent)';
+  if (rate >= 80) return '#f97316';
+  if (rate >= 50) return '#eab308';
+  return 'var(--success)';
+}
+
+function _scenarioFillFilters() {
+  const tenders = data.tenders || [];
+  const yearFilter = document.getElementById('sc-year-filter');
+  if (yearFilter) {
+    const secili = yearFilter.value;
+    const yillar = [...new Set(tenders.map(t => t.year || new Date().getFullYear()))].sort((a, b) => b - a);
+    yearFilter.innerHTML = '<option value="">Tüm Yıllar</option>' +
+      yillar.map(y => `<option value="${y}"${String(y) === secili ? ' selected' : ''}>${y}</option>`).join('');
+  }
+  const companyFilter = document.getElementById('sc-company-filter');
+  if (companyFilter) {
+    const secili = companyFilter.value;
+    const firmalar = [...new Set(tenders.map(t => t.companyName).filter(Boolean))].sort((a, b) => a.localeCompare(b));
+    companyFilter.innerHTML = '<option value="">Tüm Firmalar</option>' +
+      firmalar.map(f => `<option value="${htmlEscape(f)}"${f === secili ? ' selected' : ''}>${htmlEscape(f)}</option>`).join('');
+  }
+}
+
+function _scenarioFiltered(ignoreRemaining) {
+  let liste = (data.tenders || []).slice();
+  const yil = document.getElementById('sc-year-filter')?.value || '';
+  const firma = document.getElementById('sc-company-filter')?.value || '';
+  const arama = (document.getElementById('sc-product-search')?.value || '').trim().toLocaleLowerCase('tr');
+  const sadeceKalan = !ignoreRemaining && !!document.getElementById('sc-only-remaining')?.checked;
+  if (yil) liste = liste.filter(t => String(t.year || new Date().getFullYear()) === yil);
+  if (firma) liste = liste.filter(t => t.companyName === firma);
+  if (arama) liste = liste.filter(t => String(t.product || '').toLocaleLowerCase('tr').includes(arama));
+  if (sadeceKalan) liste = liste.filter(t => ((Number(t.quantity) || 0) - (Number(t.delivered) || 0)) > 0.0001);
+  return liste;
+}
+
+function _scenarioRowHtml(t) {
+  const c = _scenarioCalc(t);
+  const mevcutRenk = _scenarioRateColor(c.mevcutOran, false);
+  const yeniRenk = _scenarioRateColor(c.yeniOran, c.asim);
+  const fark = c.yeniOran - c.mevcutOran;
+  const farkTxt = fark > 0.0001 ? `+${_scPct(fark)}` : (fark < -0.0001 ? `-${_scPct(Math.abs(fark))}` : '0');
+  const hedefTxt = c.hedefKalan === null ? '—' : `${_fmt(c.hedefKalan)} ${htmlEscape(t.unit || '')}`;
+  const extraVal = c.extra > 0 ? _fmt(c.extra) : '';
+  const asimEtiket = c.asim ? ' <span class="scenario-over">AŞIM</span>' : '';
+  const canEdit = canScenario('edit');
+  const editAttr = canEdit ? '' : ' disabled aria-disabled="true" title="Bu senaryoyu düzenleme yetkiniz yok"';
+  return `<tr class="scenario-row${c.asim ? ' scenario-row-over' : ''}" id="sc-row-${t.id}">
+      <td style="white-space:nowrap;"><strong>${htmlEscape(t.companyName)}</strong></td>
+      <td style="white-space:nowrap;color:var(--text-secondary);font-size:12px;">${t.year || new Date().getFullYear()}</td>
+      <td style="white-space:nowrap;">${htmlEscape(t.product)}</td>
+      <td style="text-align:right;white-space:nowrap;">${_fmt(c.quantity)}</td>
+      <td style="text-align:right;white-space:nowrap;">${htmlEscape(t.unit || '—')}</td>
+      <td style="text-align:right;white-space:nowrap;" id="sc-del-${t.id}">${_fmt(c.delivered)}</td>
+      <td style="text-align:right;white-space:nowrap;" id="sc-contract-amt-${t.id}">${_fmt(c.sozlesmeTutari)} ₺</td>
+      <td style="text-align:right;white-space:nowrap;" id="sc-before-amt-${t.id}">${_fmt(c.senaryoOnceTutari)} ₺</td>
+      <td style="text-align:right;white-space:nowrap;color:${mevcutRenk};font-weight:700;">%${_scPct(c.mevcutOran)}</td>
+      <td style="text-align:right;white-space:nowrap;">
+        <input type="text" inputmode="decimal" class="form-control scenario-input" id="sc-extra-${t.id}"
+          value="${extraVal}" placeholder="0" autocomplete="off"${editAttr}
+          oninput="scenarioAmountChanged('${t.id}', this.value)">
+      </td>
+      <td style="text-align:right;white-space:nowrap;" id="sc-newdel-${t.id}">${_fmt(c.yeniTeslim)}</td>
+      <td style="text-align:right;white-space:nowrap;" id="sc-after-amt-${t.id}">${_fmt(c.senaryoSonraTutari)} ₺</td>
+      <td style="text-align:right;white-space:nowrap;color:${yeniRenk};font-weight:700;" id="sc-newrate-${t.id}">%${_scPct(c.yeniOran)}${asimEtiket}</td>
+      <td style="text-align:right;white-space:nowrap;" id="sc-remain-${t.id}">${_fmt(c.kalan)}</td>
+      <td style="text-align:right;white-space:nowrap;color:${fark > 0.0001 ? 'var(--success)' : 'var(--text-muted)'};font-weight:600;" id="sc-diff-${t.id}">${farkTxt}</td>
+      <td style="text-align:right;white-space:nowrap;" id="sc-need-${t.id}">${hedefTxt}</td>
+    </tr>`;
+}
+
+function scenarioAmountChanged(id, raw) {
+  const t = (data.tenders || []).find(x => String(x.id) === String(id));
+  if (!t) return;
+  if (!canScenario('edit')) { toast('Senaryoyu düzenleme yetkiniz yok.', 'error'); return; }
+  const text = String(raw == null ? '' : raw).trim();
+  let val = 0;
+  if (text) {
+    val = _parseAmount(text);
+    if (!isFinite(val) || val < 0) val = 0;
+  }
+  const key = String(t.id);
+  const mevcut = _scenarioEntry(t.id);
+  if (val > 0) {
+    // Kullanıcı elle girdiğinde taban, o anki gerçek teslim miktarıdır.
+    const entry = {
+      baseDelivered: Number(t.delivered) || 0,
+      plannedExtra: val
+    };
+    _scenarioState[key] = entry;
+    _scenarioQueueSave(t.id, entry);
+  } else {
+    delete _scenarioState[key];
+    if (mevcut) _scenarioQueueSave(t.id, null);
+  }
+  _scenarioUpdateRow(t);
+  _updateScenarioSummary(window._scenarioSummaryList || []);
+  if (!window._scenarioChartRaf) {
+    window._scenarioChartRaf = requestAnimationFrame(() => {
+      window._scenarioChartRaf = null;
+      try { refreshScenarioChart(); } catch (e) { console.error('Senaryo grafik hatası:', e); }
+    });
+  }
+}
+
+function _scenarioUpdateRow(t) {
+  const c = _scenarioCalc(t);
+  const set = (id, html) => { const el = document.getElementById(id); if (el) el.innerHTML = html; };
+  set(`sc-del-${t.id}`, _fmt(c.delivered));
+  set(`sc-contract-amt-${t.id}`, _fmt(c.sozlesmeTutari) + ' ₺');
+  set(`sc-before-amt-${t.id}`, _fmt(c.senaryoOnceTutari) + ' ₺');
+  set(`sc-newdel-${t.id}`, _fmt(c.yeniTeslim));
+  set(`sc-after-amt-${t.id}`, _fmt(c.senaryoSonraTutari) + ' ₺');
+  set(`sc-newrate-${t.id}`, `%${_scPct(c.yeniOran)}${c.asim ? ' <span class="scenario-over">AŞIM</span>' : ''}`);
+  const rateEl = document.getElementById(`sc-newrate-${t.id}`);
+  if (rateEl) rateEl.style.color = _scenarioRateColor(c.yeniOran, c.asim);
+  set(`sc-remain-${t.id}`, _fmt(c.kalan));
+  const fark = c.yeniOran - c.mevcutOran;
+  const farkTxt = fark > 0.0001 ? `+${_scPct(fark)}` : (fark < -0.0001 ? `-${_scPct(Math.abs(fark))}` : '0');
+  set(`sc-diff-${t.id}`, farkTxt);
+  const diffEl = document.getElementById(`sc-diff-${t.id}`);
+  if (diffEl) diffEl.style.color = fark > 0.0001 ? 'var(--success)' : 'var(--text-muted)';
+  set(`sc-need-${t.id}`, c.hedefKalan === null ? '—' : `${_fmt(c.hedefKalan)} ${htmlEscape(t.unit || '')}`);
+  const row = document.getElementById(`sc-row-${t.id}`);
+  if (row) row.classList.toggle('scenario-row-over', c.asim);
+}
+
+function _scenarioTotals(list) {
+  let contract = 0, current = 0, next = 0;
+  let quantity = 0, currentQty = 0, nextQty = 0;
+  (list || []).forEach(t => {
+    const c = _scenarioCalc(t);
+    contract += c.quantity * c.price;
+    current += c.delivered * c.price;
+    next += c.yeniTeslim * c.price;
+    quantity += c.quantity;
+    currentQty += c.delivered;
+    nextQty += c.yeniTeslim;
+  });
+  const moneyBased = contract > 0;
+  let currentRate = 0, nextRate = 0;
+  if (moneyBased) {
+    currentRate = (current / contract) * 100;
+    nextRate = (next / contract) * 100;
+  } else if (quantity > 0) {
+    currentRate = (currentQty / quantity) * 100;
+    nextRate = (nextQty / quantity) * 100;
+  }
+  const target = _scenarioTargetRate();
+  const needed = (target > 0 && moneyBased) ? Math.max(0, (target / 100) * contract - next) : null;
+  return { contract, current, next, quantity, currentQty, nextQty, currentRate, nextRate, target, needed, moneyBased, count: (list || []).length };
+}
+
+function _updateScenarioSummary(list) {
+  const t = _scenarioTotals(list || []);
+  const curEl = document.getElementById('sc-current-rate');
+  const newEl = document.getElementById('sc-new-rate');
+  const dEl = document.getElementById('sc-delta');
+  const nEl = document.getElementById('sc-target-needed');
+  if (curEl) curEl.textContent = '%' + _scPct(t.currentRate);
+  if (newEl) newEl.textContent = '%' + _scPct(t.nextRate);
+  const curDetail = document.getElementById('sc-current-detail');
+  if (curDetail) curDetail.textContent = t.moneyBased ? `${_fmt(t.current)} / ${_fmt(t.contract)} ₺` : 'Miktar bazlı (fiyat girilmemiş)';
+  const newDetail = document.getElementById('sc-new-detail');
+  if (newDetail) newDetail.textContent = t.moneyBased ? `${_fmt(t.next)} / ${_fmt(t.contract)} ₺` : 'Miktar bazlı (fiyat girilmemiş)';
+  const delta = t.nextRate - t.currentRate;
+  if (dEl) {
+    dEl.textContent = (delta > 0.0001 ? '+' : '') + _scPct(delta) + ' puan';
+    dEl.style.color = delta > 0.0001 ? 'var(--success)' : (delta < -0.0001 ? 'var(--accent)' : 'var(--text-muted)');
+  }
+  if (nEl) {
+    if (t.target <= 0) {
+      nEl.textContent = '—';
+      nEl.style.color = 'var(--text-muted)';
+    } else if (!t.moneyBased) {
+      nEl.textContent = 'Fiyat yok';
+      nEl.style.color = 'var(--text-muted)';
+    } else if (t.needed <= 0.0001) {
+      nEl.textContent = 'Hedefe ulaşıldı';
+      nEl.style.color = 'var(--success)';
+    } else {
+      nEl.textContent = _fmt(t.needed) + ' ₺';
+      nEl.style.color = 'var(--accent)';
+    }
+  }
+  const td = document.getElementById('sc-target-detail');
+  if (td) td.textContent = t.target > 0 ? `Hedef: %${_scPct(t.target)}` : 'Hedef oran girin';
+  const badge = document.getElementById('sc-count-badge');
+  if (badge) {
+    const tabloListe = window._scenarioTableList || list || [];
+    const urunCesidi = [...new Set(tabloListe.map(x => x.product))].length;
+    badge.textContent = tabloListe.length ? `${tabloListe.length} kayıt (${urunCesidi} ürün)` : '';
+  }
+}
+
+async function refreshTenderScenario(sayfaKoru) {
+  if (!canScenario('view')) return;
+  if (!data.tenders) data.tenders = [];
+  await _scenarioEnsureLoaded();
+  const canEdit = canScenario('edit');
+  ['sc-target-rate', 'sc-save-btn'].forEach(id => { const el = document.getElementById(id); if (el) el.disabled = !canEdit; });
+  const resetBtn = document.getElementById('sc-reset-btn'); if (resetBtn) resetBtn.disabled = !canScenario('delete');
+  if (!sayfaKoru) window._scenarioPage = 1;
+  _scenarioFillFilters();
+  const tbody = document.getElementById('sc-body');
+  if (!tbody) return;
+  const liste = _scenarioFiltered();
+  const ozetListe = _scenarioFiltered(true);
+  window._scenarioTableList = liste;
+  window._scenarioSummaryList = ozetListe;
+  const paginationEl = document.getElementById('sc-pagination');
+  if (!liste.length) {
+    const onlyRem = !!document.getElementById('sc-only-remaining')?.checked;
+    const bosMesaj = (ozetListe.length && onlyRem)
+      ? 'Kalanı olan ihale kaydı yok. Özet ve grafik tüm kayıtlar üzerinden hesaplanır.'
+      : 'Filtreye uygun ihale kaydı bulunamadı.';
+    tbody.innerHTML = `<tr><td colspan="16" style="text-align:center;color:var(--text-muted);padding:40px;">${bosMesaj}</td></tr>`;
+    if (paginationEl) paginationEl.style.display = 'none';
+    window._scenarioPageRows = [];
+    _updateScenarioSummary(ozetListe);
+    refreshScenarioChart();
+    return;
+  }
+  const totalPages = Math.max(1, Math.ceil(liste.length / SCENARIO_PAGE_SIZE));
+  if (!window._scenarioPage || window._scenarioPage < 1) window._scenarioPage = 1;
+  if (window._scenarioPage > totalPages) window._scenarioPage = totalPages;
+  const start = (window._scenarioPage - 1) * SCENARIO_PAGE_SIZE;
+  const pageRows = liste.slice(start, start + SCENARIO_PAGE_SIZE);
+  window._scenarioPageRows = pageRows;
+  if (paginationEl) {
+    if (liste.length > SCENARIO_PAGE_SIZE) {
+      paginationEl.style.display = 'flex';
+      const info = document.getElementById('sc-page-info');
+      if (info) info.textContent = `Sayfa ${window._scenarioPage} / ${totalPages} (${liste.length} kayıt)`;
+      const prev = document.getElementById('sc-prev-btn');
+      const next = document.getElementById('sc-next-btn');
+      if (prev) prev.disabled = window._scenarioPage === 1;
+      if (next) next.disabled = window._scenarioPage === totalPages;
+    } else {
+      paginationEl.style.display = 'none';
+    }
+  }
+  tbody.innerHTML = pageRows.map(_scenarioRowHtml).join('');
+  _updateScenarioSummary(ozetListe);
+  refreshScenarioChart();
+}
+
+function scenarioGoPage(delta) {
+  const toplam = (window._scenarioTableList || []).length;
+  const maxPage = Math.max(1, Math.ceil(toplam / SCENARIO_PAGE_SIZE));
+  window._scenarioPage = Math.min(maxPage, Math.max(1, (window._scenarioPage || 1) + delta));
+  refreshTenderScenario(true);
+}
+
+function scenarioTargetChanged() {
+  if (!canScenario('edit')) { toast('Hedef oranı düzenleme yetkiniz yok.', 'error'); return; }
+  _scenarioQueueTargetSave();
+  (window._scenarioPageRows || []).forEach(t => _scenarioUpdateRow(t));
+  _updateScenarioSummary(window._scenarioSummaryList || []);
+  if (!window._scenarioChartRaf) {
+    window._scenarioChartRaf = requestAnimationFrame(() => {
+      window._scenarioChartRaf = null;
+      try { refreshScenarioChart(); } catch (e) { console.error('Senaryo grafik hatası:', e); }
+    });
+  }
+}
+
+async function resetTenderScenario() {
+  if (!canScenario('delete')) { toast('Senaryoyu sıfırlama yetkiniz yok.', 'error'); return; }
+  const hasValues = Object.keys(_scenarioState).length > 0;
+  const targetEl = document.getElementById('sc-target-rate');
+  const hasTarget = !!(targetEl && String(targetEl.value || '').trim());
+  if (!hasValues && !hasTarget) { toast('Sıfırlanacak senaryo girişi yok.', 'info'); return; }
+  if (!confirm('Tüm senaryo girişleri sıfırlansın mı?\n\nGerçek ihale ve stok verileri etkilenmez.')) return;
+  if (_scenarioTargetTimer) { clearTimeout(_scenarioTargetTimer); _scenarioTargetTimer = null; }
+  if (_scenarioSaveTimer) { clearTimeout(_scenarioSaveTimer); _scenarioSaveTimer = null; }
+  _scenarioPending.clear();
+  _scenarioState = {};
+  if (targetEl) targetEl.value = '';
+  _scenarioLoaded = true;
+  if (canScenario('delete') && isSupabaseReady()) {
+    try {
+      await Promise.all([
+        supabaseFetch('DELETE', 'tender_scenario', { tender_id: 'not.is.null' }),
+        supabaseFetch('DELETE', 'tender_scenario_meta', { id: 'eq.1' })
+      ]);
+    } catch (e) {
+      console.error('Senaryo kayıtları silinemedi:', e);
+      toast('Senaryo bellekte sıfırlandı ancak bulut kayıtları silinemedi.', 'warning');
+    }
+  }
+  await refreshTenderScenario(true);
+  toast('Senaryo sıfırlandı.', 'success');
+}
+
+async function saveTenderScenario() {
+  if (!canScenario('edit')) { toast('Senaryoyu kaydetme yetkiniz yok.', 'error'); return; }
+  if (!isSupabaseReady()) {
+    _scenarioSetStatus('Bulut hazır değil', false);
+    toast('Bulut bağlantısı hazır değil. Senaryo kaydedilemez.', 'error');
+    return;
+  }
+  if (_scenarioSaveTimer) { clearTimeout(_scenarioSaveTimer); _scenarioSaveTimer = null; }
+  if (_scenarioTargetTimer) { clearTimeout(_scenarioTargetTimer); _scenarioTargetTimer = null; }
+  _scenarioSetStatus('Kaydediliyor…');
+  const okA = await _scenarioFlushSaves();
+  const okB = await _scenarioFlushTarget();
+  if (okA && okB) {
+    _scenarioSetStatus('Kaydedildi', true);
+    toast('Senaryo kaydedildi.', 'success');
+  } else {
+    _scenarioSetStatus('Kaydedilemedi', false);
+    toast('Senaryo kaydedilemedi. İnternet/Supabase bağlantısını ve SQL kurulumunu kontrol edin.', 'error');
+  }
+}
+
+function refreshScenarioChart() {
+  const canvas = document.getElementById('sc-chart-canvas');
+  const emptyMsg = document.getElementById('sc-chart-empty');
+  const scroll = document.getElementById('sc-chart-scroll');
+  if (!canvas) return;
+  const liste = _scenarioFiltered(true);
+  const firmalar = {};
+  liste.forEach(t => {
+    const c = _scenarioCalc(t);
+    const key = t.companyName || '—';
+    if (!firmalar[key]) firmalar[key] = { contract: 0, current: 0, next: 0, qty: 0, curQty: 0, nextQty: 0 };
+    const f = firmalar[key];
+    f.contract += c.quantity * c.price;
+    f.current += c.delivered * c.price;
+    f.next += c.yeniTeslim * c.price;
+    f.qty += c.quantity;
+    f.curQty += c.delivered;
+    f.nextQty += c.yeniTeslim;
+  });
+  const veri = Object.keys(firmalar).map(name => {
+    const f = firmalar[name];
+    let cur = 0, next = 0;
+    if (f.contract > 0) {
+      cur = (f.current / f.contract) * 100;
+      next = (f.next / f.contract) * 100;
+    } else if (f.qty > 0) {
+      cur = (f.curQty / f.qty) * 100;
+      next = (f.nextQty / f.qty) * 100;
+    }
+    return { label: name, current: Math.min(100, cur), next: Math.min(100, next) };
+  }).sort((a, b) => b.next - a.next);
+  if (!veri.length) {
+    if (scroll) scroll.style.display = 'none';
+    if (emptyMsg) emptyMsg.style.display = 'block';
+    if (window._scenarioChart) { window._scenarioChart.destroy(); window._scenarioChart = null; }
+    return;
+  }
+  if (scroll) scroll.style.display = '';
+  if (emptyMsg) emptyMsg.style.display = 'none';
+  const holder = document.getElementById('sc-chart-holder');
+  if (holder) holder.style.height = Math.max(220, veri.length * 56 + 40) + 'px';
+  if (window._scenarioChart) window._scenarioChart.destroy();
+  const isDark = getTheme() === 'dark';
+  const labelColor = isDark ? '#e2e8f0' : '#334155';
+  const barLabelPlugin = {
+    id: 'scBarLabel',
+    afterDatasetsDraw(chart) {
+      const ctx = chart.ctx;
+      chart.data.datasets.forEach((ds, i) => {
+        const meta = chart.getDatasetMeta(i);
+        meta.data.forEach((bar, idx) => {
+          const val = ds.data[idx];
+          if (val == null) return;
+          ctx.save();
+          ctx.textAlign = 'left';
+          ctx.textBaseline = 'middle';
+          ctx.font = 'bold 11px Outfit, Arial, sans-serif';
+          ctx.fillStyle = isDark ? '#fff' : '#0f172a';
+          ctx.fillText('%' + _scPct(val), bar.x + 8, bar.y);
+          ctx.restore();
+        });
+      });
+    }
+  };
+  const grad = (ctx, from, to) => {
+    if (!ctx.chart?.ctx) return to;
+    const c = ctx.chart.ctx;
+    const area = ctx.chart.chartArea;
+    const x0 = area ? area.left : 0;
+    const x1 = area ? area.right : (ctx.chart.width || 0);
+    const g = c.createLinearGradient(x0, 0, x1, 0);
+    g.addColorStop(0, from);
+    g.addColorStop(1, to);
+    return g;
+  };
+  window._scenarioChart = new Chart(canvas, {
+    type: 'bar',
+    data: {
+      labels: veri.map(v => v.label),
+      datasets: [
+        {
+          label: 'Mevcut %',
+          data: veri.map(v => v.current),
+          backgroundColor: ctx => grad(ctx,
+            isDark ? '#1e40af' : '#1d4ed8',
+            isDark ? '#3b82f6' : '#60a5fa'),
+          borderColor: isDark ? '#60a5fa' : '#2563eb',
+          borderWidth: 0,
+          borderRadius: 6,
+          barPercentage: veri.length > 3 ? 0.7 : 0.6,
+          categoryPercentage: veri.length > 3 ? 0.8 : 0.7
+        },
+        {
+          label: 'Senaryo %',
+          data: veri.map(v => v.next),
+          backgroundColor: ctx => grad(ctx,
+            isDark ? '#166534' : '#16a34a',
+            isDark ? '#22c55e' : '#4ade80'),
+          borderColor: isDark ? '#4ade80' : '#15803d',
+          borderWidth: 0,
+          borderRadius: 6,
+          barPercentage: veri.length > 3 ? 0.7 : 0.6,
+          categoryPercentage: veri.length > 3 ? 0.8 : 0.7
+        }
+      ]
+    },
+    options: {
+      indexAxis: 'y',
+      responsive: true,
+      maintainAspectRatio: false,
+      layout: { padding: { top: 12, bottom: 12, left: 6, right: 60 } },
+      devicePixelRatio: 3,
+      animation: { duration: 800, easing: 'easeOutQuart' },
+      plugins: {
+        legend: {
+          display: true,
+          position: 'bottom',
+          align: 'center',
+          labels: { color: labelColor, font: { size: 11, weight: '600' }, usePointStyle: true, padding: 14 }
+        },
+        tooltip: {
+          backgroundColor: isDark ? '#1e293b' : '#fff',
+          titleColor: isDark ? '#e2e8f0' : '#0f172a',
+          bodyColor: isDark ? '#cbd5e1' : '#334155',
+          borderColor: isDark ? 'rgba(148,163,184,0.2)' : 'rgba(0,0,0,0.1)',
+          borderWidth: 1,
+          padding: 10,
+          cornerRadius: 8,
+          callbacks: {
+            label: ctx => `${ctx.dataset.label}: %${_scPct(ctx.parsed.x)}`
+          }
+        }
+      },
+      scales: {
+        x: {
+          beginAtZero: true,
+          max: 100,
+          grid: { color: isDark ? 'rgba(148,163,184,0.15)' : 'rgba(0,0,0,0.08)' },
+          ticks: { callback: v => v + '%', color: labelColor, font: { size: 12 } }
+        },
+        y: {
+          grid: { display: false },
+          ticks: { color: labelColor, font: { size: 12, weight: 'bold' } }
+        }
+      }
+    },
+    plugins: [barLabelPlugin]
+  });
+}
+
 function exportXLSX_tenders() {
   if (!data.tenders || !data.tenders.length) { toast('Yazdırılacak ihale kaydı yok.', 'info'); return; }
   const yilFiltre = document.getElementById('tender-year-filter')?.value || '';
@@ -5190,6 +5873,49 @@ function exportXLSX_tenders() {
   const headers = ['Firma', 'Yıl', 'Ürün', 'Anlaşma', 'Teslim', 'Kalan', 'Birim Fiyat', 'Oran'];
   _htmlExcelBlob(satirlar, headers, 'ihale_takip_listesi.xls');
   toast('Excel dosyası indirildi.', 'success');
+}
+
+// İhale Senaryo listesini Excel'e aktar (yalnızca okuma; gerçek ihale/stok verisi kaydedilmez)
+function exportXLSX_tender_scenario() {
+  const liste = _scenarioFiltered(true);
+  if (!liste.length) { toast('Dışa aktarılacak ihale kaydı yok.', 'info'); return; }
+  const round1 = v => Math.round(v * 10) / 10;
+  const round2 = v => Math.round(v * 100) / 100;
+  const satirlar = liste.map(t => {
+    const c = _scenarioCalc(t);
+    const fark = round1(c.yeniOran - c.mevcutOran);
+    return [
+      t.companyName || '',
+      Number(t.year) || new Date().getFullYear(),
+      t.product || '',
+      c.quantity,
+      t.unit || '',
+      c.delivered,
+      round2(c.sozlesmeTutari),
+      round2(c.teslimTutari),
+      round1(c.mevcutOran),
+      c.extra,
+      c.yeniTeslim,
+      round2(c.senaryoSonraTutari),
+      round1(c.yeniOran),
+      c.kalan,
+      fark,
+      c.hedefKalan === null ? '' : round2(c.hedefKalan)
+    ];
+  });
+  const ozet = _scenarioTotals(liste);
+  satirlar.push([]);
+  satirlar.push(['ÖZET', '']);
+  satirlar.push(['Mevcut Oran (%)', round1(ozet.currentRate)]);
+  satirlar.push(['Senaryo Oranı (%)', round1(ozet.nextRate)]);
+  satirlar.push(['Değişim (puan)', round1(ozet.nextRate - ozet.currentRate)]);
+  satirlar.push(['Hedef Oran (%)', ozet.target > 0 ? ozet.target : '']);
+  satirlar.push(['Hedefe Kalan (₺)', ozet.needed === null ? '' : round2(ozet.needed)]);
+  satirlar.push(['Kayıt Sayısı', ozet.count]);
+  satirlar.push(['Not', 'Senaryo sayfası, Rol Bazlı Yetkilerdeki İhale Senaryo satırına göre açılır. Bu dosya gerçek ihale/stok verilerini değiştirmez. "Sadece kalanı olanlar" filtresi Excel çıktısına uygulanmaz.']);
+  const headers = ['Firma', 'Yıl', 'Ürün', 'Anlaşma', 'Birim', 'Teslim', 'Sözleşme Tutarı', 'Teslim Tutarı / Senaryo Önce', 'Mevcut %', 'İlave Teslim', 'Yeni Teslim', 'Senaryo Sonra Tutarı', 'Yeni %', 'Kalan', 'Fark (puan)', 'Hedefe Kalan'];
+  _htmlExcelBlob(satirlar, headers, 'ihale_senaryo.xls');
+  toast('Senaryo Excel dosyası indirildi.', 'success');
 }
 
 function openTenderModal(editId) {
@@ -5259,6 +5985,17 @@ async function deleteTender(id) {
     });
   }
   data.tenders = data.tenders.filter(t => t.id !== id);
+  // Senaryo kaydı varsa temizle (gerçek verilere dokunmaz).
+  try {
+    const key = String(id);
+    delete _scenarioState[key];
+    _scenarioPending.delete(key);
+    if (isSupabaseReady()) {
+      await supabaseFetch('DELETE', 'tender_scenario', { tender_id: `eq.${key}` });
+    }
+  } catch (e) {
+    console.error('Senaryo kaydı temizlenemedi:', e);
+  }
   await saveData();
   // Supabase'den de sil
   if (isSupabaseReady()) {
@@ -5342,6 +6079,15 @@ document.getElementById('tender-year-filter')?.addEventListener('change', refres
 document.getElementById('tender-company-filter')?.addEventListener('change', refreshTenders);
 document.getElementById('tender-product-search')?.addEventListener('input', () => refreshTenders());
 document.getElementById('tender-rate-filter')?.addEventListener('change', () => refreshTenders());
+
+// İhale senaryo filtreleri / hedef oran
+document.getElementById('sc-year-filter')?.addEventListener('change', () => refreshTenderScenario());
+document.getElementById('sc-company-filter')?.addEventListener('change', () => refreshTenderScenario());
+document.getElementById('sc-product-search')?.addEventListener('input', () => refreshTenderScenario());
+document.getElementById('sc-only-remaining')?.addEventListener('change', () => refreshTenderScenario());
+document.getElementById('sc-target-rate')?.addEventListener('input', scenarioTargetChanged);
+document.getElementById('sc-reset-btn')?.addEventListener('click', resetTenderScenario);
+document.getElementById('sc-save-btn')?.addEventListener('click', saveTenderScenario);
 
 // ----- LOG KAYITLARI (Supabase) -----
 var _logTurEtiket = { giris: 'GİRİŞ', cikis: 'ÇIKIŞ', duzeltme: 'DÜZELTME', silme: 'SİLME', kullanici: 'KULLANICI', oturum: 'OTURUM' };
@@ -5468,6 +6214,7 @@ function renderRolePermissions() {
     { key: 'reports', label: 'Raporlar' },
     { key: 'stt', label: 'STT Takibi' },
     { key: 'tenders', label: 'İhale Takip' },
+    { key: 'scenario', label: 'İhale Senaryo' },
     { key: 'tendercsv', label: 'İhale CSV Yükle/İndir' },
     { key: 'suppliers', label: 'Tedarikçi & Ürün Tanımla' },
     { key: 'critical', label: 'Kritik Stok' },
@@ -6974,6 +7721,7 @@ function refreshAll() {
     if (id === 'tender-year-compare') _safe(refreshYearCompareTender);
     if (id === 'stt-tracking') _safe(refreshSttTracking);
     if (id === 'tender-tracking') _safe(refreshTenders);
+    if (id === 'tender-scenario') _safe(refreshTenderScenario);
     if (id === 'suppliers') { _safe(refreshSuppliers); _safe(refreshProductNames); }
   }
   } catch (e) { console.error('refreshAll hatası:', e); }
@@ -7071,6 +7819,8 @@ function openExitEdit(id) {
   document.getElementById('exit-edit-product-info').textContent = `${t.productName} — ${t.partiNo} (${tur})`;
   document.getElementById('exit-edit-old-info').textContent = `${tur}: ${_fmt(t.amount)} ${t.unit || ''} | Tarih: ${formatDate(t.date)} | ${t.note || '-'}`;
   document.getElementById('exit-edit-amount').value = _fmt(t.amount);
+  const tarihEl = document.getElementById('exit-edit-date');
+  if (tarihEl) tarihEl.value = /^\d{4}-\d{2}-\d{2}/.test(t.date || '') ? String(t.date).slice(0, 10) : '';
   document.getElementById('exit-edit-note').value = '';
   document.getElementById('exit-edit-modal').classList.add('show');
 }
@@ -7087,45 +7837,71 @@ document.getElementById('exit-edit-form').addEventListener('submit', (e) => {
 
   const yeniMiktar = _parseAmount(document.getElementById('exit-edit-amount').value);
   if (!yeniMiktar || yeniMiktar <= 0) { toast('Geçerli bir miktar girin.', 'error'); return; }
+
+  const tarihEl = document.getElementById('exit-edit-date');
+  const yeniTarih = (tarihEl ? tarihEl.value : '').trim();
+  if (!yeniTarih || !isValidDate(yeniTarih)) { toast('Geçerli bir tarih girin.', 'error'); return; }
+
   const duzeltmeNotu = document.getElementById('exit-edit-note').value.trim();
   const eskiMiktar = t.amount;
-
-  // Fark: girişte stoğa eklenir, çıkışta stoktan düşülür
-  const fark = yeniMiktar - eskiMiktar;
-  if (fark === 0) { toast('Miktar değişmedi.', 'info'); return; }
+  const eskiTarih = String(t.date || '').slice(0, 10);
+  const miktarDegisti = Math.abs(yeniMiktar - eskiMiktar) >= 0.005;
+  const tarihDegisti = yeniTarih !== eskiTarih;
+  if (!miktarDegisti && !tarihDegisti) { toast('Değişiklik yok.', 'info'); return; }
 
   const p = data.products[t.partiNo];
   if (!p) { toast('Ürün kartı bulunamadı.', 'error'); return; }
 
-  const stokEtkisi = (t.type === 'giris' ? fark : -fark);
-  if ((p.stock || 0) + stokEtkisi < 0) {
-    toast(`Yetersiz stok! Mevcut: ${_fmt(p.stock)} ${p.unit}. Bu düzeltme stoğu eksiye düşürür.`, 'error');
-    return;
+  if (miktarDegisti) {
+    // Fark: girişte stoğa eklenir, çıkışta stoktan düşülür
+    const fark = yeniMiktar - eskiMiktar;
+    const stokEtkisi = (t.type === 'giris' ? fark : -fark);
+    if ((p.stock || 0) + stokEtkisi < 0) {
+      toast(`Yetersiz stok! Mevcut: ${_fmt(p.stock)} ${p.unit}. Bu düzeltme stoğu eksiye düşürür.`, 'error');
+      return;
+    }
+    p.stock = (p.stock || 0) + stokEtkisi;
+    _ihaleStokFarkUygula(t.partiNo, stokEtkisi);
+
+    // Miktar ve ona bağlı maliyet alanlarını güncelle
+    t.amount = yeniMiktar;
+    t.totalCost = (t.unitPrice || 0) * yeniMiktar;
+    t.costPerPerson = (t.personCount || 0) > 0 ? t.totalCost / t.personCount : 0;
   }
-  p.stock = (p.stock || 0) + stokEtkisi;
-  _ihaleStokFarkUygula(t.partiNo, stokEtkisi);
 
-  // Kaydı güncelle ve cost'ları yeniden hesapla
-  t.amount = yeniMiktar;
-  t.totalCost = (t.unitPrice || 0) * yeniMiktar;
-  t.costPerPerson = (t.personCount || 0) > 0 ? t.totalCost / t.personCount : 0;
-  t.note = (duzeltmeNotu ? duzeltmeNotu + ' | ' : '') + `${tur} düzeltme: ${_fmt(eskiMiktar)} › ${_fmt(yeniMiktar)} (${data.activeUser})`;
+  // Tarih düzeltmesi stoğa dokunmaz; sadece kaydın günü değişir (maliyet satırı da kayıtla birlikte taşınır)
+  if (tarihDegisti) t.date = yeniTarih;
 
-  // Denetim kaydı (duzeltme)
-  data.transactions.push({
-    id: Math.floor(Date.now() + Math.random() * 1000), type: 'duzeltme', partiNo: t.partiNo, productName: t.productName,
-    amount: Math.abs(fark), unit: t.unit, date: todayStr(),
-    note: `${tur} düzeltme: ${_fmt(eskiMiktar)} › ${_fmt(yeniMiktar)} | Fark: ${_fmt(Math.abs(fark))} ${t.unit} (${t.partiNo})${duzeltmeNotu ? ' — ' + duzeltmeNotu : ''}`,
-    timestamp: new Date().toISOString(), createdBy: data.activeUser || '',
-    personCount: t.personCount || 0, unitPrice: t.unitPrice || 0,
-    totalCost: t.totalCost || 0, costPerPerson: t.costPerPerson || 0
-  });
+  // Düzeltme izini nota ekle — mevcut not korunur
+  const notParcalari = [];
+  if (duzeltmeNotu) notParcalari.push(duzeltmeNotu);
+  if (miktarDegisti) notParcalari.push(`${tur} düzeltme: ${_fmt(eskiMiktar)} › ${_fmt(yeniMiktar)} (${data.activeUser})`);
+  if (tarihDegisti) notParcalari.push(`Tarih düzeltme: ${formatDate(eskiTarih)} › ${formatDate(yeniTarih)} (${data.activeUser})`);
+  const eskiNot = (t.note || '').trim();
+  t.note = [eskiNot, notParcalari.join(' | ')].filter(Boolean).join(' | ');
+
+  // Miktar değiştiyse denetim kaydı (tarih bilgisiyle birlikte)
+  if (miktarDegisti) {
+    const fark = Math.abs(yeniMiktar - eskiMiktar);
+    data.transactions.push({
+      id: Math.floor(Date.now() + Math.random() * 1000), type: 'duzeltme', partiNo: t.partiNo, productName: t.productName,
+      amount: fark, unit: t.unit, date: todayStr(),
+      note: `${tur} düzeltme: ${_fmt(eskiMiktar)} › ${_fmt(yeniMiktar)} | Fark: ${_fmt(fark)} ${t.unit} (${t.partiNo})${tarihDegisti ? ` | Tarih: ${formatDate(eskiTarih)} › ${formatDate(yeniTarih)}` : ''}${duzeltmeNotu ? ' — ' + duzeltmeNotu : ''}`,
+      timestamp: new Date().toISOString(), createdBy: data.activeUser || '',
+      personCount: t.personCount || 0, unitPrice: t.unitPrice || 0,
+      totalCost: t.totalCost || 0, costPerPerson: t.costPerPerson || 0
+    });
+  }
 
   saveData();
   document.getElementById('exit-edit-modal').classList.remove('show');
 
-  toast(`${tur} düzeltildi: ${_fmt(eskiMiktar)} › ${_fmt(yeniMiktar)} ${p.unit}`, 'success');
-  logKaydet('duzeltme', `${tur} düzeltme (${t.partiNo}) ${t.productName}: ${_fmt(eskiMiktar)} › ${_fmt(yeniMiktar)} ${p.unit}${duzeltmeNotu ? ' — ' + duzeltmeNotu : ''}`);
+  const degisimler = [];
+  if (miktarDegisti) degisimler.push(`${_fmt(eskiMiktar)} › ${_fmt(yeniMiktar)} ${p.unit}`);
+  if (tarihDegisti) degisimler.push(`${formatDate(eskiTarih)} › ${formatDate(yeniTarih)}`);
+  const ozet = degisimler.join(', ');
+  toast(`${tur} düzeltildi: ${ozet}${tarihDegisti ? ' (yeni tarihe taşındı)' : ''}`, 'success');
+  logKaydet('duzeltme', `${tur} düzeltme (${t.partiNo}) ${t.productName}: ${ozet}${duzeltmeNotu ? ' — ' + duzeltmeNotu : ''}`);
 
   // Tüm modülleri eşzamanlı güncelle
   refreshDailyView();

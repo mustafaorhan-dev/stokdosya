@@ -1216,6 +1216,14 @@ input[type="file"].form-control { padding: 8px; }
   color: #0f172a;
   border-bottom-color: #e2e8f0;
 }
+#tender-tracking .minimal-table th,
+#tender-tracking .minimal-table td {
+  border-left: 1px solid rgba(148,163,184,0.12);
+}
+#tender-tracking .minimal-table th:first-child,
+#tender-tracking .minimal-table td:first-child {
+  border-left: 0;
+}
 #tender-tracking .minimal-table tbody tr.tender-row:hover td {
   background: #e2e8f0;
   transition: background 0.12s ease;
@@ -1274,4 +1282,72 @@ input[type="file"].form-control { padding: 8px; }
 }
 [data-theme="dark"] #tender-tracking .minimal-table tbody tr.tender-row-warn:hover td {
   background: rgba(239,68,68,0.07) !important;
+}
+
+/* ---- İhale Senaryo (simülasyon) ---- */
+#tender-scenario .minimal-table th {
+  white-space: normal;
+  overflow-wrap: normal;
+  word-break: normal;
+  line-height: 1.25;
+  vertical-align: bottom;
+}
+#tender-scenario .minimal-table th:nth-child(7),
+#tender-scenario .minimal-table th:nth-child(8),
+#tender-scenario .minimal-table th:nth-child(12) {
+  min-width: 105px;
+  max-width: 150px;
+}
+#tender-scenario .minimal-table th,
+#tender-scenario .minimal-table td {
+  border-left: 1px solid rgba(148,163,184,0.12);
+}
+#tender-scenario .minimal-table th:first-child,
+#tender-scenario .minimal-table td:first-child {
+  border-left: 0;
+}
+#tender-scenario .scenario-badge {
+  display: inline-block;
+  margin-left: 8px;
+  padding: 2px 9px;
+  border-radius: 999px;
+  background: rgba(168,85,247,0.15);
+  color: #a855f7;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+  vertical-align: middle;
+}
+#tender-scenario .scenario-input {
+  width: 100px;
+  min-width: 88px;
+  padding: 5px 8px;
+  font-size: 12px;
+  text-align: right;
+  font-weight: 700;
+  border-color: #a855f7;
+}
+#tender-scenario .scenario-input:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(168,85,247,0.2);
+}
+#tender-scenario .scenario-over {
+  display: inline-block;
+  margin-left: 4px;
+  padding: 1px 6px;
+  border-radius: 999px;
+  background: rgba(239,68,68,0.15);
+  color: var(--accent);
+  font-size: 10px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+#tender-scenario .minimal-table tbody tr.scenario-row-over td {
+  background: #fff5f5 !important;
+}
+[data-theme="dark"] #tender-scenario .minimal-table tbody tr.scenario-row-over td {
+  background: rgba(239,68,68,0.10) !important;
+}
+#tender-scenario .minimal-table tbody tr:hover td {
+  background: var(--bg-hover);
 }

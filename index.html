@@ -7,7 +7,7 @@
     <title>DEPO STOK</title>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="icon" type="image/svg+xml" href="favicon.svg">
-    <link rel="stylesheet" href="style.css?v=20261026r">
+    <link rel="stylesheet" href="style.css?v=20261105d">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
 </head>
@@ -139,6 +139,10 @@
                     <a href="#tender-tracking" class="nav-item" data-target="tender-tracking">
                         <i class="fa-solid fa-file-signature" style="color:#f97316;"></i>
                         <span>İhale Takip</span>
+                    </a>
+                    <a href="#tender-scenario" class="nav-item" data-target="tender-scenario">
+                        <i class="fa-solid fa-flask" style="color:#a855f7;"></i>
+                        <span>İhale Senaryo</span>
                     </a>
                     <a href="#critical-stock-view" class="nav-item" data-target="critical-stock-view">
                         <i class="fa-solid fa-triangle-exclamation" style="color:#ef4444;"></i>
@@ -1133,6 +1137,114 @@
                 </div>
             </div>
 
+            <!-- IHALE SENARYO (SIMULASYON) -->
+            <div id="tender-scenario" class="view-section">
+                <div class="panel-container" style="margin-bottom:1.5rem;">
+                    <div class="panel-header" style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;">
+                        <h3><i class="fa-solid fa-flask" style="color:#a855f7;"></i> İhale Senaryo Simülasyonu <span class="scenario-badge">YETKİYE BAĞLI</span></h3>
+                        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+                            <button type="button" class="btn-ui btn-primary" style="font-size:12px;padding:6px 12px;" onclick="exportXLSX_tender_scenario()" title="Yıl/firma/ürün filtresine uygun tüm kayıtları Excel'e aktar (kalan filtresi hariç)"><i class="fa-solid fa-file-excel"></i> Excel İndir</button>
+                            <button type="button" id="sc-save-btn" class="btn-ui btn-outline" style="font-size:12px;padding:6px 12px;" title="Bekleyen senaryo ve hedef girişlerini hemen kaydet"><i class="fa-solid fa-floppy-disk"></i> Kaydet</button>
+                            <span id="sc-save-status" style="font-size:12px;color:var(--text-muted);font-weight:600;white-space:nowrap;" role="status" aria-live="polite"></span>
+                            <label for="sc-target-rate" style="font-size:12px;color:var(--text-secondary);font-weight:600;margin:0;white-space:nowrap;">Hedef Oran</label>
+                            <div style="position:relative;">
+                                <input type="text" inputmode="numeric" id="sc-target-rate" class="form-control" placeholder="80" style="width:82px;font-size:12px;padding:6px 24px 6px 8px;text-align:right;">
+                                <span style="position:absolute;right:8px;top:50%;transform:translateY(-50%);font-size:12px;color:var(--text-muted);pointer-events:none;">%</span>
+                            </div>
+                            <button type="button" id="sc-reset-btn" class="btn-ui btn-outline" style="font-size:12px;padding:6px 12px;"><i class="fa-solid fa-rotate-left"></i> Sıfırla</button>
+                        </div>
+                    </div>
+                    <div style="padding:1rem 1.25rem;display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;">
+                        <div class="yc-stat-card">
+                            <span class="yc-stat-label">Mevcut Oran</span>
+                            <span class="yc-stat-value yc-blue" id="sc-current-rate">%0</span>
+                            <span style="font-size:11px;color:var(--text-muted);" id="sc-current-detail">Teslim / Anlaşma</span>
+                        </div>
+                        <div class="yc-stat-card">
+                            <span class="yc-stat-label">Senaryo Oranı</span>
+                            <span class="yc-stat-value yc-green" id="sc-new-rate">%0</span>
+                            <span style="font-size:11px;color:var(--text-muted);" id="sc-new-detail">Teslim / Anlaşma</span>
+                        </div>
+                        <div class="yc-stat-card">
+                            <span class="yc-stat-label">Değişim</span>
+                            <span class="yc-stat-value" id="sc-delta">+0 puan</span>
+                            <span style="font-size:11px;color:var(--text-muted);" id="sc-delta-detail">Senaryo - Mevcut</span>
+                        </div>
+                        <div class="yc-stat-card">
+                            <span class="yc-stat-label">Hedefe Kalan</span>
+                            <span class="yc-stat-value yc-red" id="sc-target-needed">—</span>
+                            <span style="font-size:11px;color:var(--text-muted);" id="sc-target-detail">Hedef oran girin</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="panel-container" style="margin-bottom:1.5rem;">
+                    <div class="panel-header">
+                        <h3><i class="fa-solid fa-chart-bar"></i> Mevcut / Senaryo Karşılaştırması</h3>
+                    </div>
+                    <div style="padding:1rem;">
+                        <div id="sc-chart-scroll" style="max-height:70vh;overflow-y:auto;overflow-x:hidden;">
+                            <div id="sc-chart-holder" style="position:relative;width:100%;height:320px;">
+                                <canvas id="sc-chart-canvas" style="width:100%;height:100%;display:block;"></canvas>
+                            </div>
+                        </div>
+                        <div id="sc-chart-empty" style="color:var(--text-secondary);text-align:center;font-size:0.85rem;padding:40px 0;display:none;">Gösterilecek ihale kaydı bulunamadı.</div>
+                    </div>
+                </div>
+
+                <div class="panel-container">
+                    <div class="panel-header">
+                        <h3><i class="fa-solid fa-table-list"></i> Senaryo Listesi</h3>
+                        <div style="display:flex; gap:8px;align-items:center;flex-wrap:wrap;">
+                            <input type="search" id="sc-product-search" class="form-control" placeholder="Ürün ara..." autocomplete="off" style="width:150px;font-size:12px;">
+                            <select id="sc-company-filter" class="form-control" style="width:auto;min-width:130px;font-size:12px;">
+                                <option value="">Tüm Firmalar</option>
+                            </select>
+                            <select id="sc-year-filter" class="form-control" style="width:auto;min-width:90px;font-size:12px;">
+                                <option value="">Tüm Yıllar</option>
+                            </select>
+                            <label style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text-secondary);font-weight:600;margin:0;white-space:nowrap;cursor:pointer;">
+                                <input type="checkbox" id="sc-only-remaining" checked> Sadece kalanı olanlar
+                            </label>
+                            <span id="sc-count-badge" style="font-size:12px;color:var(--text-muted);font-weight:600;"></span>
+                        </div>
+                    </div>
+                    <div style="padding:6px 4px;overflow-x:auto;">
+                        <table class="minimal-table" style="width:100%;">
+                            <thead>
+                                <tr>
+                                    <th>Firma Adı</th>
+                                    <th style="width:40px;">Yıl</th>
+                                    <th>Ürün</th>
+                                    <th style="text-align:right">Anlaşma</th>
+                                    <th style="text-align:right;width:45px;">Birim</th>
+                                    <th style="text-align:right">Teslim</th>
+                                    <th style="text-align:right">Sözleşme Tutarı</th>
+                                    <th style="text-align:right">Teslim Tutarı / Senaryo Önce</th>
+                                    <th style="text-align:right">Mevcut %</th>
+                                    <th style="text-align:right;min-width:110px;">İlave Teslim</th>
+                                    <th style="text-align:right">Yeni Teslim</th>
+                                    <th style="text-align:right">Senaryo Sonra Tutarı</th>
+                                    <th style="text-align:right">Yeni %</th>
+                                    <th style="text-align:right">Kalan</th>
+                                    <th style="text-align:right">Fark</th>
+                                    <th style="text-align:right">Hedefe Kalan</th>
+                                </tr>
+                            </thead>
+                            <tbody id="sc-body"></tbody>
+                        </table>
+                    </div>
+                    <div id="sc-pagination" style="display:none;align-items:center;justify-content:center;gap:12px;flex-wrap:wrap;padding:12px 8px 16px;">
+                        <button type="button" class="btn-ui btn-outline btn-sm" id="sc-prev-btn" onclick="scenarioGoPage(-1)"><i class="fa-solid fa-chevron-left"></i> Önceki</button>
+                        <span id="sc-page-info" style="font-size:13px;color:var(--text-secondary);font-weight:600;"></span>
+                        <button type="button" class="btn-ui btn-outline btn-sm" id="sc-next-btn" onclick="scenarioGoPage(1)">Sonraki <i class="fa-solid fa-chevron-right"></i></button>
+                    </div>
+                    <p style="padding:0 1rem 1rem;font-size:12px;color:var(--text-muted);line-height:1.5;">
+                        <i class="fa-solid fa-circle-info"></i> Bu sayfa, <strong>Rol Bazlı Yetkiler</strong> ekranındaki <strong>İhale Senaryo</strong> satırında Görüntüle yetkisi olan roller için açılır. Yetki verilmeyen rol sayfayı göremez. İlave teslim miktarları ve hedef oran, Düzenle yetkisiyle otomatik buluta kaydedilir; isterseniz beklemeden hemen kaydetmek için <strong>Kaydet</strong> butonuna basın. Gerçek ihale ve stok verilerini değiştirmez. Gerçek teslimler geldikçe senaryodaki ilave miktar otomatik azalır. <strong>Sıfırla</strong> butonu tüm senaryo girişlerini siler.
+                    </p>
+                </div>
+            </div>
+
             <!-- Supplier / Tedarikçi Yönetimi -->
             <div id="suppliers" class="view-section">
                 <div class="panel-container">
@@ -1255,7 +1367,7 @@
                             <li>Teslim alan / sevkiyat notu ekleyebilirsiniz.</li>
                             <li>Stok yetersizse uyarı verilir.</li>
                             <li><strong>Çakışma önleme:</strong> Kayıt öncesi GitHub'dan en son veri çekilir, stok kontrolü güncel veriyle yapılır.</li>
-                            <li><strong>Yönetici (MUSTAFA ORHAN):</strong> Günlük İşlemler sayfasında "Düzelt" butonu ile çıkış miktarını düzeltebilir, stok otomatik güncellenir. Düzeltme kaydı "Son Hareketler"e eklenir.</li>
+                            <li><strong>Yönetici (MUSTAFA ORHAN):</strong> Günlük İşlemler sayfasında "Düzelt" butonu ile çıkış/giriş <strong>miktarını ve tarihini</strong> düzeltebilir. Miktar değişirse stok otomatik güncellenir; tarih değişikliği stoğu etkilemez, kayıt yeni tarihe taşınır. Düzeltme kaydı "Son Hareketler"e ve log'a eklenir.</li>
                         </ul>
 
                         <h3>5. Günlük İşlemler</h3>
@@ -1274,6 +1386,7 @@
                         <h3>7. Takip</h3>
                         <p><strong>STT Takibi:</strong> Tüm ürünlerin son tüketim tarihlerini takip eder. Süresi geçen, yaklaşan (≤30 gün) ve süre var (>30 gün) şeklinde filtreleme yapılabilir.</p>
                         <p><strong>İhale Takip:</strong> Tedarikçilerle yapılan ihale anlaşmalarını ve teslimat oranlarını takip eder. Yeni ihale eklenebilir, düzenlenebilir. Listenin üstünde <strong>İhale Çekilme Yüzdeleri</strong> grafiği bulunur (yıl filtresine göre güncellenir). Yıl bilgisi manuel seçilir (2016'dan itibaren).</p>
+                        <p><strong>İhale Senaryo:</strong> "Ne kadar daha teslim alırsam oranım % kaça çıkar?" sorusunu yanıtlayan, <strong>Rol Bazlı Yetkiler</strong> ekranındaki <strong>İhale Senaryo</strong> satırına göre açılan simülasyon sayfasıdır. İhale Takip listesinin aynısını gösterir; her satırdaki <strong>İlave Teslim</strong> alanına miktar girildikçe yeni teslim, yeni % ve fark anında hesaplanır. Girdiler ve üstteki <strong>Hedef Oran</strong>, Düzenle yetkisi olan roller için otomatik olarak buluta kaydedilir; isterseniz beklemeden hemen kaydetmek için <strong>Kaydet</strong> butonuna basın. Gerçek ürün girişi yapıldıkça senaryodaki ilave miktar otomatik azalır; gerçek ihale/stok verileri değiştirilmez. <strong>Sıfırla</strong> butonu tüm senaryo girişlerini siler. <strong>Excel İndir</strong> butonu, filtreye uygun tüm kayıtları mevcut ve senaryo değerleriyle birlikte tek sayfalık Excel dosyası olarak indirir.</p>
                         <p><strong>Tedarikçi & Ürün Tanımla:</strong> Tedarikçi listesi yönetimi (ekleme, düzenleme, silme) ve ürün isim listesi. Tedarikçi adı düzenlenebilir — tüm referanslar (ürünler, ihaleler, hareketler) otomatik güncellenir.</p>
                         <p><strong>Kritik Stok:</strong> Kritik limit altındaki tüm ürünlerin tam listesi. Excel, Word ve PDF çıktısı alınabilir (İhale Kalan sütunu dahil).</p>
 
@@ -1458,6 +1571,11 @@
                             <input type="text" inputmode="decimal" id="exit-edit-amount" class="form-control" required>
                         </div>
                         <div class="form-group">
+                            <label>Tarih</label>
+                            <input type="date" id="exit-edit-date" class="form-control" required>
+                            <small style="display:block;margin-top:4px;font-size:11px;color:var(--text-secondary);">Tarih değişikliği stoğu etkilemez; kayıt yeni tarihe taşınır.</small>
+                        </div>
+                        <div class="form-group">
                             <label>Düzeltme Notu</label>
                             <input type="text" id="exit-edit-note" class="form-control" placeholder="Sehven fazla çıkış yapıldı...">
                         </div>
@@ -1588,7 +1706,7 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="app.js?t=20261027c" charset="UTF-8"></script>
+    <script src="app.js?t=20261105l" charset="UTF-8"></script>
 </body>
 
 </html>
